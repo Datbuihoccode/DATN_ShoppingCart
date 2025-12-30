@@ -471,8 +471,6 @@ E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\7sf862cih
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\tj6pbvm2my-muycvpuwrr.gz
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\0gesjfx4nl-87fc7y1x7t.gz
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\7brgm2bvka-mlv21k5csn.gz
-E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\edox7vfd3x-esfxi5ozui.gz
-E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\uqoptnfp9w-esfxi5ozui.gz
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\staticwebassets.build.json
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\staticwebassets.build.json.cache
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\staticwebassets.development.json
@@ -485,3 +483,7 @@ E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\ShoppingCard.genrunt
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\ref\ShoppingCard.dll
 E:\Đồ án Web\ShoppingCard\ShoppingCard\bin\Debug\net9.0\Newtonsoft.Json.dll
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\ShoppingCard.sourcelink.json
+E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\scopedcss\Areas\Admin\Views\Shared\_Layout.cshtml.rz.scp.css
+E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\edox7vfd3x-dv4lseeezt.gz
+E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\uqoptnfp9w-dv4lseeezt.gz

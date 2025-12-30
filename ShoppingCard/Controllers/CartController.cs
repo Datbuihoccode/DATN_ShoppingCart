@@ -42,6 +42,8 @@ namespace ShoppingCard.Controllers
 
             HttpContext.Session.SetJson("Cart", cart);
 
+            TempData["success"] = "Product added to cart successfully!";
+
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
@@ -65,6 +67,7 @@ namespace ShoppingCard.Controllers
             else { 
                 HttpContext.Session.SetJson("Cart", cart);
             }
+            TempData["success"] = "Product quantity updated successfully!";
             return RedirectToAction("Index");
         }
         public async Task<IActionResult> Increase(int Id)
@@ -89,6 +92,7 @@ namespace ShoppingCard.Controllers
             {
                 HttpContext.Session.SetJson("Cart", cart);
             }
+            TempData["success"] = "Product quantity updated successfully!";
             return RedirectToAction("Index");
         }
         public async Task<IActionResult> Remove(int Id)
@@ -103,11 +107,14 @@ namespace ShoppingCard.Controllers
             {
                 HttpContext.Session.SetJson("Cart", cart);
             }
+            TempData["success"] = "Product removed from cart successfully!";
             return RedirectToAction("Index");
         }
         public async Task<IActionResult> Clear()
         {
             HttpContext.Session.Remove("Cart");
+
+            TempData ["success"] = "Cart cleared successfully!";
             return RedirectToAction("Index");
         }
     }

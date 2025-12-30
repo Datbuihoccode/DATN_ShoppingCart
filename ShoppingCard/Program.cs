@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Repository;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -44,8 +43,11 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+    
+app.MapControllerRoute(
+    name: "Areas",
+    pattern: "{area:exists}/{controller=Product}/{action=Index}/{id?}");
 
 //Seeding Data
 var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
