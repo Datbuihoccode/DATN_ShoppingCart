@@ -1,5 +1,27 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
+## Visual Studio 2022 specific ##
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
-/ShoppingCard.sln
+## Build results ##
+[Bb]in/
+[Oo]bj/
+
+## .NET Core / ASP.NET Core ##
+appsettings.Development.json
+appsettings.Local.json
+*.db
+coverage.json
+coverage-final.json
+
+## Nuget ##
+[Nn]uget/
+packages/
+*.nuget.props
+*.nuget.targets
+
+## Temporary files ##
+*.log
+*.tmp
