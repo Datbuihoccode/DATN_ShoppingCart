@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ShoppingCard.Repository.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShoppingCard.Models
@@ -32,12 +33,12 @@ namespace ShoppingCard.Models
 
         public BrandModel Brand { get; set; }
 
-        [Required(ErrorMessage = "Yêu cầu chọn hình ảnh.")]
-        public string Image { get; set; }
+       
+        public string Image { get; set; } 
 
         [NotMapped]
-        [FileExtensions]
-        public IFormFile ImageUpload { get; set; }
+        [FileExtension] 
+        public IFormFile? ImageUpload { get; set; }
 
     }
 }

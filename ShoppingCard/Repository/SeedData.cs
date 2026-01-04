@@ -60,7 +60,7 @@ namespace ShoppingCard.Repository
                         Price = 28000000,
                         Brand = samsung,
                         Category = pc,
-                        Image = "1.jpg"
+                        Image = "2.jpg"
                     }
                 );
                 _context.SaveChanges();
