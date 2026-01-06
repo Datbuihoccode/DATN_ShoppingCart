@@ -487,3 +487,4 @@ E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\ShoppingCard.sourcel
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\scopedcss\Areas\Admin\Views\Shared\_Layout.cshtml.rz.scp.css
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\edox7vfd3x-dv4lseeezt.gz
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\uqoptnfp9w-dv4lseeezt.gz
+E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\wjgc1f7fjg-2qf1wd7m0u.gz
