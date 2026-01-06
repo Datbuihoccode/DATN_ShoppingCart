@@ -25,7 +25,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 
 builder.Services.AddIdentity<AppUserModel,IdentityRole>()
-    .AddEntityFrameworkStores<DbContext>().AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
 
 
 builder.Services.Configure<IdentityOptions>(options =>
