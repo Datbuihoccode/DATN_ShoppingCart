@@ -1,4 +1,3 @@
-wwwroot\backend\js\site.js
 wwwroot\css\animate.css
 wwwroot\css\bootstrap.min.css
 wwwroot\css\font-awesome.min.css
@@ -7,8 +6,6 @@ wwwroot\css\prettyPhoto.css
 wwwroot\css\price-range.css
 wwwroot\css\responsive.css
 wwwroot\favicon.ico
-wwwroot\images\1.jpg
-wwwroot\images\2.jpg
 wwwroot\images\home\gallery2.jpg
 wwwroot\js\bootstrap.min.js
 wwwroot\js\contact.js
@@ -79,10 +76,13 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-wwwroot\media\products\35a57c8c-bb15-41da-9476-a6458d60eb05_1.jpg
-wwwroot\media\products\5547b03f-1c08-48f8-9a62-ee933fe3bf77_galaxy-s24-plus-tim.webp
+wwwroot\images\1.jpg
+wwwroot\images\2.jpg
 wwwroot\media\products\8850e033-22cd-4585-8572-450b56d84c69_2.jpg
 wwwroot\media\products\a4516677-6f36-4e26-8b89-664d35fd9662_2.jpg
+wwwroot\media\products\35a57c8c-bb15-41da-9476-a6458d60eb05_1.jpg
+wwwroot\media\products\5547b03f-1c08-48f8-9a62-ee933fe3bf77_galaxy-s24-plus-tim.webp
+wwwroot\backend\js\site.js
 E:\Đồ án Web\ShoppingCard\ShoppingCard\wwwroot\lib\jquery\LICENSE.txt
 E:\Đồ án Web\ShoppingCard\ShoppingCard\wwwroot\lib\jquery\dist\jquery.slim.min.map
 E:\Đồ án Web\ShoppingCard\ShoppingCard\wwwroot\lib\jquery\dist\jquery.slim.min.js

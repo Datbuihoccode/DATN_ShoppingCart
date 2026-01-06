@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ShoppingCard.Models;
 using ShoppingCard.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +24,27 @@ builder.Services.AddDbContext<DataContext>(options =>
 });
 
 
+builder.Services.AddIdentity<AppUserModel,IdentityRole>()
+    .AddEntityFrameworkStores<DbContext>().AddDefaultTokenProviders();
+
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    // Password settings.
+    options.Password.RequireDigit = true;               //yeu cau so
+    options.Password.RequireLowercase = true;           //yeu cau chu thuong
+    options.Password.RequireNonAlphanumeric = false;     //yeu cau ky tu dac biet
+    options.Password.RequireUppercase = false;           //yeu cau chu in hoa
+    options.Password.RequiredLength = 4;                //do dai toi thieu
+    options.Password.RequiredUniqueChars = 1;           //ky tu dac biet
+
+    options.User.RequireUniqueEmail = true;
+});
+
+
 var app = builder.Build();
+
+
 
 app.UseStatusCodePagesWithRedirects("/Home/Error?statuscode={0}");
 
@@ -39,6 +61,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
