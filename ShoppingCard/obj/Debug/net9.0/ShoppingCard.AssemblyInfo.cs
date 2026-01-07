@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ShoppingCard")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f203460690d53674349fdd23cb126e682a80c6e6")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab57654aa03571cdff3a1446ac702cc25d2b8c5b")]
 [assembly: System.Reflection.AssemblyProductAttribute("ShoppingCard")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ShoppingCard")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
