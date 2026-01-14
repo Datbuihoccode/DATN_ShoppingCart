@@ -30,8 +30,23 @@ namespace ShoppingCard.Controllers
                 orderItem.Status = 1;
                 orderItem.CreateDate = DateTime.Now;
                 _dataContext.Orders.Add(orderItem);
-                await  _dataContext.SaveChangesAsync();
-                TempData["Success"] = "Đơn hàng đã được tạo thành công!";
+                _dataContext.SaveChanges();
+
+                List<CartItemModel> cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+                foreach (var cart in cartItems)
+                {
+                    var orderDetails = new OrderDetailsModel();
+                    orderDetails.UserName = userEmail;
+                    orderDetails.OrderCode = orderCode;
+                    orderDetails.ProductId = cart.ProductId;
+                    orderDetails.Price = cart.Price;
+                    orderDetails.Quantity = cart.Quantity;
+                    _dataContext.Add(orderDetails);
+                    _dataContext.SaveChanges();
+
+                }
+                HttpContext.Session.Remove("Cart");
+                TempData["Success"] = "Thanh toán thành công, vui lòng chờ duyệt đơn hàng.";
                 return RedirectToAction("Index", "Cart");
             }
             return View(Checkout);

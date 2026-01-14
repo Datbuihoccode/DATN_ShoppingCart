@@ -15,17 +15,21 @@ namespace ShoppingCard.Areas.Admin.Controllers
         {
             _dataContext = context;
         }
+
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             return View(await _dataContext.Brands.OrderByDescending(b => b.Id).ToListAsync());
         }
 
+        [Route("Create")]
         public IActionResult Create()
         {
             return View();
         }
 
         // -- Create brand --
+        [Route("Create")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BrandModel brand)
@@ -64,12 +68,14 @@ namespace ShoppingCard.Areas.Admin.Controllers
             return View(brand);
         }
 
+        [Route("Edit/{Id}")]
         public async Task<IActionResult> Edit(int Id)
         {
             BrandModel brand = await _dataContext.Brands.FindAsync(Id);
             return View(brand);
         }
         // -- Edit brand --
+        [Route("Edit/{Id}")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(BrandModel brand)

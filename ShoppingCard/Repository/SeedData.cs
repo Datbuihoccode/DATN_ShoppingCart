@@ -1,13 +1,57 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ShoppingCard.Models;
 
 namespace ShoppingCard.Repository
 {
     public class SeedData
     {
-        public static void SeedingData(DataContext _context)
+        public static async Task SeedingData(DataContext _context, IServiceProvider serviceProvider)
         {
             _context.Database.Migrate();
+
+            try
+            {
+                var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = serviceProvider.GetRequiredService<UserManager<AppUserModel>>();
+
+                // Tạo các Roles nếu chưa có
+                string[] roleNames = { "Admin", "Publisher", "Author", "User" };
+                foreach (var roleName in roleNames)
+                {
+                    if (!await roleManager.RoleExistsAsync(roleName))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(roleName));
+                    }
+                }
+
+                // Tạo User Admin nếu chưa có
+                if (!userManager.Users.Any(u => u.UserName == "Admin"))
+                {
+                    var adminUser = new AppUserModel
+                    {
+                        UserName = "Admin",
+                        Email = "admin@gmail.com",
+                        PhoneNumber = "0123456789",
+                        EmailConfirmed = true
+                    };
+
+                    
+                    var result = await userManager.CreateAsync(adminUser, "Admin@123");
+
+                    if (result.Succeeded)
+                    {
+                        await userManager.AddToRoleAsync(adminUser, "Admin");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nếu cần, hoặc bỏ qua nếu chỉ là lỗi trùng lặp khi chạy lại
+                Console.WriteLine("Lỗi khi seed User/Role: " + ex.Message);
+            }
+
             if (!_context.Products.Any()) 
             {
                 CategoryModel macbook = new CategoryModel 

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
@@ -83,10 +83,19 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-    
+
 
 //Seeding Data
-var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
-SeedData.SeedingData(context);
+//var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
 
+//SeedData.SeedingData(context);
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<DataContext>();
+
+    // Gọi hàm SeedData với đủ 2 tham số và dùng await
+    await SeedData.SeedingData(context, services);
+}
+// ------------------------------------
 app.Run();
