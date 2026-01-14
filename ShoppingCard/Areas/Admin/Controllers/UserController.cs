@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
+using System.Security.Claims;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -40,6 +41,9 @@ namespace ShoppingCard.Areas.Admin.Controllers
                                         join r in _dataContext.Roles on ur.RoleId equals r.Id
                                         select new {User = u, RoleName = r.Name})
                                         .ToListAsync();
+
+            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier); // Lấy ID của người dùng hiện tại
+            ViewBag.loggedInUserID = loggedInUserID;
             return View(usersWithRoles);
         }
 
@@ -100,28 +104,27 @@ namespace ShoppingCard.Areas.Admin.Controllers
             ViewBag.Roles = new SelectList(roles, "Id", "Name");
             return View(user);
         }
-        
 
-        //[HttpGet]
-        //[Route("Edit")]
-        //public async Task<IActionResult> Edit(string id)
-        //{
-        //    if (string.IsNullOrEmpty(id))
-        //    {
-        //        return NotFound();
-        //    }
-        //    var user = await _userManager.FindByIdAsync(id);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
 
-        //    var roles = await _roleManager.Roles.ToListAsync();
-        //    ViewBag.Roles = new SelectList(roles, "Id", "Name");
+        [HttpGet]
+        [Route("Edit")]
+        public async Task<IActionResult> Edit(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return NotFound();
+            }
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-        //    return View(user);
-        //}
+            var roles = await _roleManager.Roles.ToListAsync();
+            ViewBag.Roles = new SelectList(roles, "Id", "Name");
 
+            return View(user);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit")]

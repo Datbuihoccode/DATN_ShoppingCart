@@ -23,7 +23,7 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectedDb"));
 });
 
-//Khai bao su dung Identity
+
 builder.Services.AddIdentity<AppUserModel,IdentityRole>()
     .AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
 
@@ -38,8 +38,7 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = 4;                //do dai toi thieu
     options.Password.RequiredUniqueChars = 1;           //ky tu dac biet
 
-    // User settings.
-    options.User.RequireUniqueEmail = false;
+    options.User.RequireUniqueEmail = true;
 });
 
 
@@ -62,8 +61,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthentication();//dang nhap
-app.UseAuthorization();//phan quyen
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapStaticAssets();
 
