@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
 
@@ -9,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDistributedMemoryCache();
+
+//Add Email Sender Service
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 builder.Services.AddSession(options =>
 {

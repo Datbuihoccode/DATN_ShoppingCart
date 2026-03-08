@@ -46,13 +46,14 @@ namespace ShoppingCard.Areas.Admin.Controllers
             return View(data);
         }
 
-
+        [Route("Create")]
         public IActionResult Create()
         {
             return View();
         }
 
         // -- Create category --
+        [Route("Create")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CategoryModel category)
@@ -92,6 +93,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         }
 
         // -- Edit category --
+        [Route("Edit/{Id}")]
         public async Task<IActionResult> Edit(int Id)
         {
             CategoryModel category = await _dataContext.Categories.FindAsync(Id); 
@@ -100,6 +102,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("Edit/{Id}")]
         public async Task<IActionResult> Edit(CategoryModel category)
         {
             if (ModelState.IsValid)
