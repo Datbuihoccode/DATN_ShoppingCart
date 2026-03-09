@@ -16,21 +16,20 @@
 <table class="table">
     <thead>
         <tr>
-            <th scope="col">#</th>
+            <th scope="col">ID</th>
             <th scope="col">Order Code</th>
             <th scope="col">UserName</th>
-            <th scope="col">Order Date</th>
             <th scope="col">Order Status</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
         @foreach (var item in Model)
         {
             <tr>
-                <th scope="col">#</th>
-                <th scope="row">@item.OrderCode</th>
+                <td>@item.Id</td>
+                <td>@item.OrderCode</td>
                 <td>@item.UserName</td>
-                <td>@item.CreateDate</td>
                  
                 <td>
                     @if (@item.Status == 1)
