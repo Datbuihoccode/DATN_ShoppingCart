@@ -7,7 +7,7 @@ namespace ShoppingCard.Models
     public class ProductModel
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Required( ErrorMessage = "Yêu cầu nhập Tên sản phẩm.")]
         public string Name { get; set; }

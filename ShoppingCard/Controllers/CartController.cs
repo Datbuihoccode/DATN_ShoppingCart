@@ -28,7 +28,7 @@ namespace ShoppingCard.Controllers
         }
 
   
-        public async Task<IActionResult> Add(int Id )//long
+        public async Task<IActionResult> Add(long Id )//long
         {
             ProductModel product = await _dataContext.Products.FindAsync(Id);
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>> ("Cart") ?? new List<CartItemModel>();

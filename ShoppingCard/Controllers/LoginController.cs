@@ -4,5 +4,6 @@ namespace ShoppingCard.Controllers
 {
     public class LoginController: Controller
     {
+
     }
 }

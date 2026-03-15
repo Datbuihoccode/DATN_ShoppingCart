@@ -8,6 +8,7 @@
 	<title> @ViewData["Title"] - Admin Areas </title>
 	<link href="~/css/bootstrap.min.css" rel="stylesheet">
 	<link href="~/css/font-awesome.min.css" rel="stylesheet">
+		<link href="//cdn.datatables.net/2.3.7/css/dataTables.dataTables.min.css" rel="stylesheet">
 	<link href="~/css/prettyPhoto.css" rel="stylesheet">
 	<link href="~/css/price-range.css" rel="stylesheet">
 	<link href="~/css/animate.css" rel="stylesheet">
@@ -110,6 +111,7 @@
 	<script src="~/js/jquery.js"></script>
 	<script src="~/js/bootstrap.min.js"></script>
 	<script src="~/js/jquery.scrollUp.min.js"></script>
+	<script src="//cdn.datatables.net/2.3.7/js/dataTables.min.js"></script>
 	<script src="~/js/price-range.js"></script>
 	<script src="~/js/jquery.prettyPhoto.js"></script>
 	<script src="~/js/main.js"></script>
@@ -122,6 +124,12 @@
 				Swal.fire(message);
 		});
 	</script>
+
+	<script>
+		let table = new DataTable('#myTable');
+	</script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

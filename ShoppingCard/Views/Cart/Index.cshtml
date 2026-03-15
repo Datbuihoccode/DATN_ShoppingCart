@@ -40,7 +40,7 @@
 								<p>Web ID: 1089772</p>
 							</td>
 							<td class="cart_price">
-								<p>@item.Price</p>
+								<p>@item.Price.ToString("#,##0 VNĐ")</p>
 							</td>
 							<td class="cart_quantity">
 								<a class="btn btn-default btn-sm" asp-controller="Cart" asp-action="Increase" asp-route-id="@item.ProductId"> + </a>
@@ -49,7 +49,7 @@
 								<a class="btn btn-danger btn-sm" asp-controller="Cart" asp-action="Remove" asp-route-id="@item.ProductId"> Remove </a>
 							</td>
 							<td class="cart_total">
-								<p class="cart_total_price">@Model.CartItems.Where(x => x.ProductId == item.ProductId).Sum(x => x.Quantity * x.Price).ToString()</p>
+									<p class="cart_total_price">@Model.CartItems.Where(x => x.ProductId == item.ProductId).Sum(x => x.Quantity * x.Price).ToString()</p>
 							</td>
 							<td class="cart_delete">
 								<a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
@@ -57,7 +57,7 @@
 						</tr>
 						}
 						<tr rowspan="6">
-                            <td colspan="6">Grand Total: <p class="cart_total_price">@Model.GrandTotal.ToString()</p></td>
+							<td colspan="6">Grand Total: <p class="cart_total_price">@Model.GrandTotal.ToString("#,##0 VNĐ")</p></td>
 							<td><a class="btn btn-danger btn-sm" asp-controller="Cart" asp-action="Clear"> Xoá giỏ hàng</a></td>
 							@if (User.Identity?.IsAuthenticated ?? false)
 							{
