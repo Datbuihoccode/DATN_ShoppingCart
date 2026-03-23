@@ -558,4 +558,5 @@ E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\a3ygkwa5z
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\nezrqnk58p-muycvpuwrr.gz
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\v0zgfp0y55-87fc7y1x7t.gz
 E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\compressed\yfc7ypekbg-mlv21k5csn.gz
-E:\Đồ án Web\ShoppingCard\ShoppingCard\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
+E:\Đồ án Web\ShoppingCard\ShoppingCard\bin\Debug\net9.0\obj_temp\project.assets.json
+E:\Đồ án Web\ShoppingCard\ShoppingCard\bin\Debug\net9.0\obj_temp\ShoppingCard.csproj.nuget.dgspec.json

@@ -10,10 +10,12 @@ namespace ShoppingCard.Repository
         {
         }
         public DbSet<BrandModel> Brands { get; set; }
+        public DbSet<SliderModel> Sliders { get; set; }
         public DbSet<CategoryModel> Categories { get; set; } 
         public DbSet<ProductModel> Products { get; set; }
         public DbSet<OrderModel> Orders { get; set; }
         public DbSet<OrderDetailsModel> OrderDetails { get; set; }
+        public DbSet<RatingModel> Ratings { get; set; }
 
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -148,6 +148,23 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 var updateResult = await _userManager.UpdateAsync(existingUser);
                 if (updateResult.Succeeded)
                 {
+                    // Cập nhật Role trong bảng trung gian UserRoles
+                    var oldRoles = await _userManager.GetRolesAsync(existingUser);
+                    var newRole = await _roleManager.FindByIdAsync(user.RoleId);
+                    
+                    if (newRole != null)
+                    {
+                        var newRoleName = newRole.Name;
+                        if (!oldRoles.Contains(newRoleName))
+                        {
+                            if (oldRoles.Any())
+                            {
+                                await _userManager.RemoveFromRolesAsync(existingUser, oldRoles);
+                            }
+                            await _userManager.AddToRoleAsync(existingUser, newRoleName);
+                        }
+                    }
+
                     TempData["success"] = "User đã được cập nhật.";
                     return RedirectToAction("Index", "User");
                 }

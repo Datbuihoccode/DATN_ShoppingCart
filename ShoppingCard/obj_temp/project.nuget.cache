@@ -1,0 +1,72 @@
+{
+  "version": 2,
+  "dgSpecHash": "zeNGKh0TxZQ=",
+  "success": false,
+  "projectFilePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Microsoft.AspNetCore.Identity.UI",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Microsoft.EntityFrameworkCore.Tools",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Microsoft.EntityFrameworkCore.SqlServer",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Newtonsoft.Json",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Microsoft.EntityFrameworkCore",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Microsoft.EntityFrameworkCore.Design",
+      "targetGraphs": []
+    },
+    {
+      "code": "NU1301",
+      "level": "Error",
+      "message": "Unable to get repository signature information for source https://api.nuget.org/v3-index/repository-signatures/5.0.0/index.json.\r\n  An attempt was made to access a socket in a way forbidden by its access permissions. (api.nuget.org:443)\r\n  An attempt was made to access a socket in a way forbidden by its access permissions.",
+      "projectPath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "filePath": "E:\\Đồ án Web\\ShoppingCard\\ShoppingCard\\ShoppingCard.csproj",
+      "libraryId": "Microsoft.AspNetCore.Identity.EntityFrameworkCore",
+      "targetGraphs": []
+    }
+  ]
+}

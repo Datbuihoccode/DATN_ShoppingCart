@@ -20,6 +20,8 @@ namespace ShoppingCard.Controllers
         public IActionResult Index()
         {
             var products = _dataContext.Products.Include("Category").Include("Brand").ToList();
+            var slider = _dataContext.Sliders.Where(s=>s.Status==1).ToList();
+            ViewBag.Sliders = slider;
             return View(products);
         }
 
