@@ -16,6 +16,7 @@ namespace ShoppingCard.Repository
         public DbSet<OrderModel> Orders { get; set; }
         public DbSet<OrderDetailsModel> OrderDetails { get; set; }
         public DbSet<RatingModel> Ratings { get; set; }
+        public DbSet<ContactModel> Contacts { get; set; }
 
     }
 }

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OrderDetailsModel>
+@model IEnumerable<OrderDetailsModel>
 @{
     ViewData["Title"] = "Đơn hàng";
     decimal total = 0;
@@ -15,7 +15,7 @@
     
     <body>
     <h3>Order Details</h3>
-    <table class="table">
+    <table class="table" id="OrderDetails">
         <thead>
             <tr>
                 <th>ID</th>
@@ -39,13 +39,17 @@
                     <td>@item.OrderCode</td>
                     <td>@item.UserName</td>
                     <td>@item.Product.Name</td>
-                    <td>@item.Price</td>
+                    <td>@item.Price.ToString("#,## VNĐ")</td>
                     <td>@item.Quantity</td>
-                    <td>@subtotal.ToString("C")</td>
+                    <td>@subtotal.ToString("#,## VNĐ")</td>
                 </tr>
             }
             <tr>
-                <th colspan="5"> Total: </th>
+                <td> Total: </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
                 <td>@total.ToString("C")</td>
                 <td>
                     <select class="form-control select-update-order">
@@ -60,7 +64,18 @@
 
     </body>
 </html>
+
 @section Scripts{
+    <script> 
+        new DataTable('#OrderDetails', {
+            layout: {
+                topStart: {
+                    buttons: ['pdf', 'print']
+                }
+            }
+        });
+    </script>   
+
     <script>
         $(document).ready(function () {
             $('.select-update-order').change(function () {

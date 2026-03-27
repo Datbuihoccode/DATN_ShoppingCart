@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ShoppingCard.Models;
@@ -107,6 +107,20 @@ namespace ShoppingCard.Repository
                         Image = "2.jpg"
                     }
                 );
+            }
+
+            if (!_context.Contacts.Any())
+            {
+                _context.Contacts.Add(new ContactModel
+                {
+                    Name = "Shopping Card",
+                    Map = "<iframe src=\"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.096!2d105.78!3d21.028!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab86!2sHanoi!5e0!3m2!1sen!2svn!4v1700000000000!5m2!1sen!2svn\" width=\"600\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>",
+                    Phone = "0123 456 789",
+                    Email = "contact@shoppingcard.com",
+                    Description = "Cửa hàng mua sắm trực tuyến uy tín và chất lượng hàng đầu.",
+                    Status = 1,
+                    LogoImg = "logo.png"
+                });
                 _context.SaveChanges();
             }
         }
