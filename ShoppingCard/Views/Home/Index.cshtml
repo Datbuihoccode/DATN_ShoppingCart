@@ -43,8 +43,7 @@
 						</div>
 						<div class="choose">
 							<ul class="nav nav-pills nav-justified">
-								<li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-								<li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
+								<li><button class="btn btn-danger add-to-wishlist" data-product_id="@item.Id">Add to wishlist</button></li>
 							</ul>
 						</div>
 					</div>
@@ -68,6 +67,37 @@
 								Swal.fire("Thêm vào giỏ hàng thành công!");
 							}
 						},
+					});
+				});
+
+				$('.add-to-wishlist').click(function (e) {
+					e.preventDefault();
+					var Id = $(this).data("product_id");
+
+					$.ajax({
+						type: "POST",
+						url: "@Url.Action("AddWishList", "Home")",
+						data: { Id: Id },
+						success: function (result) {
+							if (result && result.message) {
+								Swal.fire(result.message);
+							} else {
+								Swal.fire("Đã xử lý wishlist thành công.");
+							}
+						},
+						error: function (xhr) {
+							if (xhr.status === 401) {
+								Swal.fire("Bạn cần đăng nhập để thêm wishlist.");
+								return;
+							}
+
+							if (xhr.responseJSON && xhr.responseJSON.message) {
+								Swal.fire(xhr.responseJSON.message);
+								return;
+							}
+
+							Swal.fire("Có lỗi xảy ra khi thêm wishlist.");
+						}
 					});
 				});
 			});

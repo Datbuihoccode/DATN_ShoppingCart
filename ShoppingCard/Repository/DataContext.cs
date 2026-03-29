@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 
@@ -17,6 +17,15 @@ namespace ShoppingCard.Repository
         public DbSet<OrderDetailsModel> OrderDetails { get; set; }
         public DbSet<RatingModel> Ratings { get; set; }
         public DbSet<ContactModel> Contacts { get; set; }
+        public DbSet<WishlistModel> Wishlists { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<WishlistModel>()
+                .HasIndex(w => new { w.UserId, w.ProductId })
+                .IsUnique();
+        }
     }
 }

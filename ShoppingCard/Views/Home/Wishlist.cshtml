@@ -1,0 +1,117 @@
+@model IEnumerable<WishlistModel>
+@{
+    ViewData["Title"] = "Wishlist";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<section id="cart_items">
+    <div class="container">
+        <div class="breadcrumbs">
+            <ol class="breadcrumb">
+                <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                <li class="active">Wishlist</li>
+            </ol>
+        </div>
+
+        <h2 class="title text-center">My Wishlist</h2>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-center" style="padding: 40px 0;">
+                <h4>Wishlist cua ban dang trong.</h4>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-warning" style="margin-top: 10px;">
+                    Tiep tuc mua sam
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive cart_info">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr class="cart_menu">
+                            <td class="image">Item</td>
+                            <td class="description">Product</td>
+                            <td class="price">Price</td>
+                            <td class="quantity">Action</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            if (item.Product == null)
+                            {
+                                continue;
+                            }
+
+                            <tr>
+                                <td class="cart_product">
+                                    <a asp-controller="Product" asp-action="Details" asp-route-Id="@item.ProductId">
+                                        <img src="~/media/products/@item.Product.Image" alt="@item.Product.Name" width="90" />
+                                    </a>
+                                </td>
+                                <td class="cart_description">
+                                    <h4>
+                                        <a asp-controller="Product" asp-action="Details" asp-route-Id="@item.ProductId">
+                                            @item.Product.Name
+                                        </a>
+                                    </h4>
+                                    <p>Product ID: @item.ProductId</p>
+                                </td>
+                                <td class="cart_price">
+                                    <p>@item.Product.Price.ToString("#,##0 VND")</p>
+                                </td>
+                                <td class="cart_quantity">
+                                    <a class="btn btn-primary btn-sm"
+                                       asp-controller="Product"
+                                       asp-action="Details"
+                                       asp-route-Id="@item.ProductId">
+                                        Xem chi tiet
+                                    </a>
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm btn-remove-wishlist"
+                                            data-product_id="@item.ProductId">
+                                        Xoa
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-remove-wishlist').click(function () {
+                var Id = $(this).data('product_id');
+                var $row = $(this).closest('tr');
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("RemoveWishList", "Home")',
+                    data: { Id: Id },
+                    success: function (result) {
+                        Swal.fire(result.message || 'Da xoa khoi wishlist.');
+                        $row.remove();
+
+                        if ($('.btn-remove-wishlist').length === 0) {
+                            location.reload();
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            Swal.fire(xhr.responseJSON.message);
+                            return;
+                        }
+
+                        Swal.fire('Khong the xoa san pham khoi wishlist.');
+                    }
+                });
+            });
+        });
+    </script>
+}
