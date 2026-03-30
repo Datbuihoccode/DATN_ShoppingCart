@@ -25,13 +25,28 @@
 							<p>@item.Name</p>
 							<p>Danh mục : @item.Category.Name</p>
 							<p>Thương hiệu : @item.Brand.Name</p>
-							<a class="btn btn-default add-to-cart" asp-action="Add" asp-controller="Cart" asp-route-Id="@item.Id"><i class="fa fa-shopping-cart"></i>Add to cart</a>
+							@if(item.Quantity > 0)
+							{
+								<a class="btn btn-default add-to-cart" 
+									asp-action="Add" 
+									asp-controller="Cart" 
+									asp-route-Id="@item.Id">
+									<i class="fa fa-shopping-cart"></i>
+										Thêm giỏ hàng
+								</a>
+							}
+							else
+							{
+								<a class="btn btn-default">
+									<i class="fa fa-shopping-cart"></i>
+										Hết hàng
+								</a>
+							}
 						</div>
 					</div>
 					<div class="choose">
 						<ul class="nav nav-pills nav-justified">
-							<li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-							<li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
+							<li><button class="btn btn-primary add-to-wishlist" data-product_id="@item.Id">Add to wishlist</button></li>
 						</ul>
 					</div>
 				</div>

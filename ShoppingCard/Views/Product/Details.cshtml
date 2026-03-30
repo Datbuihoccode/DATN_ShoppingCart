@@ -57,10 +57,22 @@
 						<span>@Model.ProductDetails.Price.ToString("#,##0 VNĐ")</span>
 						<label>Quantity:1</label>
 						<input type="text" value="3" />
-						<a class="btn btn-default add-to-cart" asp-action="Add" asp-controller="Cart" asp-route-Id="@Model.ProductDetails.Id"><i class="fa fa-shopping-cart"></i>Add to cart</a>
+						@if(Model.ProductDetails.Quantity > 0){
+							<a class="btn btn-default add-to-cart" asp-action="Add" 
+								asp-controller="Cart" asp-route-Id="@Model.ProductDetails.Id">
+								<i class="fa fa-shopping-cart"></i>
+								Thêm giỏ hàng
+							</a>
+						}
+						else{
+							<button type="button" class="btn btn-default">
+								<i class="fa fa-shopping-cart"></i>
+								 Hết hàng
+							</button>
+						}
 					</span>
 					<p><b>Availability:</b> In Stock</p>
-					<p><b>Condition:</b> New</p>
+					<p><b>Condition:</b> New</p>	
 					<p><b>Brand:</b>@Model.ProductDetails.Name</p>
 					<p><b>Category:</b>@Model.ProductDetails.Name</p>
 				</div><!--/product-information-->

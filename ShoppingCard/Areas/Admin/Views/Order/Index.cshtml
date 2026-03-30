@@ -20,6 +20,7 @@
             <th scope="col">Order Code</th>
             <th scope="col">UserName</th>
             <th scope="col">Order Status</th>
+            <th scope="col">Create Date</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -41,6 +42,7 @@
                         <span class="text text-danger">Đơn hàng đã giao </span>
                     }
                 </td>
+                <td>@item.CreateDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
 
                 <td>
                     <a asp-action="ViewOrder" class="btn btn-warning btn-sm" asp-controller="Order" asp-route-odercode="@item.OrderCode">View Order </a>

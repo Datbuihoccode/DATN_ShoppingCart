@@ -2,6 +2,7 @@
 using ShoppingCard.Repository;
 using ShoppingCard.Models;
 using ShoppingCard.Models.ViewsModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace ShoppingCard.Controllers
 {
@@ -49,7 +50,7 @@ namespace ShoppingCard.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
-        public async Task<IActionResult> Decrease(int Id)
+        public async Task<IActionResult> Decrease(long Id)
         {
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
 
@@ -72,19 +73,22 @@ namespace ShoppingCard.Controllers
             TempData["success"] = "Product quantity updated successfully!";
             return RedirectToAction("Index");
         }
-        public async Task<IActionResult> Increase(int Id)
+        public async Task<IActionResult> Increase(long Id)
         {
+            ProductModel product = await _dataContext.Products.Where(p => p.Id == Id).FirstOrDefaultAsync();
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
 
             CartItemModel cartItem = cart.Where(c => c.ProductId == Id).FirstOrDefault();
 
-            if (cartItem.Quantity >= 1)
+            if (cartItem.Quantity >= 1 && product.Quantity > cartItem.Quantity)
             {
                 ++cartItem.Quantity;
+                TempData["success"] = "Product quantity updated successfully!";
             }
             else
             {
-                cart.RemoveAll(p => p.ProductId == Id);
+                cartItem.Quantity = product.Quantity;
+                TempData["error"] = "Maximum quantity reached!";
             }
             if (cart.Count == 0)
             {
@@ -94,10 +98,9 @@ namespace ShoppingCard.Controllers
             {
                 HttpContext.Session.SetJson("Cart", cart);
             }
-            TempData["success"] = "Product quantity updated successfully!";
             return RedirectToAction("Index");
         }
-        public async Task<IActionResult> Remove(int Id)
+        public async Task<IActionResult> Remove(long Id)
         {
             List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
             cart.RemoveAll(p => p.ProductId == Id);

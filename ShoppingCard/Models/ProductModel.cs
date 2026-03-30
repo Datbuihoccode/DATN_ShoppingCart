@@ -14,7 +14,6 @@ namespace ShoppingCard.Models
 
         public string Slug { get; set; }
 
-        
         [Required(ErrorMessage = "Yêu cầu nhập Mô tả sản phẩm.")]
         public string Description { get; set; }
 
@@ -34,6 +33,10 @@ namespace ShoppingCard.Models
         public BrandModel Brand { get; set; }
         
         public string Image { get; set; }
+
+        public int Quantity { get; set; }
+
+        public int Sold { get; set; }
 
         public ICollection<RatingModel> Ratings { get; set; }
 

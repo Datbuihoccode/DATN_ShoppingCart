@@ -18,6 +18,16 @@ namespace ShoppingCard.Areas.Controllers
             _dataContext = context;
             _webHostEnvironment = webHostEnvironment;
         }
+        
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            return View(await _dataContext.Products.OrderByDescending(p => p.Id)
+            .Include(p => p.Category)
+            .Include(p => p.Brand)
+            .ToListAsync()); 
+        }
+
         public async Task<IActionResult> Index(int pg = 1)
         {
             List<ProductModel> product = _dataContext.Products
@@ -242,6 +252,41 @@ namespace ShoppingCard.Areas.Controllers
             await _dataContext.SaveChangesAsync();
             TempData["success"] = "Đã xóa sản phẩm.";
             return RedirectToAction("Index");
+        }
+
+        //-- Add Quantity --
+        [Route("AddQuantity")]
+        [HttpGet]
+        public async Task<IActionResult> AddQuantity(long Id)
+        {
+            var productbyquantity = await _dataContext.ProductQuantities
+                                        .Where(pq => pq.ProductId == Id)
+                                        .ToListAsync();
+                                        
+            ViewBag.ProductByQuantity = productbyquantity;
+            ViewBag.ProductId = Id;
+            return View();
+        }
+
+        [Route("StoreProductQuantity")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StoreProductQuantity(ProductQuantityModel productQuantity)
+        {
+            var product = await _dataContext.Products.FindAsync(productQuantity.ProductId);
+            if (product == null)
+            { 
+                TempData["error"] = "Không tìm thấy sản phẩm.";
+                return RedirectToAction("Index");
+            }
+
+            productQuantity.CreatedDate = DateTime.Now;
+            product.Quantity += productQuantity.Quantity;
+
+            _dataContext.ProductQuantities.Add(productQuantity);
+            await _dataContext.SaveChangesAsync();
+            TempData["success"] = "Thêm số lượng sản phẩm thành công.";
+            return RedirectToAction("Index", "Product");
         }
     }
 }

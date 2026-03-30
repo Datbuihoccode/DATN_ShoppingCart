@@ -44,6 +44,13 @@ namespace ShoppingCard.Controllers
                     orderDetails.ProductId = cart.ProductId;
                     orderDetails.Price = cart.Price;
                     orderDetails.Quantity = cart.Quantity;
+
+                    //update quantity of product
+                    var product = _dataContext.Products.Where(p => p.Id == cart.ProductId).FirstOrDefault();
+                    product.Quantity -= cart.Quantity;
+                    product.Sold += cart.Quantity;
+                    _dataContext.Update(product);
+                    //add order details
                     _dataContext.Add(orderDetails);
                     _dataContext.SaveChanges();
 
