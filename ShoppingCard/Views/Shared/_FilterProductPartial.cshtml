@@ -1,0 +1,27 @@
+﻿@{
+    var currentUrl = Url.ActionContext.HttpContext.Request.Path;
+    var currentSort = Url.ActionContext.HttpContext.Request.Query["sort_by"].ToString();
+}
+
+<div class="row category-filter-row" style="margin-bottom: 20px;">
+    <div class="col-md-5 col-sm-6">
+        <select id="sort_by" class="form-control">
+            <option value="">-- Lọc theo giá --</option>
+            <option value="@currentUrl?sort_by=price_increase" selected="@(currentSort == "price_increase" ? "selected" : null)">Giá tăng dần</option>
+            <option value="@currentUrl?sort_by=price_decrease" selected="@(currentSort == "price_decrease" ? "selected" : null)">Giá giảm dần</option>
+            <option value="@currentUrl?sort_by=price_newest" selected="@(currentSort == "price_newest" ? "selected" : null)">Mới nhất</option>
+            <option value="@currentUrl?sort_by=price_oldest" selected="@(currentSort == "price_oldest" ? "selected" : null)">Cũ nhất</option>
+        </select>
+    </div>
+
+    <div class="col-md-7 col-sm-6">
+        <div style="margin-bottom: 8px;">
+            <label for="amount" style="display: block; margin-bottom: 4px;">Lọc theo giá:</label>
+            <input type="text" id="amount" readonly style="display:block; width:100%; border:0; color:#f6931f; font-weight:bold;">
+        </div>
+        <div style="margin-bottom: 12px;">
+            <input type="text" id="slider-range" style="width: 100%;" />
+        </div>
+        <button type="button" name="locgia" data-current_url="@currentUrl" class="btn btn-danger btn-locgia">Lọc giá</button>
+    </div>
+</div>

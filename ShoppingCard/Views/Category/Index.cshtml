@@ -10,6 +10,7 @@
 </style>
 
 <div class="col-sm-9 padding-right">
+	<partial name="_FilterProductPartial" />
 	<div class="features_items">
 		<!--features_items-->
 		<h2 class="title text-center">Features Items</h2>
@@ -50,3 +51,64 @@
 	</div><!--features_items-->
 
 </div>
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#sort_by').on('change', function () {
+                var url = $(this).val();
+                if (url) {
+                    window.location = url; 
+                }
+                return false;
+            });
+        });
+    </script>
+
+	<script type="text/javascript">
+        $(document).ready(function () {
+            var query = new URLSearchParams(window.location.search);
+            var startQuery = parseInt(query.get('startprice'), 10);
+            var endQuery = parseInt(query.get('endprice'), 10);
+
+            var startValue = Number.isFinite(startQuery) ? startQuery : 1000000;
+            var endValue = Number.isFinite(endQuery) ? endQuery : 30000000;
+
+            $("#slider-range").slider({
+                min: 1000000,
+                max: 50000000,
+                step: 100000,
+                value: [startValue, endValue],
+                tooltip: 'hide',
+                handle: 'round'
+            });
+
+            function formatVnd(value) {
+                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+            }
+
+            function updateAmount(values) {
+                $("#amount").val(formatVnd(values[0]) + " - " + formatVnd(values[1]));
+            }
+
+            var sliderInstance = $("#slider-range").data("slider");
+            if (!sliderInstance) {
+                return;
+            }
+
+            updateAmount(sliderInstance.getValue());
+
+            $("#slider-range").on("slide", function (event) {
+                updateAmount(event.value);
+            });
+
+            $('.btn-locgia').on('click', function () {
+                var url = $(this).data('current_url');
+                if (url) {
+                    var selectedValues = sliderInstance.getValue();
+                    window.location = url + "?startprice=" + selectedValues[0] + "&endprice=" + selectedValues[1];
+                }
+                return false;
+            });
+        });
+    </script>
+}
