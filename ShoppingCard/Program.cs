@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
@@ -11,7 +13,7 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDistributedMemoryCache();
 
-//Add Email Sender Service
+// Add Email Sender Service
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 builder.Services.AddSession(options =>
@@ -20,35 +22,45 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-
-//Connect to database
+// Connect to database
 builder.Services.AddDbContext<DataContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectedDb"));
 });
 
+builder.Services.AddIdentity<AppUserModel, IdentityRole>()
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders();
 
-builder.Services.AddIdentity<AppUserModel,IdentityRole>()
-    .AddEntityFrameworkStores<DataContext>().AddDefaultTokenProviders();
-
+// External login by Google (kept after Identity configuration)
+builder.Services
+    .AddAuthentication(options =>
+    {
+        // options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        // options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        // options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie()
+    .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+    {
+        options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
+        options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
+    });
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
     // Password settings.
-    options.Password.RequireDigit = true;               //yeu cau so
-    options.Password.RequireLowercase = true;           //yeu cau chu thuong
-    options.Password.RequireNonAlphanumeric = false;     //yeu cau ky tu dac biet
-    options.Password.RequireUppercase = false;           //yeu cau chu in hoa
-    options.Password.RequiredLength = 4;                //do dai toi thieu
-    options.Password.RequiredUniqueChars = 1;           //ky tu dac biet
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 4;
+    options.Password.RequiredUniqueChars = 1;
 
     options.User.RequireUniqueEmail = true;
 });
 
-
 var app = builder.Build();
-
-
 
 app.UseStatusCodePagesWithRedirects("/Home/Error?statuscode={0}");
 
@@ -58,7 +70,6 @@ app.UseSession();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -77,7 +88,7 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "category",
     pattern: "/category/{Slug?}",
-    defaults: new {controller="Category",action="Index"});
+    defaults: new { controller = "Category", action = "Index" });
 
 app.MapControllerRoute(
     name: "brand",
@@ -88,18 +99,11 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-
-//Seeding Data
-//var context = app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>();
-
-//SeedData.SeedingData(context);
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DataContext>();
-
-    // Gọi hàm SeedData với đủ 2 tham số và dùng await
     await SeedData.SeedingData(context, services);
 }
-// ------------------------------------
+
 app.Run();

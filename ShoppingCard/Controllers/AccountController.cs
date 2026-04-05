@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Areas.Admin.Repository;
@@ -59,6 +61,103 @@ namespace ShoppingCard.Controllers
             return View(loginVM);
         }
 
+        [HttpGet]
+        public IActionResult LoginByGoogle(string returnUrl = null)
+        {
+            var redirectUrl = Url.Action(nameof(GoogleResponse), "Account", new { returnUrl });
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(
+                GoogleDefaults.AuthenticationScheme,
+                redirectUrl);
+
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GoogleResponse(string returnUrl = null, string remoteError = null)
+        {
+            if (!string.IsNullOrEmpty(remoteError))
+            {
+                TempData["error"] = "Dang nhap Google that bai.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Authenticate using Google scheme.
+            // Identity may persist external principal in IdentityConstants.ExternalScheme,
+            // so fallback to that scheme for compatibility with the current project setup.
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+            if (!result.Succeeded || result.Principal == null)
+            {
+                result = await HttpContext.AuthenticateAsync(IdentityConstants.ExternalScheme);
+            }
+
+            if (!result.Succeeded || result.Principal == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var claims = result.Principal.Identities.FirstOrDefault()?.Claims.Select(claim => new
+            {
+                claim.Issuer,
+                claim.OriginalIssuer,
+                claim.Type,
+                claim.Value
+            });
+
+            // return Json(claims); // Dung de debug thong tin Google tra ve.
+
+            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                TempData["error"] = "Tai khoan Google khong co email hop le.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            string emailName = email.Split('@')[0];
+            var existingUser = await _userManager.FindByEmailAsync(email);
+
+            if (existingUser == null)
+            {
+                var passwordHasher = new PasswordHasher<AppUserModel>();
+                var hashedPassword = passwordHasher.HashPassword(null, "123456789");
+
+                var newUser = new AppUserModel
+                {
+                    UserName = emailName,
+                    Email = email
+                };
+                newUser.PasswordHash = hashedPassword;
+
+                var createUserResult = await _userManager.CreateAsync(newUser);
+
+                if (!createUserResult.Succeeded)
+                {
+                    TempData["error"] = "Dang ky tai khoan that bai. Vui long thu lai sau.";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                if (await _roleManager.RoleExistsAsync("User"))
+                {
+                    await _userManager.AddToRoleAsync(newUser, "User");
+                }
+
+                await _signInManager.SignInAsync(newUser, isPersistent: false);
+                await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+                TempData["success"] = "Dang ky tai khoan thanh cong.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            await _signInManager.SignInAsync(existingUser, isPersistent: false);
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            if (!string.IsNullOrWhiteSpace(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
         public IActionResult Create()
         {
             return View();
@@ -110,6 +209,8 @@ namespace ShoppingCard.Controllers
 
         public async Task<IActionResult> Logout(string returnUrl = "/")
         {
+            await HttpContext.SignOutAsync();
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
             await _signInManager.SignOutAsync();
             return Redirect(returnUrl);
         }
@@ -139,47 +240,68 @@ namespace ShoppingCard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateAccount(AppUserModel model)
+        public async Task<IActionResult> UpdateInfoAccount(AppUserModel user)
         {
             if (User.Identity?.IsAuthenticated != true)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
+            if (string.IsNullOrWhiteSpace(user.Id))
             {
-                return RedirectToAction("Login", "Account");
+                return BadRequest();
             }
 
-            if (!string.Equals(currentUser.Email, model.Email, StringComparison.OrdinalIgnoreCase))
+            var userId = await _userManager.FindByIdAsync(user.Id);
+            if (userId == null)
             {
-                ModelState.AddModelError("Email", "Email không hợp lệ.");
+                return NotFound();
+            }
+
+            var currentUserId = _userManager.GetUserId(User);
+            if (!string.Equals(currentUserId, userId.Id, StringComparison.Ordinal))
+            {
+                return Forbid();
+            }
+
+            userId.PhoneNumber = user.PhoneNumber;
+
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
+            {
+                ModelState.AddModelError("PasswordHash", "Vui long nhap mat khau moi.");
+            }
+            else
+            {
+                var passwordHasher = new PasswordHasher<AppUserModel>();
+                var passwordHash = passwordHasher.HashPassword(userId, user.PasswordHash);
+                userId.PasswordHash = passwordHash;
             }
 
             if (!ModelState.IsValid)
             {
-                model.Email = currentUser.Email;
-                return View(model);
+                user.UserName = userId.UserName;
+                user.Email = userId.Email;
+                user.PasswordHash = userId.PasswordHash;
+                return View("UpdateAccount", user);
             }
 
-            currentUser.UserName = model.UserName;
-
-            var result = await _userManager.UpdateAsync(currentUser);
+            var result = await _userManager.UpdateAsync(userId);
             if (result.Succeeded)
             {
-                await _signInManager.RefreshSignInAsync(currentUser);
-                TempData["success"] = "Cập nhật tài khoản thành công!";
-                return RedirectToAction("UpdateAccount");
+                await _signInManager.RefreshSignInAsync(userId);
+                TempData["success"] = "Update account successfully";
+                return RedirectToAction("UpdateAccount", "Account");
             }
 
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError("", error.Description);
+                ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            model.Email = currentUser.Email;
-            return View(model);
+            user.UserName = userId.UserName;
+            user.Email = userId.Email;
+            user.PasswordHash = userId.PasswordHash;
+            return View("UpdateAccount", user);
         }
 
         public async Task<IActionResult> History()

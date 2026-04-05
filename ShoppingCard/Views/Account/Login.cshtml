@@ -1,38 +1,43 @@
-@model LoginViewModel
+﻿@model LoginViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Login";
 }
-<section id="">
-	<!--form-->
-	<div class="container">
-		<div class="row">
-			<div class="col-sm-8 col-sm-offset-1">
-				<div class="login-form">
+
+<section>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-1">
+                <div class="login-form">
 					<!--login form-->
 					<h2>Đăng nhập tại đây</h2>
-					<div asp-validation-summary="ModelOnly" class="text-danger"></div> 
-					<form asp-action="Login" asp-controller="Account">
-						<div class="form-group">
-							<input asp-for="UserName" class="form-control" placeholder="Tên Đăng nhập" />
-							<span asp-validation-for="UserName" class="text-danger"></span>
-						</div>
-						<div class="form-group">
-							<input asp-for="Password" class="form-control" placeholder="Mật Khẩu" />
-							<span asp-validation-for="Password" class="text-danger"></span>
-						</div>
-						<button class="btn btn-default">Đăng nhập</button>
-						
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <form asp-action="Login" asp-controller="Account" method="post">
+                        <input asp-for="ReturnUrl" type="hidden" />
+
+                        <div class="form-group">
+                            <input asp-for="UserName" class="form-control" placeholder="Ten dang nhap" />
+                            <span asp-validation-for="UserName" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Mat khau" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <button class="btn btn-default">Đăng nhập</button>
+                        <br />
                         <a asp-action="Create" asp-controller="Account">Đăng ký tài khoản tại đây</a> |
-                        <a asp-action="ForgetPass" asp-controller="Account">Quên mật khẩu</a>
-						
-					</form>
-				</div><!--/login form-->
-			</div>
-		</div>
-	</div>
-</section><!--/form-->
+                        <a asp-action="ForgetPass" asp-controller="Account">Quên mật khẩu</a> |
+                        <a asp-action="LoginByGoogle" asp-controller="Account">Đăng nhập bằng Google</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 @section Scripts {
-	@{
-		await Html.RenderPartialAsync("_ValidationScriptsPartial");
-	}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
