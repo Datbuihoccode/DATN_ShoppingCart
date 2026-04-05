@@ -20,7 +20,26 @@ namespace ShoppingCard.Areas.Admin.Controllers
         }
         public async Task<IActionResult> ViewOrder(string odercode)
         {
-            var DetailsOrder = await _dataContext.OrderDetails.Include(od=> od.Product).Where(od => od.OrderCode==odercode).ToListAsync();
+            if (string.IsNullOrWhiteSpace(odercode))
+            {
+                return NotFound();
+            }
+
+            var order = await _dataContext.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.OrderCode == odercode);
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            var DetailsOrder = await _dataContext.OrderDetails
+                .Include(od => od.Product)
+                .Where(od => od.OrderCode == odercode)
+                .ToListAsync();
+
+            ViewBag.OrderCode = order.OrderCode;
+            ViewBag.CouponCode = order.CouponCode;
+            ViewBag.OrderStatus = order.Status;
+            ViewBag.Status = order.Status;
             return View(DetailsOrder);
         }
 
@@ -34,14 +53,24 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            order.Status = status;
+            if (order.Status == 3)
+            {
+                return BadRequest(new { success = false, message = "Order has been canceled and cannot be updated." });
+            }
+
+            if (status != 1 && status != 2 && status != 0)
+            {
+                return BadRequest(new { success = false, message = "Invalid order status." });
+            }
+
+            order.Status = status == 0 ? 2 : status;
 
             try
             {
                 await _dataContext.SaveChangesAsync();
                 return Ok(new { success = true, message = "Order updated successfully" });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500,  "An error occurred while updating the order");
             }

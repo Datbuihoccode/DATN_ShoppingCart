@@ -49,7 +49,7 @@
                     <a asp-action="Edit" class="btn btn-warning btn-sm" asp-controller="Slider"
                        asp-route-Id="@item.Id">Edit</a>
                     <a asp-action="Delete" class="btn btn-danger btn-sm confirmDeletion" asp-controller="Slider"
-                       asp-route-Id="@item.Id">Delete</a>
+                       asp-route-Id="@item.Id" onclick="return confirm('Xác nhận xóa');">Delete</a>
                 </td>
             </tr>
         }

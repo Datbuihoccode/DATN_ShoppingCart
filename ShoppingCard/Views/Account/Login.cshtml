@@ -1,4 +1,4 @@
-﻿@model LoginViewModel
+@model LoginViewModel
 @{
     ViewData["Title"] = "Register";
 }
@@ -22,7 +22,8 @@
 						</div>
 						<button class="btn btn-default">Đăng nhập</button>
 						
-                        <a asp-action="Create" asp-controller="Account">Đăng ký tài khoản tại đây</a>
+                        <a asp-action="Create" asp-controller="Account">Đăng ký tài khoản tại đây</a> |
+                        <a asp-action="ForgetPass" asp-controller="Account">Quên mật khẩu</a>
 						
 					</form>
 				</div><!--/login form-->

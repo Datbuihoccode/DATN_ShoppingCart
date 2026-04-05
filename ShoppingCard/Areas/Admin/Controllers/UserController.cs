@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -37,12 +37,14 @@ namespace ShoppingCard.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             var usersWithRoles = await (from u in _dataContext.Users
-                                        join ur in _dataContext.UserRoles on u.Id equals ur.UserId
-                                        join r in _dataContext.Roles on ur.RoleId equals r.Id
-                                        select new {User = u, RoleName = r.Name})
+                                        join ur in _dataContext.UserRoles on u.Id equals ur.UserId into userRoles
+                                        from ur in userRoles.DefaultIfEmpty()
+                                        join r in _dataContext.Roles on ur.RoleId equals r.Id into roles
+                                        from r in roles.DefaultIfEmpty()
+                                        select new { User = u, RoleName = r != null ? r.Name : "No role" })
                                         .ToListAsync();
 
-            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier); // Lấy ID của người dùng hiện tại
+            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier); // Láº¥y ID cá»§a ngÆ°á»i dÃ¹ng hiá»‡n táº¡i
             ViewBag.loggedInUserID = loggedInUserID;
             return View(usersWithRoles);
         }
@@ -61,36 +63,43 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("Create")]
         public async Task<IActionResult> Create(AppUserModel user)
         {
+            var roles = await _roleManager.Roles.ToListAsync();
+
             if (ModelState.IsValid)
             {
                 var createUserResult = await _userManager.CreateAsync(user, user.PasswordHash); // tao user voi password
                 if (createUserResult.Succeeded)
                 {
                     var createdUser = await _userManager.FindByEmailAsync(user.Email); // tim user dua vao email]
-                    var userId = createdUser.Id; // lay userId vua tao
-                    var role =  _roleManager.FindByIdAsync(user.RoleId); // lay role dua vao roleId
+                    var role = await _roleManager.FindByIdAsync(user.RoleId); // lay role dua vao roleId
+                    if (createdUser == null || role == null)
+                    {
+                        TempData["error"] = "KhÃ´ng tÃ¬m tháº¥y user hoáº·c role Ä‘á»ƒ gÃ¡n.";
+                        ViewBag.Roles = new SelectList(roles, "Id", "Name", user.RoleId);
+                        return View(user);
+                    }
 
                     // gan role cho user
-                    var addToRoleResult = await  _userManager.AddToRoleAsync(createdUser, role.Result.Name);
+                    var addToRoleResult = await _userManager.AddToRoleAsync(createdUser, role.Name);
                     if(!addToRoleResult.Succeeded)
                     {
-                        foreach (var error in createUserResult.Errors)
-                        {
-                            ModelState.AddModelError(string.Empty, error.Description);
-                        }
+                        AddIdentityErrors(addToRoleResult);
+                        ViewBag.Roles = new SelectList(roles, "Id", "Name", user.RoleId);
+                        return View(user);
                     }
 
                     return RedirectToAction("Index","User");
                 }
                 else
                 {
-                    
+                    AddIdentityErrors(createUserResult);
+                    ViewBag.Roles = new SelectList(roles, "Id", "Name", user.RoleId);
                     return View(user);
                 }
             }
             else
             {
-                TempData["error"] = "Model có 1 vài thứ đang bị lỗi.";
+                TempData["error"] = "Model cÃ³ 1 vÃ i thá»© Ä‘ang bá»‹ lá»—i.";
                 List<string> errors = new List<string>();
                 foreach (var value in ModelState.Values)
                 {
@@ -100,8 +109,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     }
                 }
             }
-            var roles = await _roleManager.Roles.ToListAsync();
-            ViewBag.Roles = new SelectList(roles, "Id", "Name");
+            ViewBag.Roles = new SelectList(roles, "Id", "Name", user.RoleId);
             return View(user);
         }
 
@@ -131,7 +139,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         
         public async Task<IActionResult> Edit(string id, AppUserModel user)
         {
-            var existingUser = await _userManager.FindByIdAsync(id); //lấy user id
+            var existingUser = await _userManager.FindByIdAsync(id); //láº¥y user id
             if (existingUser == null)
             {
                 return NotFound();
@@ -139,7 +147,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                // Cập nhật các thuộc tính của user
+                // Cáº­p nháº­t cÃ¡c thuá»™c tÃ­nh cá»§a user
                 existingUser.UserName = user.UserName;
                 existingUser.Email = user.Email;
                 existingUser.PhoneNumber = user.PhoneNumber;
@@ -148,7 +156,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 var updateResult = await _userManager.UpdateAsync(existingUser);
                 if (updateResult.Succeeded)
                 {
-                    // Cập nhật Role trong bảng trung gian UserRoles
+                    // Cáº­p nháº­t Role trong báº£ng trung gian UserRoles
                     var oldRoles = await _userManager.GetRolesAsync(existingUser);
                     var newRole = await _roleManager.FindByIdAsync(user.RoleId);
                     
@@ -165,7 +173,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                         }
                     }
 
-                    TempData["success"] = "User đã được cập nhật.";
+                    TempData["success"] = "User Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t.";
                     return RedirectToAction("Index", "User");
                 }
                 else
@@ -178,8 +186,8 @@ namespace ShoppingCard.Areas.Admin.Controllers
             var roles = await _roleManager.Roles.ToListAsync();
             ViewBag.Roles = new SelectList(roles, "Id", "Name");
 
-            // Nếu có lỗi trong ModelState, hiển thị lại form với thông báo lỗi
-            TempData["error"] = "Model có 1 vài thứ đang bị lỗi.";
+            // Náº¿u cÃ³ lá»—i trong ModelState, hiá»ƒn thá»‹ láº¡i form vá»›i thÃ´ng bÃ¡o lá»—i
+            TempData["error"] = "Model cÃ³ 1 vÃ i thá»© Ä‘ang bá»‹ lá»—i.";
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
             string errorMessages = string.Join("\n", errors);
 
@@ -206,9 +214,10 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return View("Error");
             }
 
-            TempData["success"] = "User đã được xóa.";
+            TempData["success"] = "User Ä‘Ã£ Ä‘Æ°á»£c xÃ³a.";
             return RedirectToAction("Index");
         }
 
     }
 }
+

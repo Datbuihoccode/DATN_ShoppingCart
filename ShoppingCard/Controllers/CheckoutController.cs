@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
@@ -19,53 +20,67 @@ namespace ShoppingCard.Controllers
 
         public async Task<IActionResult> Checkout()
         {
-            var userEmail = User.FindFirstValue(ClaimTypes.Email); 
-            if(userEmail == null)
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            if (userEmail == null)
             {
                 return RedirectToAction("Login", "Account");
             }
-            else
+
+            List<CartItemModel> cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            if (cartItems.Count == 0)
             {
-                var orderCode = Guid.NewGuid().ToString();
-                var orderItem = new OrderModel();
-                orderItem.OrderCode = orderCode; 
-                orderItem.UserName = userEmail;
-                orderItem.Status = 1;
-                orderItem.CreateDate = DateTime.Now;
-                _dataContext.Orders.Add(orderItem);
-                _dataContext.SaveChanges();
+                TempData["error"] = "Giỏ hàng đang trống.";
+                return RedirectToAction("Index", "Cart");
+            }
 
-                List<CartItemModel> cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-                foreach (var cart in cartItems)
+            var coupon_code = Request.Cookies["CouponTitle"];
+
+            var orderCode = Guid.NewGuid().ToString();
+            var orderItem = new OrderModel
+            {
+                OrderCode = orderCode,
+                UserName = userEmail,
+                Status = 1,
+                CreateDate = DateTime.Now,
+                CouponCode = coupon_code
+            };
+
+            _dataContext.Orders.Add(orderItem);
+
+            foreach (var cart in cartItems)
+            {
+                var orderDetails = new OrderDetailsModel
                 {
-                    var orderDetails = new OrderDetailsModel();
-                    orderDetails.UserName = userEmail;
-                    orderDetails.OrderCode = orderCode;
-                    orderDetails.ProductId = cart.ProductId;
-                    orderDetails.Price = cart.Price;
-                    orderDetails.Quantity = cart.Quantity;
+                    UserName = userEmail,
+                    OrderCode = orderCode,
+                    ProductId = cart.ProductId,
+                    Price = cart.Price,
+                    Quantity = cart.Quantity
+                };
 
-                    //update quantity of product
-                    var product = _dataContext.Products.Where(p => p.Id == cart.ProductId).FirstOrDefault();
+                var product = await _dataContext.Products.FirstOrDefaultAsync(p => p.Id == cart.ProductId);
+                if (product != null)
+                {
                     product.Quantity -= cart.Quantity;
                     product.Sold += cart.Quantity;
                     _dataContext.Update(product);
-                    //add order details
-                    _dataContext.Add(orderDetails);
-                    _dataContext.SaveChanges();
-
                 }
-                HttpContext.Session.Remove("Cart");
-                //Send email notification when order is successful
-                var receiver = "1977datbui@gmail.com";
-                var subject = "Đặt hàng thành công.";
-                var message = "Đơn hàng đang được xử lý.";
 
-                await _emailSender.SendEmailAsync(receiver, subject, message);
-                TempData["Success"] = "Thanh toán thành công, vui lòng chờ duyệt đơn hàng.";
-                return RedirectToAction("Index", "Cart");
+                _dataContext.Add(orderDetails);
             }
-            return View(Checkout);
+
+            await _dataContext.SaveChangesAsync();
+
+            HttpContext.Session.Remove("Cart");
+            Response.Cookies.Delete("CouponTitle");
+
+            var receiver = "1977datbui@gmail.com";
+            var subject = "Đặt hàng thành công.";
+            var message = "Đơn hàng đang được xử lý.";
+            await _emailSender.SendEmailAsync(receiver, subject, message);
+
+            TempData["Success"] = "Thanh toán thành công, vui lòng chờ duyệt đơn hàng.";
+            return RedirectToAction("History", "Account");
         }
     }
 }

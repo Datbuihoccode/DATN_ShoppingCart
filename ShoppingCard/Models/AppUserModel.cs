@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShoppingCard.Models
@@ -8,5 +8,6 @@ namespace ShoppingCard.Models
         public string Occupation { get; set; }
         
         public string RoleId { get; set; }
+        public string Token { get; set; }
     }
 }
