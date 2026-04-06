@@ -191,6 +191,7 @@ namespace ShoppingCard.Areas.Controllers
                 existingProduct.Name = product.Name;
                 existingProduct.Description = product.Description;
                 existingProduct.Price = product.Price;
+                existingProduct.CapitalPrice = product.CapitalPrice;
                 existingProduct.CategoryId = product.CategoryId;
                 existingProduct.BrandId = product.BrandId;
 

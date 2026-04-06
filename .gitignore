@@ -12,6 +12,7 @@
 ## .NET Core / ASP.NET Core ##
 appsettings.Development.json
 appsettings.Local.json
+ShoppingCard/appsettings.json
 *.db
 coverage.json
 coverage-final.json

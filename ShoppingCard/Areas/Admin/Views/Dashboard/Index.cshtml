@@ -1,0 +1,131 @@
+@model StatisticalModel
+@{
+    ViewData["Title"] = "Dashboard Statistic";
+}
+
+<h3>Dashboard Statistic</h3>
+
+<div class="row">
+    <div class="col-md-3">
+        <p>Thong ke san pham</p>
+        @ViewBag.CountProduct
+    </div>
+
+    <div class="col-md-3">
+        <p>Thong ke don hang</p>
+        @ViewBag.CountOrder
+    </div>
+
+    <div class="col-md-3">
+        <p>Thong ke danh muc</p>
+        @ViewBag.CountCategory
+    </div>
+
+    <div class="col-md-3">
+        <p>Thong ke user</p>
+        @ViewBag.CountUser
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <h4>Loc du lieu theo:</h4>
+        <select class="filter-select">
+            <option value="" selected disabled>--Loc du lieu--</option>
+            <option value="7">7 ngay truoc</option>
+            <option value="30">thang qua</option>
+            <option value="90">3 thang truoc</option>
+            <option value="365">1 nam</option>
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <h4>Tuy chon ngay:</h4>
+        <label for="date_from">Tu ngay</label>
+        <input type="date" class="form-control" id="date_from" asp-for="DateCreated" />
+
+        <label for="date_to" style="margin-top:10px;">Den ngay</label>
+        <input type="date" class="form-control" id="date_to" />
+
+        <button id="filterButton" class="btn btn-primary" style="margin-top:10px;">Filter</button>
+    </div>
+</div>
+
+<div class="row">
+    <p>Bieu do thong ke</p>
+    <div id="myfirstchart" style="height: 250px;"></div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var chartMorris = new Morris.Line({
+                element: 'myfirstchart',
+                data: [],
+                xkey: 'date',
+                ykeys: ['sold', 'quantity', 'revenue', 'profit'],
+                labels: ['So luong ban ra', 'Don hang', 'Doanh thu', 'Loi nhuan']
+            });
+
+            function renderChart(data) {
+                if (Array.isArray(data)) {
+                    chartMorris.setData(data.map(function (item) {
+                        return {
+                            date: item.date,
+                            sold: item.sold,
+                            quantity: item.quantity,
+                            revenue: item.revenue,
+                            profit: item.profit
+                        };
+                    }));
+                } else {
+                    console.warn("No data received for Morris chart update.");
+                    chartMorris.setData([]);
+                }
+            }
+
+            function loadChartData(url, requestData) {
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    dataType: "json",
+                    data: requestData,
+                    success: function (data) {
+                        renderChart(data);
+                    },
+                    error: function (error) {
+                        console.error("Error fetching data:", error);
+                    }
+                });
+            }
+
+            loadChartData('@Url.Action("GetChartData", "Dashboard", new { area = "Admin" })', {});
+
+            $('.filter-select').on('change', function () {
+                var days = parseInt($(this).val(), 10);
+                if (!days || days <= 0) {
+                    return;
+                }
+
+                loadChartData('@Url.Action("GetChartDataBySelect", "Dashboard", new { area = "Admin" })', {
+                    days: days
+                });
+            });
+
+            $('#filterButton').on('click', function () {
+                var fromDate = $('#date_from').val();
+                var toDate = $('#date_to').val();
+
+                if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+                    alert('Tu ngay khong duoc lon hon den ngay.');
+                    return;
+                }
+
+                loadChartData('@Url.Action("FilterData", "Dashboard", new { area = "Admin" })', {
+                    fromDate: fromDate,
+                    toDate: toDate
+                });
+            });
+        });
+    </script>
+}

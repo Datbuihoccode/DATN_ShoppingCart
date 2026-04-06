@@ -22,6 +22,10 @@ namespace ShoppingCard.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
+        [Required(ErrorMessage = "Yêu cầu nhập giá vốn sản phẩm")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal CapitalPrice { get; set; }
+
         [Required(ErrorMessage = "Yêu cầu chọn Thương hiệu.")]
         public int BrandId { get; set; }
 

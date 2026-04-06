@@ -20,6 +20,7 @@ namespace ShoppingCard.Repository
         public DbSet<WishlistModel> Wishlists { get; set; }
         public DbSet<ProductQuantityModel> ProductQuantities { get; set; }
         public DbSet<CouponModel> Coupons { get; set; }
+        public DbSet<StatisticalModel> Statisticals { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
