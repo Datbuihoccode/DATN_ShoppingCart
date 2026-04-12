@@ -11,18 +11,19 @@
         pageNo = pager.CurrentPage;
     }
 }
-<h3>List Order </h3>
+<h3>Danh sách đơn hàng</h3>
 <a asp-action="Create" asp-controller="Category">Add Category</a>
 <table class="table" id="myTable">
     <thead>
         <tr>
             <th scope="col">ID</th>
-            <th scope="col">Order Code</th>
-            <th scope="col">UserName</th>
-            <th scope="col">Coupon</th>
-            <th scope="col">Order Status</th>
-            <th scope="col">Create Date</th>
-            <th>Action</th>
+            <th scope="col">Mã đơn hàng</th>
+            <th scope="col">Người đặt</th>
+            <th scope="col">Mã giảm giá</th>
+            <th scope="col">Phương thức thanh toán</th>
+            <th scope="col">Trạng thái</th>
+            <th scope="col">Ngày tạo</th>
+            <th>Hành động</th>
         </tr>
     </thead>
     <tbody>
@@ -33,7 +34,37 @@
                 <td>@item.OrderCode</td>
                 <td>@item.UserName</td>
                 <td>@(string.IsNullOrWhiteSpace(item.CouponCode) ? "-" : item.CouponCode)</td>
-                  
+                <td>
+                    @if (string.IsNullOrWhiteSpace(item.PaymentMethod) || item.PaymentMethod == "COD")
+                    {
+                        <span class="text text-primary">COD</span>
+                    }
+                    else
+                    {
+                        string text = item.PaymentMethod;
+                        string[] split = text.Split(" ");
+                        string text_split = split[0];
+
+                        @if (text_split == "MOMO")
+                        {
+                            string number_split = split.Length > 1 ? split[1] : text;
+                            <a asp-action="PaymentMomoInfo" asp-route-orderid="@number_split" asp-controller="Order" asp-area="Admin">
+                                <span class="text text-success">@number_split</span>
+                            </a>
+                        }
+                        else if (text_split == "VnPay")
+                        {
+                            string number_split = split.Length > 1 ? split[1] : text;
+                            <a asp-action="PaymentVnpayInfo" asp-route-orderid="@number_split" asp-controller="Order" asp-area="Admin">
+                                <span class="text text-success">@number_split</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text text-primary">@text</span>
+                        }
+                    }
+                </td>
                 <td>
                     @if (item.Status == 1)
                     {
@@ -49,14 +80,21 @@
                     }
                 </td>
                 <td>@item.CreateDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
-
                 <td>
-                    <a asp-action="ViewOrder" class="btn btn-warning btn-sm" asp-controller="Order" asp-route-odercode="@item.OrderCode">View Order </a>
-                    <a asp-action="Delete" class="btn btn-danger btn-sm confirmDeletion" asp-controller="Order" asp-route-Id="@item.Id" onclick="return confirm('Xác nhận xóa');">Delete</a>
+                    <a asp-action="ViewOrder" class="btn btn-warning btn-sm" asp-controller="Order" asp-route-odercode="@item.OrderCode">Xem đơn hàng</a>
+                    <form asp-action="DeleteOrder"
+                          asp-controller="Order"
+                          asp-area="Admin"
+                          method="post"
+                          style="display:inline;"
+                          onsubmit="return confirm('Xác nhận xóa đơn hàng?');">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ordercode" value="@item.OrderCode" />
+                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
+                    </form>
                 </td>
             </tr>
         }
-
     </tbody>
 </table>
 <partial name="_paging" model="@pager" />

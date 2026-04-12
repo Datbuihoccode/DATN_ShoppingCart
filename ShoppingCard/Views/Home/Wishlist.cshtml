@@ -1,4 +1,4 @@
-@model IEnumerable<WishlistModel>
+﻿@model IEnumerable<WishlistModel>
 @{
     ViewData["Title"] = "Wishlist";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -18,9 +18,9 @@
         @if (Model == null || !Model.Any())
         {
             <div class="text-center" style="padding: 40px 0;">
-                <h4>Wishlist cua ban dang trong.</h4>
+                <h4>Wishlist của bạn đang trống.</h4>
                 <a asp-controller="Home" asp-action="Index" class="btn btn-warning" style="margin-top: 10px;">
-                    Tiep tuc mua sam
+                    Tiếp tục mua sắm
                 </a>
             </div>
         }
@@ -66,7 +66,7 @@
                                        asp-controller="Product"
                                        asp-action="Details"
                                        asp-route-Id="@item.ProductId">
-                                        Xem chi tiet
+                                        Xem chi tiết
                                     </a>
                                     <button type="button"
                                             class="btn btn-danger btn-sm btn-remove-wishlist"
@@ -108,7 +108,7 @@
                             return;
                         }
 
-                        Swal.fire('Khong the xoa san pham khoi wishlist.');
+                        Swal.fire('Không thể xóa sản phẩm khỏi wishlist.');
                     }
                 });
             });

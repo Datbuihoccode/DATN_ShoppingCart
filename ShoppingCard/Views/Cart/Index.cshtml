@@ -37,10 +37,9 @@
 								</td>
 								<td class="cart_description">
 									<h4><a href="">@item.ProductName</a></h4>
-									<p>Web ID: 1089772</p>
 								</td>
 								<td class="cart_price">
-									<p>@item.Price.ToString("#,##0 VNÄ")</p>
+									<p>@item.Price.ToString("#,##0 VNĐ")</p>
 								</td>
 								<td class="cart_quantity">
 									<a class="btn btn-default btn-sm" asp-controller="Cart" asp-action="Increase" asp-route-id="@item.ProductId"> + </a>
@@ -58,7 +57,7 @@
 						}
 						<tr rowspan="6">
 							<td colspan="6">
-								Grand Total: <p class="cart_total_price">@Model.GrandTotal.ToString("#,##0") VNÄ</p>
+								Grand Total: <p class="cart_total_price">@Model.GrandTotal.ToString("#,##0") VNĐ</p>
 
 								<div class="form-group">
 									<label>Coupon Code:</label>
@@ -67,13 +66,33 @@
 									<input type="button" value="Apply" class="btn btn-sm btn-primary btn-apply-coupon" />
 								</div>
 
-								Shipping Cost: <p class="cart_total_price">@Model.ShippingCost.ToString("#,##0") VNÄ</p>
-								<p><a asp-action="DeleteShipping" asp-controller="Cart">XÃ³a Shipping</a></p>
+								Shipping Cost: <p class="cart_total_price">@Model.ShippingCost.ToString("#,##0") VNĐ</p>
+								<p><a asp-action="DeleteShipping" asp-controller="Cart">Xóa Shipping</a></p>
 							</td>
-							<td><a class="btn btn-danger btn-sm" asp-controller="Cart" asp-action="Clear"> XoÃ¡ giá» hÃ ng</a></td>
+							<td><a class="btn btn-danger btn-sm" asp-controller="Cart" asp-action="Clear"> Xóa giỏ hàng</a></td>
 							@if (User.Identity?.IsAuthenticated ?? false)
 							{
 								<td><a class="btn btn-primary btn-sm" asp-controller="Checkout" asp-action="Checkout" onclick="return confirm('Xác nhận đặt hàng');"> Thanh toán </a></td>
+								<td>
+									<form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" style="display:inline;">
+										@Html.AntiForgeryToken()
+										<input type="hidden" name="FullName" value="@User.Identity?.Name" />
+										<input type="hidden" name="Amount" value="@Model.GrandTotal" />
+										<input type="hidden" name="OrderInformation" value="Thanh toán đơn hàng tại ShoppingCard" />
+										<button type="submit" class="btn btn-danger btn-sm" name="RequestType" value="captureWallet">Pay with MoMo QR</button>
+										<button type="submit" class="btn btn-warning btn-sm" name="RequestType" value="payWithATM">Pay with MoMo ATM</button>
+									</form>
+								</td>
+								<td>
+									<form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" style="display:inline;">
+										@Html.AntiForgeryToken()
+										<input type="hidden" name="Amount" value="@Model.GrandTotal" />
+										<input type="hidden" name="OrderDescription" value="Thanh toán đơn hàng tại ShoppingCard" />
+										<input type="hidden" name="Name" value="@User.Identity?.Name" />
+										<input type="hidden" name="OrderType" value="other" />
+										<button type="submit" class="btn btn-success btn-sm">Pay with VNPAY</button>
+									</form>
+								</td>
 							}
 						</tr>
 					}

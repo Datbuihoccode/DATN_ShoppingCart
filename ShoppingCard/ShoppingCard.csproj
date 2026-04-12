@@ -21,12 +21,20 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="RestSharp" Version="114.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\" />
     <Folder Include="wwwroot\backend\css\" />
     <Folder Include="wwwroot\backend\images\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj_temp\**\*.cs" />
+    <Compile Remove="zzz_obj\**\*.cs" />
+    <Compile Remove="bin_temp\**\*.cs" />
+    <Compile Remove="zzz_bin\**\*.cs" />
   </ItemGroup>
 
 </Project>

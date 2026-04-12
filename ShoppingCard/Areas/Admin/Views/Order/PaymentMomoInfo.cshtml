@@ -1,0 +1,29 @@
+@model MomoInfoModel
+
+@{
+    ViewData["Title"] = "Momo thong tin";
+}
+
+<h3>Momo Payment Info</h3>
+<a class="btn btn-primary" asp-action="Index" asp-controller="Order" asp-area="Admin">Back to Orders</a>
+
+<table class="table" id="myTable" style="margin-top:12px;">
+    <thead>
+        <tr>
+            <th>OrderId</th>
+            <th>OrderInfo</th>
+            <th>FullName</th>
+            <th>Amount</th>
+            <th>DatePaid</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>@Model.OrderId</td>
+            <td>@Model.OrderInfo</td>
+            <td>@Model.FullName</td>
+            <td>@Model.Amount.ToString("#,##0 VND")</td>
+            <td>@Model.DatePaid.ToString("dd/MM/yyyy HH:mm:ss")</td>
+        </tr>
+    </tbody>
+</table>

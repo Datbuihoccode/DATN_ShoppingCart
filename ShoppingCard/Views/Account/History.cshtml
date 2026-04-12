@@ -14,6 +14,7 @@
             <th>UserName</th>
             <th>Order Status</th>
             <th>Created Date</th>
+            <th>Payment Method</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -39,6 +40,20 @@
                     }
                 </td>
                 <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
+                <td>
+                    @if (item.PaymentMethod == "COD")
+                    {
+                        <span class="text text-primary">@item.PaymentMethod</span>
+                    }
+                    else if (!string.IsNullOrWhiteSpace(item.PaymentMethod))
+                    {
+                        <span class="text text-success">@item.PaymentMethod</span>
+                    }
+                    else
+                    {
+                        <span class="text text-danger">N/A</span>
+                    }
+                </td>
                 <td>
                     @if (item.Status != 3)
                     {

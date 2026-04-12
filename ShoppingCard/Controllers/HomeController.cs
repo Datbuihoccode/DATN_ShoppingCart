@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
@@ -68,24 +68,24 @@ namespace ShoppingCard.Controllers
         {
             if (Id <= 0)
             {
-                return BadRequest(new { success = false, message = "ID san pham khong hop le." });
+                return BadRequest(new { success = false, message = "ID sản phẩm không hợp lệ." });
             }
 
             var userId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { success = false, message = "Vui long dang nhap de them wishlist." });
+                return Unauthorized(new { success = false, message = "Vui lòng đăng nhập để thêm wishlist." });
             }
 
             if (!await _dataContext.Products.AnyAsync(p => p.Id == Id))
             {
-                return NotFound(new { success = false, message = "San pham khong ton tai." });
+                return NotFound(new { success = false, message = "Sản phẩm không tồn tại." });
             }
 
             var existed = await _dataContext.Wishlists.AnyAsync(w => w.ProductId == Id && w.UserId == userId);
             if (existed)
             {
-                return Ok(new { success = true, message = "San pham da co trong wishlist." });
+                return Ok(new { success = true, message = "Sản phẩm đã có trong wishlist." });
             }
 
             _dataContext.Wishlists.Add(new WishlistModel
@@ -97,17 +97,17 @@ namespace ShoppingCard.Controllers
             try
             {
                 await _dataContext.SaveChangesAsync();
-                return Ok(new { success = true, message = "Da them san pham vao wishlist." });
+                return Ok(new { success = true, message = "Đã thêm sản phẩm vào wishlist." });
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx &&
                                               (sqlEx.Number == 2601 || sqlEx.Number == 2627))
             {
-                return Ok(new { success = true, message = "San pham da co trong wishlist." });
+                return Ok(new { success = true, message = "Sản phẩm đã có trong wishlist." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Add wishlist failed. ProductId: {ProductId}, UserId: {UserId}", Id, userId);
-                return StatusCode(500, new { success = false, message = "Co loi xay ra khi them wishlist." });
+                return StatusCode(500, new { success = false, message = "Có lỗi xảy ra khi thêm wishlist." });
             }
         }
 
@@ -116,13 +116,13 @@ namespace ShoppingCard.Controllers
         {
             if (Id <= 0)
             {
-                return BadRequest(new { success = false, message = "ID san pham khong hop le." });
+                return BadRequest(new { success = false, message = "ID sản phẩm không hợp lệ." });
             }
 
             var userId = _userManager.GetUserId(User);
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { success = false, message = "Vui long dang nhap de thao tac." });
+                return Unauthorized(new { success = false, message = "Vui lòng đăng nhập để thao tác." });
             }
 
             var items = await _dataContext.Wishlists
@@ -131,12 +131,12 @@ namespace ShoppingCard.Controllers
 
             if (items.Count == 0)
             {
-                return NotFound(new { success = false, message = "Khong tim thay san pham trong wishlist." });
+                return NotFound(new { success = false, message = "Không tìm thấy sản phẩm trong wishlist." });
             }
 
             _dataContext.Wishlists.RemoveRange(items);
             await _dataContext.SaveChangesAsync();
-            return Ok(new { success = true, message = "Da xoa san pham khoi wishlist." });
+            return Ok(new { success = true, message = "Đã xóa sản phẩm khỏi wishlist." });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

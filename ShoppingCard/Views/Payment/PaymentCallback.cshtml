@@ -1,0 +1,27 @@
+@model ShoppingCard.Models.Momo.MomoExecuteResponseModel
+@{
+    ViewData["Title"] = "Momo Payment Callback";
+}
+
+<section class="container" style="margin-top:20px;">
+    <h3>Ket qua thanh toan MoMo</h3>
+
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <tr>
+                <th>OrderId</th>
+                <td>@Model?.OrderId</td>
+            </tr>
+            <tr>
+                <th>Amount</th>
+                <td>@Model?.Amount</td>
+            </tr>
+            <tr>
+                <th>OrderInfo</th>
+                <td>@Model?.OrderInfo</td>
+            </tr>
+        </table>
+    </div>
+
+    <a asp-controller="Cart" asp-action="Index" class="btn btn-primary">Quay ve gio hang</a>
+</section>

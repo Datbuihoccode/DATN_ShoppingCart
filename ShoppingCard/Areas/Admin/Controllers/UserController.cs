@@ -44,7 +44,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                                         select new { User = u, RoleName = r != null ? r.Name : "No role" })
                                         .ToListAsync();
 
-            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier); // Láº¥y ID cá»§a ngÆ°á»i dÃ¹ng hiá»‡n táº¡i
+            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier); // Lấy ID của người dùng hiện tại
             ViewBag.loggedInUserID = loggedInUserID;
             return View(usersWithRoles);
         }
@@ -74,7 +74,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     var role = await _roleManager.FindByIdAsync(user.RoleId); // lay role dua vao roleId
                     if (createdUser == null || role == null)
                     {
-                        TempData["error"] = "KhÃ´ng tÃ¬m tháº¥y user hoáº·c role Ä‘á»ƒ gÃ¡n.";
+                        TempData["error"] = "Không tìm thấy user hoặc role để gán.";
                         ViewBag.Roles = new SelectList(roles, "Id", "Name", user.RoleId);
                         return View(user);
                     }
@@ -99,7 +99,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
             }
             else
             {
-                TempData["error"] = "Model cÃ³ 1 vÃ i thá»© Ä‘ang bá»‹ lá»—i.";
+                TempData["error"] = "Model có một vài lỗi.";
                 List<string> errors = new List<string>();
                 foreach (var value in ModelState.Values)
                 {
@@ -139,7 +139,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         
         public async Task<IActionResult> Edit(string id, AppUserModel user)
         {
-            var existingUser = await _userManager.FindByIdAsync(id); //láº¥y user id
+            var existingUser = await _userManager.FindByIdAsync(id); // lấy user id
             if (existingUser == null)
             {
                 return NotFound();
@@ -147,7 +147,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                // Cáº­p nháº­t cÃ¡c thuá»™c tÃ­nh cá»§a user
+                // Cập nhật các thuộc tính của user
                 existingUser.UserName = user.UserName;
                 existingUser.Email = user.Email;
                 existingUser.PhoneNumber = user.PhoneNumber;
@@ -156,7 +156,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 var updateResult = await _userManager.UpdateAsync(existingUser);
                 if (updateResult.Succeeded)
                 {
-                    // Cáº­p nháº­t Role trong báº£ng trung gian UserRoles
+                    // Cập nhật Role trong bảng trung gian UserRoles
                     var oldRoles = await _userManager.GetRolesAsync(existingUser);
                     var newRole = await _roleManager.FindByIdAsync(user.RoleId);
                     
@@ -173,7 +173,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                         }
                     }
 
-                    TempData["success"] = "User Ä‘Ã£ Ä‘Æ°á»£c cáº­p nháº­t.";
+                    TempData["success"] = "User đã được cập nhật.";
                     return RedirectToAction("Index", "User");
                 }
                 else
@@ -186,8 +186,8 @@ namespace ShoppingCard.Areas.Admin.Controllers
             var roles = await _roleManager.Roles.ToListAsync();
             ViewBag.Roles = new SelectList(roles, "Id", "Name");
 
-            // Náº¿u cÃ³ lá»—i trong ModelState, hiá»ƒn thá»‹ láº¡i form vá»›i thÃ´ng bÃ¡o lá»—i
-            TempData["error"] = "Model cÃ³ 1 vÃ i thá»© Ä‘ang bá»‹ lá»—i.";
+            // Nếu có lỗi trong ModelState, hiển thị lại form với thông báo lỗi
+            TempData["error"] = "Model có một vài lỗi.";
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
             string errorMessages = string.Join("\n", errors);
 
@@ -214,7 +214,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return View("Error");
             }
 
-            TempData["success"] = "User Ä‘Ã£ Ä‘Æ°á»£c xÃ³a.";
+            TempData["success"] = "User đã được xóa.";
             return RedirectToAction("Index");
         }
 

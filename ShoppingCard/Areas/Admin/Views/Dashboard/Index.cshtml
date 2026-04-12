@@ -1,4 +1,4 @@
-@model StatisticalModel
+﻿@model StatisticalModel
 @{
     ViewData["Title"] = "Dashboard Statistic";
 }
@@ -7,17 +7,17 @@
 
 <div class="row">
     <div class="col-md-3">
-        <p>Thong ke san pham</p>
+        <p>Thống kê sản phẩm</p>
         @ViewBag.CountProduct
     </div>
 
     <div class="col-md-3">
-        <p>Thong ke don hang</p>
+        <p>Thống kê đơn hàng</p>
         @ViewBag.CountOrder
     </div>
 
     <div class="col-md-3">
-        <p>Thong ke danh muc</p>
+        <p>Thống kê danh mục</p>
         @ViewBag.CountCategory
     </div>
 
@@ -64,7 +64,7 @@
                 data: [],
                 xkey: 'date',
                 ykeys: ['sold', 'quantity', 'revenue', 'profit'],
-                labels: ['So luong ban ra', 'Don hang', 'Doanh thu', 'Loi nhuan']
+                labels: ['Số lượng bán ra', 'Đơn hàng', 'Doanh thu', 'Lợi nhuận']
             });
 
             function renderChart(data) {
@@ -117,7 +117,7 @@
                 var toDate = $('#date_to').val();
 
                 if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
-                    alert('Tu ngay khong duoc lon hon den ngay.');
+                    alert('Từ ngày không được lớn hơn đến ngày.');
                     return;
                 }
 

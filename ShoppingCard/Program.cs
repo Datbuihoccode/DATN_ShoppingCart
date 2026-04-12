@@ -4,9 +4,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
+using ShoppingCard.Models.Momo;
 using ShoppingCard.Repository;
+using ShoppingCard.Services.Momo;
+using ShoppingCard.Services.Vnpay;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Connect MoMo API
+builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoApi"));
+builder.Services.AddScoped<IMomoService, MomoService>();
+builder.Services.AddScoped<IVnPayService, VnPayService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

@@ -46,16 +46,16 @@ namespace ShoppingCard.Controllers
                 var result = await _signInManager.PasswordSignInAsync(loginVM.UserName, loginVM.Password, false, false);
                 if (result.Succeeded)
                 {
-                    TempData["success"] = "ÄÄƒng nháº­p thÃ nh cÃ´ng!";
+                    TempData["success"] = "Đăng nhập thành công!";
                     var receiver = "1977datbui@gmail.com";
-                    var subject = "ÄÄƒng nháº­p thÃ nh cÃ´ng";
-                    var message = "Báº¡n Ä‘Ã£ Ä‘Äƒng nháº­p thÃ nh cÃ´ng vÃ o há»‡ thá»‘ng.";
+                    var subject = "Đăng nhập thành công";
+                    var message = "Bạn đã đăng nhập thành công vào hệ thống.";
 
                     await _emailSender.SendEmailAsync(receiver, subject, message);
                     return Redirect(loginVM.ReturnUrl ?? "/");
                 }
 
-                ModelState.AddModelError("", "Máº­t kháº©u hoáº·c tÃªn Ä‘Äƒng nháº­p sai!");
+                ModelState.AddModelError("", "Mật khẩu hoặc tên đăng nhập sai!");
             }
 
             return View(loginVM);
@@ -77,7 +77,7 @@ namespace ShoppingCard.Controllers
         {
             if (!string.IsNullOrEmpty(remoteError))
             {
-                TempData["error"] = "Dang nhap Google that bai.";
+                TempData["error"] = "Đăng nhập Google thất bại.";
                 return RedirectToAction("Login", "Account");
             }
 
@@ -108,7 +108,7 @@ namespace ShoppingCard.Controllers
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             if (string.IsNullOrWhiteSpace(email))
             {
-                TempData["error"] = "Tai khoan Google khong co email hop le.";
+                TempData["error"] = "Tài khoản Google không có email hợp lệ.";
                 return RedirectToAction("Login", "Account");
             }
 
@@ -131,7 +131,7 @@ namespace ShoppingCard.Controllers
 
                 if (!createUserResult.Succeeded)
                 {
-                    TempData["error"] = "Dang ky tai khoan that bai. Vui long thu lai sau.";
+                    TempData["error"] = "Đăng ký tài khoản thất bại. Vui lòng thử lại sau.";
                     return RedirectToAction("Login", "Account");
                 }
 
@@ -143,7 +143,7 @@ namespace ShoppingCard.Controllers
                 await _signInManager.SignInAsync(newUser, isPersistent: false);
                 await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-                TempData["success"] = "Dang ky tai khoan thanh cong.";
+                TempData["success"] = "Đăng ký tài khoản thành công.";
                 return RedirectToAction("Index", "Home");
             }
 
@@ -190,11 +190,11 @@ namespace ShoppingCard.Controllers
                             ModelState.AddModelError("", error.Description);
                         }
 
-                        TempData["error"] = "Tai khoan da tao nhung chua gan duoc role User.";
+                        TempData["error"] = "Tài khoản đã tạo nhưng chưa gán được quyền User.";
                         return View(user);
                     }
 
-                    TempData["success"] = "Tao tai khoan thanh cong!";
+                    TempData["success"] = "Tạo tài khoản thành công!";
                     return Redirect("/account/login");
                 }
 
@@ -268,7 +268,7 @@ namespace ShoppingCard.Controllers
 
             if (string.IsNullOrWhiteSpace(user.PasswordHash))
             {
-                ModelState.AddModelError("PasswordHash", "Vui long nhap mat khau moi.");
+                ModelState.AddModelError("PasswordHash", "Vui lòng nhập mật khẩu mới.");
             }
             else
             {
@@ -289,7 +289,7 @@ namespace ShoppingCard.Controllers
             if (result.Succeeded)
             {
                 await _signInManager.RefreshSignInAsync(userId);
-                TempData["success"] = "Update account successfully";
+                TempData["success"] = "Cập nhật tài khoản thành công";
                 return RedirectToAction("UpdateAccount", "Account");
             }
 
@@ -335,7 +335,7 @@ namespace ShoppingCard.Controllers
 
             if (string.IsNullOrWhiteSpace(ordercode))
             {
-                TempData["error"] = "MÃ£ Ä‘Æ¡n hÃ ng khÃ´ng há»£p lá»‡.";
+                TempData["error"] = "Mã đơn hàng không hợp lệ.";
                 return RedirectToAction("History", "Account");
             }
 
@@ -350,13 +350,13 @@ namespace ShoppingCard.Controllers
 
             if (order == null)
             {
-                TempData["error"] = "KhÃ´ng tÃ¬m tháº¥y Ä‘Æ¡n hÃ ng Ä‘á»ƒ há»§y.";
+                TempData["error"] = "Không tìm thấy đơn hàng để hủy.";
                 return RedirectToAction("History", "Account");
             }
 
             if (order.Status == 3)
             {
-                TempData["info"] = "ÄÆ¡n hÃ ng Ä‘Ã£ Ä‘Æ°á»£c há»§y trÆ°á»›c Ä‘Ã³.";
+                TempData["info"] = "Đơn hàng đã được hủy trước đó.";
                 return RedirectToAction("History", "Account");
             }
 
@@ -365,11 +365,11 @@ namespace ShoppingCard.Controllers
                 order.Status = 3;
                 _dataContext.Update(order);
                 await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Há»§y Ä‘Æ¡n hÃ ng thÃ nh cÃ´ng.";
+                TempData["success"] = "Hủy đơn hàng thành công.";
             }
             catch
             {
-                TempData["error"] = "An error occurred while canceling the order.";
+                TempData["error"] = "Đã xảy ra lỗi khi hủy đơn hàng.";
             }
 
             return RedirectToAction("History", "Account");
@@ -387,7 +387,7 @@ namespace ShoppingCard.Controllers
             
             if (checkMail == null)
             {
-                TempData["error"] = "Email not found";
+                TempData["error"] = "Không tìm thấy Email";
                 return RedirectToAction("ForgetPass", "Account");
             }
             else
@@ -405,7 +405,7 @@ namespace ShoppingCard.Controllers
 
                 await _emailSender.SendEmailAsync(receiver, subject, message);
 
-                TempData["success"] = "An email has been sent to your registered email address with password reset instructions.";
+                TempData["success"] = "Một email đã được gửi đến địa chỉ đã đăng ký với hướng dẫn khôi phục mật khẩu.";
                 return RedirectToAction("ForgetPass", "Account");
             }
         }
@@ -423,7 +423,7 @@ namespace ShoppingCard.Controllers
             }
             else
             {
-                TempData["error"] = "Email not found or token is not right";
+                TempData["error"] = "Không tìm thấy email hoặc mã xác thực không đúng";
                 return RedirectToAction("ForgetPass", "Account");
             }
 
@@ -447,13 +447,13 @@ namespace ShoppingCard.Controllers
                 var result = await _userManager.UpdateAsync(checkuser);
                 if (result.Succeeded)
                 {
-                    TempData["success"] = "Password updated successfully";
+                    TempData["success"] = "Cập nhật mật khẩu thành công";
                     return RedirectToAction("Login", "Account");
                 }
             }
             else
             {
-                TempData["error"] = "Email not found or token is invalid";
+                TempData["error"] = "Không tìm thấy email hoặc mã xác thực không hợp lệ";
                 return RedirectToAction("ForgetPass", "Account");
             }
 

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -39,7 +39,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(ContactModel contact)
         {
-            var existingContact = await _context.Contacts.FirstOrDefaultAsync();//tim san pham trong db bang id
+            var existingContact = await _context.Contacts.FirstOrDefaultAsync();//tìm sản phẩm trong db bằng id
 
             //Bỏ qua lỗi validation của trường Image
             ModelState.Remove("LogoImg");
@@ -59,7 +59,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     existingContact.LogoImg = imageName;
 
                 }
-                //update san pham
+                //update sản phẩm
                 existingContact.Name = contact.Name;
                 existingContact.Description = contact.Description;
                 existingContact.Phone = contact.Phone;

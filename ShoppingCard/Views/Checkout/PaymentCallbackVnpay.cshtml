@@ -1,0 +1,14 @@
+@model ShoppingCard.Models.VNP.PaymentResponseModel
+
+@{
+    ViewData["Title"] = "Kết quả giao dịch thanh toán VNPAY";
+}
+
+<h1>Thanh toán VNPay thành công</h1>
+
+<b>OrderId: @Model.OrderId</b><br />
+<b>OrderInfo: @Model.OrderDescription</b><br />
+<b>Mã giao dịch: @Model.TransactionId</b><br />
+<b>Mã thanh toán: @Model.PaymentId</b><br />
+<b>Xem <a asp-controller="Account" asp-action="History">Lịch sử đơn hàng đã đặt</a></b>
+

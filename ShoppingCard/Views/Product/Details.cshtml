@@ -55,8 +55,8 @@
 					<h2>@Model.ProductDetails.Name</h2>
 					<span>
 						<span>@Model.ProductDetails.Price.ToString("#,##0 VNĐ")</span>
-						<label>Quantity:1</label>
-						<input type="text" value="3" />
+						<label>Số lượng</label>
+						<input type="text" value="@Model.ProductDetails.Quantity" />
 						@if(Model.ProductDetails.Quantity > 0){
 							<a class="btn btn-default add-to-cart" asp-action="Add" 
 								asp-controller="Cart" asp-route-Id="@Model.ProductDetails.Id">

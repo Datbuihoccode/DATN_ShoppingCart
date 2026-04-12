@@ -47,6 +47,39 @@ namespace ShoppingCard.Areas.Admin.Controllers
             return View(detailsOrder);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> PaymentMomoInfo(string orderId)
+        {
+            if (string.IsNullOrWhiteSpace(orderId))
+            {
+                return NotFound();
+            }
+
+            var momoInfo = await _dataContext.MomoInfos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.OrderId == orderId);
+
+            if (momoInfo == null)
+            {
+                return NotFound();
+            }
+
+            return View(momoInfo);
+        }
+
+        [HttpGet]
+        [Route("PaymentVnpayInfo")]
+        public async Task<IActionResult> PaymentVnpayInfo(string orderId)
+        {
+            var vnpayInfo = await _dataContext.VnpayInfos.FirstOrDefaultAsync(m => m.PaymentId == orderId);
+            
+            if (vnpayInfo == null)
+            {
+                return NotFound();
+            }
+            return View(vnpayInfo);
+        }
+
         [HttpPost]
         [Route("UpdateOrder")]
         public async Task<IActionResult> UpdateOrder(string ordercode, int status)
@@ -59,12 +92,12 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             if (order.Status == 3)
             {
-                return BadRequest(new { success = false, message = "Order has been canceled and cannot be updated." });
+                return BadRequest(new { success = false, message = "Đơn hàng đã bị hủy và không thể cập nhật." });
             }
 
             if (status != 1 && status != 2 && status != 0)
             {
-                return BadRequest(new { success = false, message = "Invalid order status." });
+                return BadRequest(new { success = false, message = "Trạng thái đơn hàng không hợp lệ." });
             }
 
             var normalizedStatus = status == 0 ? 2 : status;
@@ -132,23 +165,30 @@ namespace ShoppingCard.Areas.Admin.Controllers
             try
             {
                 await _dataContext.SaveChangesAsync();
-                return Ok(new { success = true, message = "Order status updated successfully" });
+                return Ok(new { success = true, message = "Cập nhật trạng thái đơn hàng thành công" });
             }
             catch (Exception)
             {
-                return StatusCode(500, "An error occurred while updating the order status.");
+                return StatusCode(500, "Đã xảy ra lỗi khi cập nhật trạng thái đơn hàng.");
             }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Route("DeleteOrder")]
         public async Task<IActionResult> DeleteOrder(string ordercode)
         {
-            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode);
+            if (string.IsNullOrWhiteSpace(ordercode))
+            {
+                TempData["error"] = "Mã đơn hàng không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
 
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode);
             if (order == null)
             {
-                return Json(new { success = false, message = "Khong tim thay don hang de xoa." });
+                TempData["error"] = "Không tìm thấy đơn hàng để xóa.";
+                return RedirectToAction(nameof(Index));
             }
 
             try
@@ -165,11 +205,13 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 _dataContext.Orders.Remove(order);
                 await _dataContext.SaveChangesAsync();
 
-                return Json(new { success = true, message = "Xoa don hang thanh cong!" });
+                TempData["success"] = "Xóa đơn hàng thành công!";
+                return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Da xay ra loi khi xoa: " + ex.Message });
+                TempData["error"] = "Đã xảy ra lỗi khi xóa: " + ex.Message;
+                return RedirectToAction(nameof(Index));
             }
         }
     }

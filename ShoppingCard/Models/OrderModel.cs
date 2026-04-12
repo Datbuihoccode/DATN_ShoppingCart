@@ -10,5 +10,6 @@ namespace ShoppingCard.Models
         public DateTime CreateDate { get; set; }
         public int Status { get; set; }
         public string CouponCode { get; set; }
+        public string PaymentMethod { get; set; }
     }
 }
