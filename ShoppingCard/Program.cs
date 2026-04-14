@@ -70,6 +70,14 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 var app = builder.Build();
 
+// Seed data on startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<DataContext>();
+    await SeedData.SeedingData(context, services);
+}
+
 app.UseStatusCodePagesWithRedirects("/Home/Error?statuscode={0}");
 
 app.UseSession();
@@ -106,12 +114,5 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<DataContext>();
-    await SeedData.SeedingData(context, services);
-}
 
 app.Run();

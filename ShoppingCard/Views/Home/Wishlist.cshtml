@@ -1,4 +1,4 @@
-﻿@model IEnumerable<WishlistModel>
+@model IEnumerable<WishlistModel>
 @{
     ViewData["Title"] = "Wishlist";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -27,13 +27,13 @@
         else
         {
             <div class="table-responsive cart_info">
-                <table class="table table-condensed">
+                <table class="table table-condensed" style="table-layout: fixed; width: 100%;">
                     <thead>
                         <tr class="cart_menu">
-                            <td class="image">Item</td>
-                            <td class="description">Product</td>
-                            <td class="price">Price</td>
-                            <td class="quantity">Action</td>
+                            <td class="image" style="width: 25%; text-align: center; vertical-align: middle;">Item</td>
+                            <td class="description" style="width: 25%; text-align: center; vertical-align: middle;">Product</td>
+                            <td class="price" style="width: 25%; text-align: center; vertical-align: middle;">Price</td>
+                            <td class="quantity" style="width: 25%; text-align: center; vertical-align: middle;">Action</td>
                         </tr>
                     </thead>
                     <tbody>
@@ -45,34 +45,38 @@
                             }
 
                             <tr>
-                                <td class="cart_product">
+                                <td class="cart_product" style="text-align: center; vertical-align: middle;">
                                     <a asp-controller="Product" asp-action="Details" asp-route-Id="@item.ProductId">
-                                        <img src="~/media/products/@item.Product.Image" alt="@item.Product.Name" width="90" />
+                                        <img src="~/media/products/@item.Product.Image" alt="@item.Product.Name" width="130" style="margin: 0 auto; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.1);" />
                                     </a>
                                 </td>
-                                <td class="cart_description">
-                                    <h4>
-                                        <a asp-controller="Product" asp-action="Details" asp-route-Id="@item.ProductId">
+                                <td class="cart_description" style="text-align: center; vertical-align: middle;">
+                                    <h4 style="margin-bottom: 5px;">
+                                        <a asp-controller="Product" asp-action="Details" asp-route-Id="@item.ProductId" style="font-size: 18px;">
                                             @item.Product.Name
                                         </a>
                                     </h4>
-                                    <p>Product ID: @item.ProductId</p>
+                                    <p style="margin: 0; color: #666;">Product ID: @item.ProductId</p>
                                 </td>
-                                <td class="cart_price">
-                                    <p>@item.Product.Price.ToString("#,##0 VND")</p>
+                                <td class="cart_price" style="text-align: center; vertical-align: middle;">
+                                    <p style="margin: 0; font-size: 20px; font-weight: bold; color: #FE980F;">@item.Product.Price.ToString("#,##0 VND")</p>
                                 </td>
-                                <td class="cart_quantity">
-                                    <a class="btn btn-primary btn-sm"
-                                       asp-controller="Product"
-                                       asp-action="Details"
-                                       asp-route-Id="@item.ProductId">
-                                        Xem chi tiết
-                                    </a>
-                                    <button type="button"
-                                            class="btn btn-danger btn-sm btn-remove-wishlist"
-                                            data-product_id="@item.ProductId">
-                                        Xoa
-                                    </button>
+                                <td class="cart_quantity" style="vertical-align: middle; padding: 10px;">
+                                    <div style="display: flex; gap: 8px; align-items: stretch; justify-content: center;">
+                                        <a class="btn btn-primary btn-sm"
+                                           asp-controller="Product"
+                                           asp-action="Details"
+                                           asp-route-Id="@item.ProductId"
+                                           style="flex: 1; display: flex; align-items: center; justify-content: center; margin: 0; min-height: 36px;">
+                                            <i class="fa fa-eye" style="margin-right: 5px;"></i> Xem chi tiết
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-danger btn-sm btn-remove-wishlist"
+                                                data-product_id="@item.ProductId"
+                                                style="flex: 1; display: flex; align-items: center; justify-content: center; margin: 0; min-height: 36px;">
+                                            <i class="fa fa-times" style="margin-right: 5px;"></i> Xóa
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -95,7 +99,7 @@
                     url: '@Url.Action("RemoveWishList", "Home")',
                     data: { Id: Id },
                     success: function (result) {
-                        Swal.fire(result.message || 'Da xoa khoi wishlist.');
+                        Swal.fire(result.message || 'Đã xóa sản phẩm khỏi Yêu thích.');
                         $row.remove();
 
                         if ($('.btn-remove-wishlist').length === 0) {
@@ -108,7 +112,7 @@
                             return;
                         }
 
-                        Swal.fire('Không thể xóa sản phẩm khỏi wishlist.');
+                        Swal.fire('Không thể xóa sản phẩm khỏi Yêu thích.');
                     }
                 });
             });

@@ -118,7 +118,7 @@ namespace ShoppingCard.Controllers
             if (existingUser == null)
             {
                 var passwordHasher = new PasswordHasher<AppUserModel>();
-                var hashedPassword = passwordHasher.HashPassword(null, "123456789");
+                var hashedPassword = passwordHasher.HashPassword(null, "Ta!123");
 
                 var newUser = new AppUserModel
                 {
@@ -135,9 +135,20 @@ namespace ShoppingCard.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
-                if (await _roleManager.RoleExistsAsync("User"))
+                if (!await _roleManager.RoleExistsAsync("Admin"))
                 {
-                    await _userManager.AddToRoleAsync(newUser, "User");
+                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                }
+
+                var roleExist = await _userManager.IsInRoleAsync(newUser, "Admin");
+                if (!roleExist)
+                {
+                    var roleAssignResult = await _userManager.AddToRoleAsync(newUser, "Admin");
+                    if (!roleAssignResult.Succeeded)
+                    {
+                        TempData["error"] = "Không thể gán quyền Admin. Vui lòng thử lại sau.";
+                        return RedirectToAction("Login", "Account");
+                    }
                 }
 
                 await _signInManager.SignInAsync(newUser, isPersistent: false);
@@ -164,6 +175,7 @@ namespace ShoppingCard.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UserModel user)
         {
             if (ModelState.IsValid)
@@ -204,7 +216,7 @@ namespace ShoppingCard.Controllers
                 }
             }
 
-            return View();
+            return View(user);
         }
 
         public async Task<IActionResult> Logout(string returnUrl = "/")
