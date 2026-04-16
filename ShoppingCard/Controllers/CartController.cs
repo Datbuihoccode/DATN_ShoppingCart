@@ -1,22 +1,52 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using ShoppingCard.Repository;
 using ShoppingCard.Models;
 using ShoppingCard.Models.ViewsModels;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace ShoppingCard.Controllers
 {
     public class CartController : Controller
     {
         private readonly DataContext _dataContext;
-        public CartController(DataContext _context)
+
+        public CartController(DataContext context)
         {
-            _dataContext = _context;
+            _dataContext = context;
         }
 
-        public IActionResult Index()
+        private string GetUserId()
         {
-            List<CartItemModel> cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            var userId = GetUserId();
+            List<CartItemModel> cartItems = new List<CartItemModel>();
+
+            if (userId != null)
+            {
+                var dbCarts = await _dataContext.Carts
+                    .Include(c => c.Product)
+                    .Where(c => c.UserId == userId)
+                    .ToListAsync();
+                    
+                cartItems = dbCarts.Select(c => new CartItemModel
+                {
+                    ProductId = c.ProductId,
+                    ProductName = c.Product?.Name,
+                    Price = c.Product?.Price ?? 0,
+                    Quantity = c.Quantity,
+                    Image = c.Product?.Image
+                }).ToList();
+            }
+            else
+            {
+                cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            }
+
             decimal shippingPrice = 0;
             var coupon_code = Request.Cookies["CouponTitle"];
 
@@ -37,98 +67,195 @@ namespace ShoppingCard.Controllers
 
         public async Task<IActionResult> Add(long Id)
         {
-            ProductModel product = await _dataContext.Products.FindAsync(Id);
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-            CartItemModel cartItems = cart.Where(c => c.ProductId == Id).FirstOrDefault();
-            if (cartItems == null)
+            var product = await _dataContext.Products.FindAsync(Id);
+            if (product == null) return NotFound();
+
+            var userId = GetUserId();
+
+            if (userId != null)
             {
-                cart.Add(new CartItemModel(product));
+                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+                if (cartItem == null)
+                {
+                    _dataContext.Carts.Add(new CartModel
+                    {
+                        UserId = userId,
+                        ProductId = Id,
+                        Quantity = 1
+                    });
+                }
+                else
+                {
+                    cartItem.Quantity += 1;
+                }
+                await _dataContext.SaveChangesAsync();
             }
             else
             {
-                cartItems.Quantity += 1;
+                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+                CartItemModel cartItemSession = cart.FirstOrDefault(c => c.ProductId == Id);
+                if (cartItemSession == null)
+                {
+                    cart.Add(new CartItemModel(product));
+                }
+                else
+                {
+                    cartItemSession.Quantity += 1;
+                }
+                HttpContext.Session.SetJson("Cart", cart);
             }
 
-            HttpContext.Session.SetJson("Cart", cart);
-
             TempData["success"] = "Product added to cart successfully!";
-
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> Decrease(long Id)
         {
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+            var userId = GetUserId();
 
-            CartItemModel cartItem = cart.Where(c => c.ProductId == Id).FirstOrDefault();
-
-            if (cartItem.Quantity > 1)
+            if (userId != null)
             {
-                --cartItem.Quantity;
+                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+                if (cartItem != null)
+                {
+                    if (cartItem.Quantity > 1)
+                    {
+                        cartItem.Quantity -= 1;
+                    }
+                    else
+                    {
+                        _dataContext.Carts.Remove(cartItem);
+                    }
+                    await _dataContext.SaveChangesAsync();
+                }
             }
             else
             {
-                cart.RemoveAll(p => p.ProductId == Id);
+                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+                if (cart != null)
+                {
+                    CartItemModel cartItem = cart.FirstOrDefault(c => c.ProductId == Id);
+                    if (cartItem != null)
+                    {
+                        if (cartItem.Quantity > 1)
+                        {
+                            --cartItem.Quantity;
+                        }
+                        else
+                        {
+                            cart.RemoveAll(p => p.ProductId == Id);
+                        }
+                        
+                        if (cart.Count == 0)
+                            HttpContext.Session.Remove("Cart");
+                        else
+                            HttpContext.Session.SetJson("Cart", cart);
+                    }
+                }
             }
-            if (cart.Count == 0)
-            {
-                HttpContext.Session.Remove("Cart");
-            }
-            else
-            {
-                HttpContext.Session.SetJson("Cart", cart);
-            }
+
             TempData["success"] = "Product quantity updated successfully!";
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Increase(long Id)
         {
-            ProductModel product = await _dataContext.Products.Where(p => p.Id == Id).FirstOrDefaultAsync();
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+            var product = await _dataContext.Products.FindAsync(Id);
+            if (product == null) return NotFound();
 
-            CartItemModel cartItem = cart.Where(c => c.ProductId == Id).FirstOrDefault();
+            var userId = GetUserId();
 
-            if (cartItem.Quantity >= 1 && product.Quantity > cartItem.Quantity)
+            if (userId != null)
             {
-                ++cartItem.Quantity;
-                TempData["success"] = "Product quantity updated successfully!";
+                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+                if (cartItem != null)
+                {
+                    if (product.Quantity > cartItem.Quantity)
+                    {
+                        cartItem.Quantity += 1;
+                        TempData["success"] = "Product quantity updated successfully!";
+                    }
+                    else
+                    {
+                        cartItem.Quantity = product.Quantity;
+                        TempData["error"] = "Maximum quantity reached!";
+                    }
+                    await _dataContext.SaveChangesAsync();
+                }
             }
             else
             {
-                cartItem.Quantity = product.Quantity;
-                TempData["error"] = "Maximum quantity reached!";
-            }
-            if (cart.Count == 0)
-            {
-                HttpContext.Session.Remove("Cart");
-            }
-            else
-            {
-                HttpContext.Session.SetJson("Cart", cart);
+                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+                if (cart != null)
+                {
+                    CartItemModel cartItem = cart.FirstOrDefault(c => c.ProductId == Id);
+                    if (cartItem != null)
+                    {
+                        if (product.Quantity > cartItem.Quantity)
+                        {
+                            ++cartItem.Quantity;
+                            TempData["success"] = "Product quantity updated successfully!";
+                        }
+                        else
+                        {
+                            cartItem.Quantity = product.Quantity;
+                            TempData["error"] = "Maximum quantity reached!";
+                        }
+
+                        if (cart.Count == 0)
+                            HttpContext.Session.Remove("Cart");
+                        else
+                            HttpContext.Session.SetJson("Cart", cart);
+                    }
+                }
             }
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Remove(long Id)
         {
-            List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
-            cart.RemoveAll(p => p.ProductId == Id);
+            var userId = GetUserId();
 
-            if (cart.Count == 0)
+            if (userId != null)
             {
-                HttpContext.Session.Remove("Cart");
+                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+                if (cartItem != null)
+                {
+                    _dataContext.Carts.Remove(cartItem);
+                    await _dataContext.SaveChangesAsync();
+                }
             }
             else
             {
-                HttpContext.Session.SetJson("Cart", cart);
+                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+                if (cart != null)
+                {
+                    cart.RemoveAll(p => p.ProductId == Id);
+                    if (cart.Count == 0)
+                        HttpContext.Session.Remove("Cart");
+                    else
+                        HttpContext.Session.SetJson("Cart", cart);
+                }
             }
+
             TempData["success"] = "Product removed from cart successfully!";
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Clear()
         {
+            var userId = GetUserId();
+
+            if (userId != null)
+            {
+                var userCarts = await _dataContext.Carts.Where(c => c.UserId == userId).ToListAsync();
+                if (userCarts.Any())
+                {
+                    _dataContext.Carts.RemoveRange(userCarts);
+                    await _dataContext.SaveChangesAsync();
+                }
+            }
+            
             HttpContext.Session.Remove("Cart");
             Response.Cookies.Delete("CouponTitle");
 

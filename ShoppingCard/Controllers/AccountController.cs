@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +46,12 @@ namespace ShoppingCard.Controllers
                 var result = await _signInManager.PasswordSignInAsync(loginVM.UserName, loginVM.Password, false, false);
                 if (result.Succeeded)
                 {
+                    var user = await _userManager.FindByNameAsync(loginVM.UserName);
+                    if (user != null)
+                    {
+                        await MergeSessionCartToDbAsync(user.Id);
+                    }
+
                     TempData["success"] = "Đăng nhập thành công!";
                     var receiver = "1977datbui@gmail.com";
                     var subject = "Đăng nhập thành công";
@@ -153,6 +159,7 @@ namespace ShoppingCard.Controllers
 
                 await _signInManager.SignInAsync(newUser, isPersistent: false);
                 await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+                await MergeSessionCartToDbAsync(newUser.Id);
 
                 TempData["success"] = "Đăng ký tài khoản thành công.";
                 return RedirectToAction("Index", "Home");
@@ -160,6 +167,7 @@ namespace ShoppingCard.Controllers
 
             await _signInManager.SignInAsync(existingUser, isPersistent: false);
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await MergeSessionCartToDbAsync(existingUser.Id);
 
             if (!string.IsNullOrWhiteSpace(returnUrl))
             {
@@ -471,6 +479,31 @@ namespace ShoppingCard.Controllers
 
             return View();
         }
+        private async Task MergeSessionCartToDbAsync(string userId)
+        {
+            var sessionCart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
+            if (sessionCart != null && sessionCart.Count > 0)
+            {
+                foreach (var item in sessionCart)
+                {
+                    var dbCart = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == item.ProductId && c.UserId == userId);
+                    if (dbCart != null)
+                    {
+                        dbCart.Quantity += item.Quantity;
+                    }
+                    else
+                    {
+                        _dataContext.Carts.Add(new ShoppingCard.Models.CartModel
+                        {
+                            UserId = userId,
+                            ProductId = item.ProductId,
+                            Quantity = item.Quantity
+                        });
+                    }
+                }
+                await _dataContext.SaveChangesAsync();
+                HttpContext.Session.Remove("Cart");
+            }
+        }
     }
 }
-

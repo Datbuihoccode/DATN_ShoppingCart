@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
@@ -181,12 +181,21 @@ namespace ShoppingCard.Controllers
         private async Task<(bool Success, string Message)> CreateOrderFromCartAsync(string orderId)
         {
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrWhiteSpace(userEmail))
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userEmail) || string.IsNullOrWhiteSpace(userId))
             {
                 return (false, "Vui lòng đăng nhập để tiếp tục thanh toán.");
             }
 
-            List<CartItemModel> cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
+            var dbCarts = await _dataContext.Carts.Include(c => c.Product).Where(c => c.UserId == userId).ToListAsync();
+
+            List<CartItemModel> cartItems = dbCarts.Select(c => new CartItemModel {
+                ProductId = c.ProductId,
+                Price = c.Product?.Price ?? 0,
+                Quantity = c.Quantity
+            }).ToList();
+
             if (cartItems.Count == 0)
             {
                 return (false, "Gio hang dang trong.");
@@ -230,9 +239,10 @@ namespace ShoppingCard.Controllers
                 _dataContext.Add(orderDetails);
             }
 
+            _dataContext.Carts.RemoveRange(dbCarts);
             await _dataContext.SaveChangesAsync();
 
-            HttpContext.Session.Remove("Cart");
+            HttpContext.Session.Remove("Cart"); // remove just in case
             Response.Cookies.Delete("CouponTitle");
 
             var receiver = "1977datbui@gmail.com";

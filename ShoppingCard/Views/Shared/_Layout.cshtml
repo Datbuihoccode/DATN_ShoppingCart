@@ -1,262 +1,168 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="">
-	<meta name="author" content="">
-	<title>Home | E-Shopper</title>
+	<title>@ViewData["Title"] - TechStore</title>
 	<link href="~/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.2/css/font-awesome.css" rel="stylesheet">
-	<link href="~/css/prettyPhoto.css" rel="stylesheet">
-	<link href="~/css/price-range.css" rel="stylesheet">
+	<!-- Upgrade to FontAwesome 5 -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 	<link href="~/css/animate.css" rel="stylesheet">
 	<link href="~/css/main.css" rel="stylesheet">
 	<link href="~/css/responsive.css" rel="stylesheet">
-	<!--[if lt IE 9]>
-	<script src="js/html5shiv.js"></script>
-	<script src="js/respond.min.js"></script>
-	<![endif]-->
-	<link rel="shortcut icon" href="images/ico/favicon.ico">
-	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144-precomposed.png">
-	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114-precomposed.png">
-	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72-precomposed.png">
-	<link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57-precomposed.png">
 	<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.min.css" rel="stylesheet">
-</head><!--/head-->
-
+	
+	<link href="~/css/techstore.css" rel="stylesheet">
+</head>
 <body>
-	<header id="header">
-		<!--header-->
-		<div class="header_top">
-			<!--header_top-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-6">
-						<div class="contactinfo">
-							<ul class="nav nav-pills">
-								<li><a href="#"><i class="fa fa-phone"></i> +2 95 01 88 821</a></li>
-								<li><a href="#"><i class="fa fa-envelope"></i> info@domain.com</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-6">
-						<div class="social-icons pull-right">
-							<ul class="nav navbar-nav">
-								<li><a href="#"><i class="fa fa-facebook"></i></a></li>
-								<li><a href="#"><i class="fa fa-twitter"></i></a></li>
-								<li><a href="#"><i class="fa fa-linkedin"></i></a></li>
-								<li><a href="#"><i class="fa fa-dribbble"></i></a></li>
-								<li><a href="#"><i class="fa fa-google-plus"></i></a></li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div><!--/header_top-->
-
-		<div class="header-middle">
-			<!--header-middle-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-4">
-						<div class="logo pull-left">
-							<a href="index.html"><img src="images/home/logo.png" alt="" /></a>
-						</div>
-						<div class="btn-group pull-right">
-							<div class="btn-group">
-								<button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-									USA
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-									<li><a href="#">Canada</a></li>
-									<li><a href="#">UK</a></li>
-								</ul>
-							</div>
-
-							<div class="btn-group">
-								<button type="button" class="btn btn-default dropdown-toggle usa" data-toggle="dropdown">
-									DOLLAR
-									<span class="caret"></span>
-								</button>
-								<ul class="dropdown-menu">
-									<li><a href="#">Canadian Dollar</a></li>
-									<li><a href="#">Pound</a></li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-8">
-						<div class="shop-menu pull-right">
-							<ul class="nav navbar-nav">
-								@if(User.Identity?.IsAuthenticated ?? false)
-								{
-									<li class="dropdown">
-										<a class="dropdown-toggle" data-toggle="dropdown" style="cursor: pointer;">
-											Account <span class="caret"></span>
-										</a>
-										<ul class="dropdown-menu">
-											<li>
-												<a asp-controller="Account" asp-action="History">Lịch sử đơn hàng</a>
-											</li>
-											<li>
-												<a asp-controller="Account" asp-action="UpdateAccount">Update account information</a>
-											</li>
-										</ul>
-									</li>
-									<li><a asp-controller="Admin" asp-action="Index"><i class="fa fa-user"></i> Admin CMS</a></li>
-									<li><a asp-controller="Cart" asp-action="Checkout" ><i class="fa fa-crosshairs"></i> Checkout</a></li>
-									<li><a asp-controller="Cart" asp-action="Index"><i class="fa fa-shopping-cart"></i> Cart</a></li>
-									<li><a asp-controller="Home" asp-action="Wishlist"><i class="fa fa-heart"></i> Wishlist</a></li>
-									<li><a asp-controller="Account" asp-action="Logout"><i class="fa fa-lock"></i>Hi, @User.Identity.Name, Logout</a></li>
-								}
-								else
-								{
-									<li><a asp-controller="Account" asp-action="Login"><i class="fa fa-lock"></i> Login</a></li>
-								}
-							</ul>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div><!--/header-middle-->
-
-		<div class="header-bottom">
-			<!--header-bottom-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-9">
-						<div class="navbar-header">
-							<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-						</div>
-						<div class="mainmenu pull-left">
-							<ul class="nav navbar-nav collapse navbar-collapse">
-								<li><a asp-controller="Home" class="active" asp-action="Index">Home</a></li>
-								<li class="dropdown">
-									<a href="#">Shop<i class="fa fa-angle-down"></i></a>
-									<ul role="menu" class="sub-menu">
-										<li><a asp-controller="Category">Categories</a></li>
-										<li><a asp-controller="Product" asp-action="Details">Product Detail</a></li>
-										<li><a asp-controller="Cart" asp-action="Checkout">Checkout</a></li>
-										<li><a >Login</a></li>
-									</ul>
-								</li>
-								<li><a asp-controller="Cart" asp-action="Index">Giỏ hàng</a></li>
-								<li><a asp-controller="Blog">Blog</a></li>
-								<li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<form asp-controller="Product" asp-action="Search" method="post">
-							<div class="search_box pull-right">
-								<input type="text" name="searchTearm" />
-                                <button type="submit" class="btn btn-warning">Search</button>
-
-							</div>
-						</form>
-					</div>
-				</div>
-			</div>
-		</div><!--/header-bottom-->
-	</header><!--/header-->
-
-	<section>
+	<!-- HEADER KHUNG MỚI -->
+	<div class="tech-topbar hidden-xs">
 		<div class="container">
 			<div class="row">
-                <partial name="_NotificationPartial" />
+				<div class="col-sm-6">
+					<i class="fa fa-phone-alt" style="color: var(--secondary-color);"></i> Hotline tư vấn: <strong style="color: #fff;">1800.1234</strong>
+				</div>
+				<div class="col-sm-6 text-right">
+					<a href="#"><i class="fa fa-map-marker-alt"></i> Hệ thống 125 cửa hàng</a>
+					<a href="#"><i class="fa fa-truck"></i> Tra cứu đơn hàng</a>
+					<a href="#"><i class="fa fa-shield-alt"></i> Check bảo hành</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<header class="tech-header">
+		<div class="container header-flex">
+			<!-- Logo -->
+			<div class="tech-logo">
+				<a href="/">TECH<span>STORE</span></a>
+			</div>
+			
+			<!-- Search Bar -->
+			<div class="tech-search hidden-xs">
+				<form asp-controller="Product" asp-action="Search" method="post">
+					<input type="text" name="searchTearm" placeholder="Bạn muốn tìm laptop, điện thoại hay phụ kiện..." required />
+					<button type="submit"><i class="fa fa-search"></i> Tìm kiếm</button>
+				</form>
+			</div>
+
+			<!-- User Actions -->
+			<div class="tech-actions">
+				<a asp-controller="Home" asp-action="Contact" class="action-item hidden-sm hidden-xs">
+					<i class="fa fa-headset"></i>
+					<span>Tư vấn</span>
+				</a>
+				<a asp-controller="Home" asp-action="Wishlist" class="action-item hidden-xs">
+					<i class="fa fa-heart"></i>
+					<span>Yêu thích</span>
+				</a>
+
+                <!-- Account Dropdown Using BS3 structure -->
+				<div class="dropdown action-item" style="cursor: pointer;">
+                    <a data-toggle="dropdown" class="" style="color: #fff; height: 100%; display: flex; flex-direction: column; align-items: center; background: transparent; border: none; padding: 0;">
+						<i class="fa fa-user" style="font-size: 22px; margin-bottom: 5px;"></i>
+						<span>@((User.Identity?.IsAuthenticated ?? false) ? "Tài khoản" : "Đăng nhập")</span>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right" style="margin-top: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none;">
+						@if(User.Identity?.IsAuthenticated ?? false)
+						{
+                            <li style="padding: 10px 20px; font-weight: bold; border-bottom: 1px solid #eee;">Xin chào, @User.Identity.Name!</li>
+							<li><a asp-controller="Account" asp-action="History" style="padding: 10px 20px;"><i class="fa fa-list-alt" style="width: 20px;"></i> Đơn hàng</a></li>
+							<li><a asp-controller="Account" asp-action="UpdateAccount" style="padding: 10px 20px;"><i class="fa fa-id-card" style="width: 20px;"></i> Hồ sơ</a></li>
+							<li><a asp-controller="Admin" asp-action="Index" style="padding: 10px 20px;"><i class="fa fa-cog" style="width: 20px;"></i> Quản trị</a></li>
+							<li class="divider"></li>
+							<li><a asp-controller="Account" asp-action="Logout" style="padding: 10px 20px; color: #e3001b;"><i class="fa fa-sign-out-alt" style="width: 20px;"></i> Đăng xuất</a></li>
+						}
+						else
+						{
+							<li><a asp-controller="Account" asp-action="Login" style="padding: 10px 20px; font-weight: bold;"><i class="fa fa-sign-in-alt" style="width: 20px;"></i> Đăng nhập</a></li>
+							<li><a asp-controller="Account" asp-action="Create" style="padding: 10px 20px;"><i class="fa fa-user-plus" style="width: 20px;"></i> Tạo tài khoản mới</a></li>
+						}
+					</ul>
+				</div>
+
+				<a asp-controller="Cart" asp-action="Index" class="action-item" style="position: relative;">
+					<i class="fa fa-shopping-cart"></i>
+					<span>Giỏ hàng</span>
+					<!-- badge có thể được dynamic render bằng viewcomponent -->
+					<!-- <span class="cart-badge">0</span> -->
+				</a>
+			</div>
+		</div>
+	</header>
+
+	<!-- Main Navigation -->
+	<nav class="tech-nav hidden-xs">
+		<div class="container">
+			<ul>
+				<li><a asp-controller="Home" asp-action="Index"><i class="fa fa-home"></i> Trang chủ</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="laptop"><i class="fa fa-laptop"></i> Laptop & Macbook</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="dien-thoai"><i class="fa fa-mobile-alt"></i> Điện thoại di động</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="am-thanh"><i class="fa fa-headphones"></i> Âm thanh & Phụ kiện</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="pc-linh-kien"><i class="fa fa-desktop"></i> PC & Linh kiện</a></li>
+				<li><a asp-controller="Blog" asp-action="Index"><i class="fa fa-newspaper"></i> Tin Công Nghệ</a></li>
+			</ul>
+		</div>
+	</nav>
+
+	<!-- NỘI DUNG CHÍNH (Body Render) -->
+	<section class="container-main">
+		<div class="container">
+			<div class="row">
+				<partial name="_NotificationPartial" />
 				@RenderBody()
 			</div>
 		</div>
 	</section>
 
-	<footer id="footer">
-		<!--Footer-->
-		<partial name="_FooterPartial" />
-
-		<!-- <div class="footer-widget">
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-2">
-						<div class="single-widget">
-							<h2>Service</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">Online Help</a></li>
-								<li><a href="#">Contact Us</a></li>
-								<li><a href="#">Order Status</a></li>
-								<li><a href="#">Change Location</a></li>
-								<li><a href="#">FAQ’s</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-2">
-						<div class="single-widget">
-							<h2>Quock Shop</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">T-Shirt</a></li>
-								<li><a href="#">Mens</a></li>
-								<li><a href="#">Womens</a></li>
-								<li><a href="#">Gift Cards</a></li>
-								<li><a href="#">Shoes</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-2">
-						<div class="single-widget">
-							<h2>Policies</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">Terms of Use</a></li>
-								<li><a href="#">Privecy Policy</a></li>
-								<li><a href="#">Refund Policy</a></li>
-								<li><a href="#">Billing System</a></li>
-								<li><a href="#">Ticket System</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-2">
-						<div class="single-widget">
-							<h2>About Shopper</h2>
-							<ul class="nav nav-pills nav-stacked">
-								<li><a href="#">Company Information</a></li>
-								<li><a href="#">Careers</a></li>
-								<li><a href="#">Store Location</a></li>
-								<li><a href="#">Affillate Program</a></li>
-								<li><a href="#">Copyright</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-3 col-sm-offset-1">
-						<div class="single-widget">
-							<h2>About Shopper</h2>
-							<form action="#" class="searchform">
-								<input type="text" placeholder="Your email address" />
-								<button type="submit" class="btn btn-default"><i class="fa fa-arrow-circle-o-right"></i></button>
-								<p>Get the most recent updates from <br />our site and be updated your self...</p>
-							</form>
-						</div>
-					</div>
-
+	<!-- FOOTER KHUNG MỚI -->
+	<footer class="tech-footer">
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-3 col-xs-6">
+					<h4>Về TechStore</h4>
+					<ul>
+						<li><a href="#">Giới thiệu công ty</a></li>
+						<li><a href="#">Chính sách bảo mật</a></li>
+						<li><a href="#">Quy chế hoạt động</a></li>
+						<li><a href="#">Tuyển dụng</a></li>
+                        <li><a href="#">Tin tức TechStore</a></li>
+					</ul>
+				</div>
+				<div class="col-sm-3 col-xs-6">
+					<h4>Hỗ Trợ Khách Hàng</h4>
+					<ul>
+						<li><a href="#">Hướng dẫn mua trả góp</a></li>
+						<li><a href="#">Hướng dẫn mua trực tuyến</a></li>
+						<li><a href="#">Giao hàng & Lắp đặt</a></li>
+						<li><a href="#">Chính sách bảo hành</a></li>
+                        <li><a href="#">Khách hàng doanh nghiệp (B2B)</a></li>
+					</ul>
+				</div>
+				<div class="col-sm-3 col-xs-6">
+					<h4>Tổng đài hỗ trợ</h4>
+					<ul>
+						<li>Gọi tư vấn: <strong style="color: #fff">1800.1234</strong> (7h30 - 22h00)</li>
+						<li>Gọi bảo hành: <strong style="color: #fff">1800.4321</strong> (8h00 - 21h00)</li>
+						<li>Kỹ thuật: <strong style="color: #fff">1800.9999</strong> (8h00 - 21h00)</li>
+					</ul>
+                    <div style="margin-top: 15px; font-size: 20px;">
+                        <a href="#" style="color: #4267B2; margin-right: 15px;"><i class="fab fa-facebook-square"></i></a>
+                        <a href="#" style="color: #FF0000; margin-right: 15px;"><i class="fab fa-youtube"></i></a>
+                        <a href="#" style="color: #E1306C;"><i class="fab fa-instagram"></i></a>
+                    </div>
+				</div>
+				<div class="col-sm-3 col-xs-6">
+					<h4>Khác</h4>
+					<vc:footer />
 				</div>
 			</div>
-		</div> -->
-
-		<div class="footer-bottom">
-			<div class="container">
-				<div class="row">
-					<p class="pull-left">Copyright © 2026 Mobile Shopping. All rights reserved.</p>
-					<p class="pull-right">Designed by <span><a target="_blank" href="http://www.themeum.com">Themeum</a></span></p>
-				</div>
+			<div class="footer-bottom-bar">
+				<p>&copy; 2026 TechStore Mobile Shopping. Hệ thống bán lẻ thiết bị công nghệ hàng đầu Việt Nam.</p>
 			</div>
 		</div>
+	</footer>
 
-	</footer><!--/Footer-->
-	
 	<script src="~/js/jquery.js"></script>
 	<script src="~/js/bootstrap.min.js"></script>
 	<script src="~/js/jquery.scrollUp.min.js"></script>
@@ -264,9 +170,8 @@
 	<script src="~/js/jquery.prettyPhoto.js"></script>
 	<script src="~/js/main.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.all.min.js"></script>
-
+	<script src="~/js/techstore.js"></script>
 
 	@await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>
