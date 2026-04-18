@@ -1,112 +1,155 @@
-﻿@using ShoppingCard.Models.ViewsModels 
+@using ShoppingCard.Models.ViewsModels
 @model CartItemViewModel
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-<h4>Cart Index View</h4>
 @{
+    ViewData["Title"] = "Giỏ hàng";
 }
-<section id="cart_items">
-	<div class="container">
-		<div class="breadcrumbs">
-			<ol class="breadcrumb">
-				<li><a href="#">Home</a></li>
-				<li class="active">Shopping Cart</li>
-			</ol>
-		</div>
-		<div class="table-responsive cart_info">
-			<table class="table table-condensed">
-				<thead>
-					<tr class="cart_menu">
-						<td class="image">Item</td>
-						<td class="description"></td>
-						<td class="price">Price</td>
-						<td class="quantity">Quantity</td>
-						<td class="total">Total</td>
-						<td></td>
-					</tr>
-				</thead>
-				<tbody>
-					@if (Model.CartItems.Count > 0)
-					{
-						@foreach (var item in Model.CartItems)
-						{
-							<tr>
-								<td class="cart_product">
-									<a href=""><img src="~images/@item.Image" alt=""></a>
-								</td>
-								<td class="cart_description">
-									<h4><a href="">@item.ProductName</a></h4>
-								</td>
-								<td class="cart_price">
-									<p>@item.Price.ToString("#,##0 VNĐ")</p>
-								</td>
-								<td class="cart_quantity">
-									<a class="btn btn-default btn-sm" asp-controller="Cart" asp-action="Increase" asp-route-id="@item.ProductId"> + </a>
-									<input class="cart_quantity_input" type="text" name="quantity" value="@item.Quantity" autocomplete="off" size="2">
-									<a class="btn btn-success btn-sm" asp-controller="Cart" asp-action="Decrease" asp-route-id="@item.ProductId"> - </a>
-									<a class="btn btn-danger btn-sm" asp-controller="Cart" asp-action="Remove" asp-route-id="@item.ProductId"> Remove </a>
-								</td>
-								<td class="cart_total">
-									<p class="cart_total_price">@Model.CartItems.Where(x => x.ProductId == item.ProductId).Sum(x => x.Quantity * x.Price).ToString()</p>
-								</td>
-								<td class="cart_delete">
-									<a class="cart_quantity_delete" href=""><i class="fa fa-times"></i></a>
-								</td>
-							</tr>
-						}
-						<tr rowspan="6">
-							<td colspan="6">
-								Grand Total: <p class="cart_total_price">@Model.GrandTotal.ToString("#,##0") VNĐ</p>
+<div class="container py-5">
+    <h2 class="section-title mb-4">Giỏ hàng của bạn</h2>
 
-								<div class="form-group">
-									<label>Coupon Code:</label>
-									<input type="text" class="form-control coupon-value" />
-									<span class="text text-success">@Model.CouponCode</span><br />
-									<input type="button" value="Apply" class="btn btn-sm btn-primary btn-apply-coupon" />
-								</div>
+        @if (Model.CartItems.Count > 0)
+        {
+            <div class="row g-4">
+                <!-- Danh sách sản phẩm -->
+                <div class="col-lg-8">
+                    <div class="cart-items-list">
+                        @foreach (var item in Model.CartItems)
+                        {
+                            <div class="tech-card mb-3 p-3 cart-item-card">
+                                <div class="row align-items-center">
+                                    <div class="col-3 col-md-2">
+                                        <div class="bg-white rounded p-2 text-center">
+                                            <img src="~/media/products/@item.Image" alt="@item.ProductName" class="img-fluid" style="max-height: 80px; object-fit: contain;">
+                                        </div>
+                                    </div>
+                                    <div class="col-9 col-md-4">
+                                        <h5 class="fw-bold mb-1" style="color: var(--text-main);">@item.ProductName</h5>
+                                        <p class="text-muted small mb-0">Đơn giá: @item.Price.ToString("#,##0 VNĐ")</p>
+                                    </div>
+                                    <div class="col-6 col-md-3 mt-3 mt-md-0">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Cart" asp-action="Decrease" asp-route-id="@item.ProductId">-</a>
+                                            <span class="fw-bold px-2" style="color: var(--text-main);">@item.Quantity</span>
+                                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Cart" asp-action="Increase" asp-route-id="@item.ProductId">+</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 col-md-2 mt-3 mt-md-0 text-md-end fw-bold" style="color: var(--text-main);">
+                                        @((item.Quantity * item.Price).ToString("#,##0 VNĐ"))
+                                    </div>
+                                    <div class="col-2 col-md-1 mt-3 mt-md-0 text-end">
+                                        <a class="text-danger" asp-controller="Cart" asp-action="Remove" asp-route-id="@item.ProductId">
+                                            <i class="fa fa-trash-alt"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="mt-4">
+                        <a class="btn btn-outline-danger btn-sm" asp-controller="Cart" asp-action="Clear">
+                            <i class="fa fa-broom me-2"></i>Xóa sạch giỏ hàng
+                        </a>
+                    </div>
+                </div>
 
-								Shipping Cost: <p class="cart_total_price">@Model.ShippingCost.ToString("#,##0") VNĐ</p>
-								<p><a asp-action="DeleteShipping" asp-controller="Cart">Xóa Shipping</a></p>
-							</td>
-							<td><a class="btn btn-danger btn-sm" asp-controller="Cart" asp-action="Clear"> Xóa giỏ hàng</a></td>
-							@if (User.Identity?.IsAuthenticated ?? false)
-							{
-								<td><a class="btn btn-primary btn-sm" asp-controller="Checkout" asp-action="Checkout" onclick="return confirm('Xác nhận đặt hàng');"> Thanh toán </a></td>
-								<td>
-									<form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" style="display:inline;">
-										@Html.AntiForgeryToken()
-										<input type="hidden" name="FullName" value="@User.Identity?.Name" />
-										<input type="hidden" name="Amount" value="@Model.GrandTotal" />
-										<input type="hidden" name="OrderInformation" value="Thanh toán đơn hàng tại ShoppingCard" />
-										<button type="submit" class="btn btn-danger btn-sm" name="RequestType" value="captureWallet">Pay with MoMo QR</button>
-										<button type="submit" class="btn btn-warning btn-sm" name="RequestType" value="payWithATM">Pay with MoMo ATM</button>
-									</form>
-								</td>
-								<td>
-									<form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" style="display:inline;">
-										@Html.AntiForgeryToken()
-										<input type="hidden" name="Amount" value="@Model.GrandTotal" />
-										<input type="hidden" name="OrderDescription" value="Thanh toán đơn hàng tại ShoppingCard" />
-										<input type="hidden" name="Name" value="@User.Identity?.Name" />
-										<input type="hidden" name="OrderType" value="other" />
-										<button type="submit" class="btn btn-success btn-sm">Pay with VNPAY</button>
-									</form>
-								</td>
-							}
-						</tr>
-					}
-					else
-					{
-						<tr>
-							<td colspan="5"><h4>Your Cart is Empty !</h4></td>
-						</tr>
-					}
-				</tbody>
-			</table>
-		</div>
-	</div>
-</section> <!--/#cart_items-->
+                <!-- Tổng kết đơn hàng -->
+                <div class="col-lg-4">
+                    <div class="tech-card p-4 sticky-top" style="top: 20px;">
+                        <h4 class="fw-bold mb-3 border-bottom pb-2" style="color: var(--text-main);">Tổng kết</h4>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Tạm tính:</span>
+                            <span class="fw-bold" style="color: var(--text-main);">@Model.GrandTotal.ToString("#,##0") VNĐ</span>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="text-muted small mb-2 d-block">Mã giảm giá:</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control coupon-value" placeholder="Nhập mã..." @(!string.IsNullOrEmpty(Model.CouponCode) ? "disabled" : "")>
+                                @if (string.IsNullOrEmpty(Model.CouponCode)) {
+                                    <button class="btn btn-brand-primary btn-apply-coupon" type="button">Áp dụng</button>
+                                } else {
+                                    <a asp-action="RemoveCoupon" class="btn btn-outline-danger" title="Xóa mã">
+                                        <i class="fas fa-times"></i>
+                                    </a>
+                                }
+                            </div>
+                            @if(!string.IsNullOrEmpty(Model.CouponCode)) {
+                                <div class="mt-2 text-success small fw-bold">
+                                    <i class="fa fa-check-circle me-1"></i>Đã áp dụng mã: @Model.CouponCode
+                                </div>
+                            }
+                        </div>
+
+                        @if(!string.IsNullOrEmpty(Model.CouponMessage)) {
+                            <div class="alert alert-info py-2 small mb-3">
+                                <i class="fas fa-info-circle me-1"></i> @Model.CouponMessage
+                            </div>
+                        }
+
+                        @if(Model.DiscountAmount > 0) {
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Giảm giá:</span>
+                                <span class="fw-bold text-success">-@Model.DiscountAmount.ToString("#,##0") VNĐ</span>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between mb-4 pt-3 border-top">
+                            <span class="h5 fw-bold" style="color: var(--text-main);">Tổng cộng:</span>
+                            <span class="h4 text-danger fw-bold">@((Model.GrandTotal - Model.DiscountAmount).ToString("#,##0")) VNĐ</span>
+                        </div>
+
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            <div class="d-grid gap-2">
+                                <a class="btn btn-brand btn-lg mb-2" asp-controller="Checkout" asp-action="Checkout" onclick="return confirm('Xác nhận đặt hàng?');">
+                                    THANH TOÁN COD
+                                </a>
+                                
+                                <p class="text-muted small text-center mb-2">Hoặc thanh toán online an toàn:</p>
+                                
+                                <div class="d-flex gap-2 mb-2">
+                                    <form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" class="flex-grow-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="Amount" value="@Model.GrandTotal" />
+                                        <button type="submit" class="btn btn-outline-light border w-100 py-2 d-flex align-items-center justify-content-center" style="height: 45px; background: #fff;">
+                                            <img src="~/media/payments/vnpay.png" style="max-height: 22px; max-width: 100%;" alt="VNPAY">
+                                        </button>
+                                    </form>
+
+                                    <form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" class="flex-grow-1">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="Amount" value="@Model.GrandTotal" />
+                                        <button type="submit" name="RequestType" value="captureWallet" class="btn btn-outline-light border w-100 py-2 d-flex align-items-center justify-content-center" style="height: 45px; background: #fff;">
+                                            <img src="~/media/payments/momo.png" style="max-height: 22px; max-width: 100%;" alt="MOMO">
+                                        </button>
+                                    </form>
+                                </div>
+                                <p class="text-center"><small class="text-muted" style="font-size: 10px;">Bảo mật & Mã hóa bởi VNPAY/Momo</small></p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning small">
+                                <i class="fa fa-info-circle me-1"></i> Vui lòng <a asp-controller="Account" asp-action="Login">đăng nhập</a> để thanh toán.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fa fa-shopping-basket text-muted" style="font-size: 80px;"></i>
+                </div>
+                <h3 class="text-black">Giỏ hàng đang trống!</h3>
+                <p class="text-muted mb-4">Hãy tiếp tục khám phá và chọn cho mình sản phẩm ưng ý nhé.</p>
+                <a href="/" class="btn-brand" style="width: auto; display: inline-block; padding: 12px 35px;">TIẾP TỤC MUA SẮM</a>
+            </div>
+        }
+    </div>
+</div>
 
 @section Scripts {
     <script>

@@ -1,59 +1,86 @@
-﻿@model StatisticalModel
+@model StatisticalModel
 @{
-    ViewData["Title"] = "Dashboard Statistic";
+    ViewData["Title"] = "Dashboard";
 }
 
-<h3>Dashboard Statistic</h3>
-
-<div class="row">
-    <div class="col-md-3">
-        <p>Thống kê sản phẩm</p>
-        @ViewBag.CountProduct
+<!-- Stat Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card red">
+            <div class="stat-icon"><i class="fas fa-box-open"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Sản phẩm</div>
+                <div class="stat-value">@ViewBag.CountProduct</div>
+            </div>
+        </div>
     </div>
-
-    <div class="col-md-3">
-        <p>Thống kê đơn hàng</p>
-        @ViewBag.CountOrder
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card blue">
+            <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Đơn hàng</div>
+                <div class="stat-value">@ViewBag.CountOrder</div>
+            </div>
+        </div>
     </div>
-
-    <div class="col-md-3">
-        <p>Thống kê danh mục</p>
-        @ViewBag.CountCategory
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card green">
+            <div class="stat-icon"><i class="fas fa-tags"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Danh mục</div>
+                <div class="stat-value">@ViewBag.CountCategory</div>
+            </div>
+        </div>
     </div>
-
-    <div class="col-md-3">
-        <p>Thong ke user</p>
-        @ViewBag.CountUser
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-3">
-        <h4>Loc du lieu theo:</h4>
-        <select class="filter-select">
-            <option value="" selected disabled>--Loc du lieu--</option>
-            <option value="7">7 ngay truoc</option>
-            <option value="30">thang qua</option>
-            <option value="90">3 thang truoc</option>
-            <option value="365">1 nam</option>
-        </select>
-    </div>
-
-    <div class="col-md-3">
-        <h4>Tuy chon ngay:</h4>
-        <label for="date_from">Tu ngay</label>
-        <input type="date" class="form-control" id="date_from" asp-for="DateCreated" />
-
-        <label for="date_to" style="margin-top:10px;">Den ngay</label>
-        <input type="date" class="form-control" id="date_to" />
-
-        <button id="filterButton" class="btn btn-primary" style="margin-top:10px;">Filter</button>
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card orange">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-info">
+                <div class="stat-label">Người dùng</div>
+                <div class="stat-value">@ViewBag.CountUser</div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row">
-    <p>Bieu do thong ke</p>
-    <div id="myfirstchart" style="height: 250px;"></div>
+<!-- Chart + Filter Row -->
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-bold mb-0" style="color: var(--admin-text);">Biểu đồ thống kê</h6>
+                <select class="form-select form-select-sm filter-select" style="width: 160px;">
+                    <option value="" selected disabled>-- Lọc theo --</option>
+                    <option value="7">7 ngày qua</option>
+                    <option value="30">Tháng qua</option>
+                    <option value="90">3 tháng qua</option>
+                    <option value="365">1 năm</option>
+                </select>
+            </div>
+            <div id="myfirstchart" class="chart-area"></div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <span class="admin-card-title">Lọc theo ngày</span>
+            </div>
+            <div class="admin-card-body">
+                <div class="form-group">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" class="form-control" id="date_from" asp-for="DateCreated" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" class="form-control" id="date_to" />
+                </div>
+                <button id="filterButton" class="btn-admin-primary w-100 mt-2" style="justify-content: center;">
+                    <i class="fas fa-filter"></i> Lọc dữ liệu
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -64,38 +91,26 @@
                 data: [],
                 xkey: 'date',
                 ykeys: ['sold', 'quantity', 'revenue', 'profit'],
-                labels: ['Số lượng bán ra', 'Đơn hàng', 'Doanh thu', 'Lợi nhuận']
+                labels: ['Số lượng bán', 'Đơn hàng', 'Doanh thu', 'Lợi nhuận'],
+                lineColors: ['#e3001b', '#2563eb', '#16a34a', '#f97316'],
+                lineWidth: 2,
+                pointSize: 4,
+                smooth: true,
+                gridLineColor: '#f0f2f5',
+                gridTextColor: '#9ca3af',
+                resize: true
             });
 
             function renderChart(data) {
-                if (Array.isArray(data)) {
-                    chartMorris.setData(data.map(function (item) {
-                        return {
-                            date: item.date,
-                            sold: item.sold,
-                            quantity: item.quantity,
-                            revenue: item.revenue,
-                            profit: item.profit
-                        };
-                    }));
-                } else {
-                    console.warn("No data received for Morris chart update.");
-                    chartMorris.setData([]);
-                }
+                chartMorris.setData(Array.isArray(data) ? data.map(function(item) {
+                    return { date: item.date, sold: item.sold, quantity: item.quantity, revenue: item.revenue, profit: item.profit };
+                }) : []);
             }
 
             function loadChartData(url, requestData) {
-                $.ajax({
-                    url: url,
-                    type: "POST",
-                    dataType: "json",
-                    data: requestData,
-                    success: function (data) {
-                        renderChart(data);
-                    },
-                    error: function (error) {
-                        console.error("Error fetching data:", error);
-                    }
+                $.ajax({ url: url, type: "POST", dataType: "json", data: requestData,
+                    success: function(data) { renderChart(data); },
+                    error: function(e) { console.error("Chart error:", e); }
                 });
             }
 
@@ -103,28 +118,16 @@
 
             $('.filter-select').on('change', function () {
                 var days = parseInt($(this).val(), 10);
-                if (!days || days <= 0) {
-                    return;
-                }
-
-                loadChartData('@Url.Action("GetChartDataBySelect", "Dashboard", new { area = "Admin" })', {
-                    days: days
-                });
+                if (days > 0) loadChartData('@Url.Action("GetChartDataBySelect", "Dashboard", new { area = "Admin" })', { days: days });
             });
 
             $('#filterButton').on('click', function () {
-                var fromDate = $('#date_from').val();
-                var toDate = $('#date_to').val();
-
+                var fromDate = $('#date_from').val(), toDate = $('#date_to').val();
                 if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
-                    alert('Từ ngày không được lớn hơn đến ngày.');
+                    Swal.fire({ icon: 'warning', title: 'Chú ý', text: 'Từ ngày không được lớn hơn đến ngày.' });
                     return;
                 }
-
-                loadChartData('@Url.Action("FilterData", "Dashboard", new { area = "Admin" })', {
-                    fromDate: fromDate,
-                    toDate: toDate
-                });
+                loadChartData('@Url.Action("FilterData", "Dashboard", new { area = "Admin" })', { fromDate, toDate });
             });
         });
     </script>

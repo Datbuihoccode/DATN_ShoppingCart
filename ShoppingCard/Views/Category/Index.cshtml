@@ -1,111 +1,112 @@
-﻿@model IEnumerable<ProductModel>
-<div class="col-sm-3">
-	@Html.Partial("_SidebarPartial")
+@model IEnumerable<ProductModel>
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            @Html.Partial("_SidebarPartial")
+        </div>
+
+        <style>
+            .product-image-wrapper { height: 220px; overflow: hidden; }
+        </style>
+
+        <div class="col-md-9">
+            <partial name="_FilterProductPartial" />
+            <h2 class="section-title">Sản Phẩm</h2>
+            <div class="row g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col-6 col-md-4">
+                        <div class="tech-card h-100">
+                            <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id">
+                                <i class="fa fa-heart"></i>
+                            </a>
+                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
+                                <div class="tech-card-img">
+                                    @{
+                                        string labelClass = "label-default";
+                                        string catName = item.Category.Name.ToLower();
+                                        if(catName.Contains("gaming")) labelClass = "label-gaming";
+                                        else if(catName.Contains("văn phòng") || catName.Contains("học tập")) labelClass = "label-office";
+                                        else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
+                                        else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
+                                    }
+                                    <div class="tech-card-label @labelClass">@item.Category.Name</div>
+                                    <img src="~/media/products/@item.Image" alt="@item.Name" />
+                                </div>
+                            </a>
+                            <div class="tech-card-body">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-title">
+                                    @item.Name
+                                </a>
+                                <div class="tech-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
+                                <div class="tech-card-specs">
+                                    <span class="tech-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
+                                    <span class="tech-spec-item text-success"><i class="fa fa-check-circle"></i> New Fullbox</span>
+                                </div>
+                                <div class="tech-card-actions mt-auto">
+                                    @if(item.Quantity > 0)
+                                    {
+                                        <button class="btn-brand add-to-cart w-100" data-product_id="@item.Id">
+                                            <i class="fa fa-shopping-cart me-1"></i> Thêm vào giỏ
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-brand btn-disabled w-100" disabled>Hết hàng</button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 </div>
 
-<style>
-	.product-image-wrapper {
-		height: 450px;
-	}
-</style>
-
-<div class="col-sm-9 padding-right">
-	<partial name="_FilterProductPartial" />
-	<div class="features_items">
-		<!--features_items-->
-		<h2 class="title text-center">Features Items</h2>
-		@foreach (var item in Model)
-		{
-			<div class="col-sm-4">
-				<div class="product-image-wrapper">
-					<a href="#"></a>
-					<div class="single-products">
-						<div class="productinfo text-center">
-							<img src="~/media/products/@item.Image" alt="@item." width="100%" />
-							<h2>@item.Price.ToString("#,##0 VNĐ")</h2>
-							<p>@item.Name</p>
-							<p>Danh mục : @item.Category.Name</p>
-							<p>Thương hiệu : @item.Brand.Name</p>
-							@if(item.Quantity > 0){
-							<a class="btn btn-default add-to-cart" asp-action="Add" 
-								asp-controller="Cart" asp-route-Id="@item.Id">
-								<i class="fa fa-shopping-cart"></i>
-								Add to cart
-							</a>
-							}
-							else
-							{
-							<button class="btn btn-default"><i 
-								class="fa fa-shopping-cart"></i>Hết hàng</button>
-							}
-						</div>
-					</div>
-					<div class="choose">
-						<ul class="nav nav-pills nav-justified">
-							<li><button class="btn btn-danger add-to-wishlist" data-product_id="@item.Id">Add to wishlist</button></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		}
-	</div><!--features_items-->
-
-</div>
 @section Scripts {
     <script>
         $(document).ready(function () {
             $('#sort_by').on('change', function () {
                 var url = $(this).val();
-                if (url) {
-                    window.location = url; 
-                }
+                if (url) { window.location = url; }
                 return false;
             });
         });
     </script>
 
-	<script type="text/javascript">
+    <script type="text/javascript">
         $(document).ready(function () {
             var query = new URLSearchParams(window.location.search);
             var startQuery = parseInt(query.get('startprice'), 10);
             var endQuery = parseInt(query.get('endprice'), 10);
-
             var startValue = Number.isFinite(startQuery) ? startQuery : 1000000;
             var endValue = Number.isFinite(endQuery) ? endQuery : 30000000;
 
             $("#slider-range").slider({
-                min: 1000000,
-                max: 50000000,
-                step: 100000,
+                min: 1000000, max: 50000000, step: 100000,
                 value: [startValue, endValue],
-                tooltip: 'hide',
-                handle: 'round'
+                tooltip: 'hide', handle: 'round'
             });
 
             function formatVnd(value) {
                 return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
             }
-
             function updateAmount(values) {
                 $("#amount").val(formatVnd(values[0]) + " - " + formatVnd(values[1]));
             }
 
             var sliderInstance = $("#slider-range").data("slider");
-            if (!sliderInstance) {
-                return;
-            }
-
+            if (!sliderInstance) return;
             updateAmount(sliderInstance.getValue());
 
-            $("#slider-range").on("slide", function (event) {
-                updateAmount(event.value);
-            });
+            $("#slider-range").on("slide", function (event) { updateAmount(event.value); });
 
             $('.btn-locgia').on('click', function () {
                 var url = $(this).data('current_url');
                 if (url) {
-                    var selectedValues = sliderInstance.getValue();
-                    window.location = url + "?startprice=" + selectedValues[0] + "&endprice=" + selectedValues[1];
+                    var vals = sliderInstance.getValue();
+                    window.location = url + "?startprice=" + vals[0] + "&endprice=" + vals[1];
                 }
                 return false;
             });

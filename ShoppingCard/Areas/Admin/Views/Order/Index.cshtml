@@ -1,100 +1,95 @@
 @model IEnumerable<OrderModel>
 @{
-    ViewData["Title"] = "Đơn hàng";
-    Paginate pager = new Paginate();
-
-    int pageNo = 0;
-
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
+    ViewData["Title"] = "Quản lý đơn hàng";
 }
-<h3>Danh sách đơn hàng</h3>
-<a asp-action="Create" asp-controller="Category">Add Category</a>
-<table class="table" id="myTable">
-    <thead>
-        <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Mã đơn hàng</th>
-            <th scope="col">Người đặt</th>
-            <th scope="col">Mã giảm giá</th>
-            <th scope="col">Phương thức thanh toán</th>
-            <th scope="col">Trạng thái</th>
-            <th scope="col">Ngày tạo</th>
-            <th>Hành động</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.OrderCode</td>
-                <td>@item.UserName</td>
-                <td>@(string.IsNullOrWhiteSpace(item.CouponCode) ? "-" : item.CouponCode)</td>
-                <td>
-                    @if (string.IsNullOrWhiteSpace(item.PaymentMethod) || item.PaymentMethod == "COD")
-                    {
-                        <span class="text text-primary">COD</span>
-                    }
-                    else
-                    {
-                        string text = item.PaymentMethod;
-                        string[] split = text.Split(" ");
-                        string text_split = split[0];
 
-                        @if (text_split == "MOMO")
-                        {
-                            string number_split = split.Length > 1 ? split[1] : text;
-                            <a asp-action="PaymentMomoInfo" asp-route-orderid="@number_split" asp-controller="Order" asp-area="Admin">
-                                <span class="text text-success">@number_split</span>
-                            </a>
-                        }
-                        else if (text_split == "VnPay")
-                        {
-                            string number_split = split.Length > 1 ? split[1] : text;
-                            <a asp-action="PaymentVnpayInfo" asp-route-orderid="@number_split" asp-controller="Order" asp-area="Admin">
-                                <span class="text text-success">@number_split</span>
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="text text-primary">@text</span>
-                        }
-                    }
-                </td>
-                <td>
-                    @if (item.Status == 1)
+<div class="admin-page-header">
+    <h2 class="admin-page-title">Danh sách đơn hàng</h2>
+</div>
+
+<div class="admin-card">
+    <div class="admin-card-body">
+        <div class="table-responsive">
+            <table class="admin-table" id="myTable">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày đặt</th>
+                        <th>Khách hàng</th>
+                        <th>Phương thức</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
                     {
-                        <span class="text text-success">Đơn hàng mới</span>
+                        <tr>
+                            <td><span class="fw-bold text-dark">#@item.OrderCode</span></td>
+                            <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="fw-bold">@item.UserName</div>
+                                @if (!string.IsNullOrEmpty(item.CouponCode)) {
+                                    <div class="small text-success"><i class="fas fa-ticket-alt"></i> @item.CouponCode</div>
+                                }
+                            </td>
+                            <td>
+                                @if (string.IsNullOrWhiteSpace(item.PaymentMethod) || item.PaymentMethod == "COD")
+                                {
+                                    <span class="status-badge badge-cod">Tiền mặt (COD)</span>
+                                }
+                                else
+                                {
+                                    string[] split = item.PaymentMethod.Split(" ");
+                                    string method = split[0];
+                                    string transId = split.Length > 1 ? split[1] : "";
+
+                                    @if (method == "MOMO") {
+                                        <a asp-action="PaymentMomoInfo" asp-route-orderid="@transId" class="status-badge badge-online text-pink" style="border-color: #d82d8b; color: #d82d8b;">
+                                            <i class="fas fa-wallet"></i> MOMO @transId
+                                        </a>
+                                    } else if (method == "VnPay") {
+                                        <a asp-action="PaymentVnpayInfo" asp-route-orderid="@transId" class="status-badge badge-online">
+                                            <i class="fas fa-university"></i> VNPAY @transId
+                                        </a>
+                                    } else {
+                                        <span class="status-badge badge-online">@item.PaymentMethod</span>
+                                    }
+                                }
+                            </td>
+                            <td>
+                                @* Assuming total is calculated elsewhere or stored in order, 
+                                   if not available, showing a placeholder or just marking as paid *@
+                                <div class="fw-bold text-primary">Xem chi tiết</div>
+                            </td>
+                            <td>
+                                @if (item.Status == 1) {
+                                    <span class="status-badge badge-new"><i class="fas fa-clock"></i> Mới</span>
+                                } else if (item.Status == 3) {
+                                    <span class="status-badge badge-cancelled"><i class="fas fa-times"></i> Đã hủy</span>
+                                } else {
+                                    <span class="status-badge badge-processed"><i class="fas fa-check"></i> Đã xử lý</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="actions-group">
+                                    <a asp-action="ViewOrder" asp-route-odercode="@item.OrderCode" class="btn-admin-view">
+                                        <i class="fas fa-eye"></i> Chi tiết
+                                    </a>
+                                    <form asp-action="DeleteOrder" method="post" onsubmit="return confirm('Xóa đơn hàng này?');" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="ordercode" value="@item.OrderCode" />
+                                        <button type="submit" class="btn-admin-delete" style="border:none; padding:7px 12px;">
+                                            <i class="fas fa-trash"></i> Xóa
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
                     }
-                    else if (item.Status == 3)
-                    {
-                        <span class="text text-danger">Đã hủy</span>
-                    }
-                    else
-                    {
-                        <span class="text text-primary">Đã xử lý</span>
-                    }
-                </td>
-                <td>@item.CreateDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                <td>
-                    <a asp-action="ViewOrder" class="btn btn-warning btn-sm" asp-controller="Order" asp-route-odercode="@item.OrderCode">Xem đơn hàng</a>
-                    <form asp-action="DeleteOrder"
-                          asp-controller="Order"
-                          asp-area="Admin"
-                          method="post"
-                          style="display:inline;"
-                          onsubmit="return confirm('Xác nhận xóa đơn hàng?');">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="ordercode" value="@item.OrderCode" />
-                        <button type="submit" class="btn btn-danger btn-sm">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-<partial name="_paging" model="@pager" />
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

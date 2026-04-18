@@ -62,6 +62,7 @@ namespace ShoppingCard.Controllers
                 }
 
                 ModelState.AddModelError("", "Mật khẩu hoặc tên đăng nhập sai!");
+                TempData["error"] = "Tên đăng nhập hoặc mật khẩu không chính xác.";
             }
 
             return View(loginVM);

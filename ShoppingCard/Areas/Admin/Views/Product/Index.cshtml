@@ -1,71 +1,70 @@
 @model IEnumerable<ProductModel>
 @{
-    ViewData["Title"] = "Product List";
-
-    Paginate pager = new Paginate();
-
-    int pageNo = 0;
-
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
+    ViewData["Title"] = "Quản lý sản phẩm";
 }
 
-<!DOCTYPE html>
-    <html>
-    <head>
-        <title>Products</title>
-    </head>
-    <body>
-    <h3>List Products </h3>
-    
-    
+<div class="admin-page-header">
+    <h2 class="admin-page-title">Danh sách sản phẩm</h2>
+    <a asp-action="Create" class="btn-admin-primary">
+        <i class="fas fa-plus"></i> Thêm sản phẩm
+    </a>
+</div>
 
-    <a  asp-action="Create" asp-controller="Product">Add Product</a>
-    <table class="table" id="myTable">
-        <thead>
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Product Name</th>
-                <th scope="col">Product Description</th>
-                <th scope="col">Product Price</th>
-                <th scope="col">Capital Price</th>
-                <th scope="col">Product Image</th>
-                <th scope="col">Product Slug</th>
-                <th scope="col">Product Category</th>
-                <th scope="col">Product Brand</th>
-                <th scope="col">Product Quantity</th>
-                <th scope="col">Product Sold</th>
-                <th scope="col">Product Manage</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <th scope="row">@item.Id</th>
-                    <td>@item.Name</td>
-                    <td>@Html.Raw(@item.Description)</td>
-                    <td>@item.Price</td>
-                    <td>@item.CapitalPrice.ToString("#,##0 VND")</td>
-                    <td><img src="~/media/products/@item.Image" width="120" height="80" /></td>
-                    <td>@item.Slug</td>
-                    <td>@item.Category.Name</td>
-                    <td>@item.Brand.Name</td>
-                    <td><b>@item.Quantity</b><br><a asp-controller="Product" asp-action="AddQuantity" asp-route-Id="@item.Id">Add Quantity</a></td>
-                    <td>@item.Sold</td>
-                    <td>
-                        <a asp-action="Edit" class="btn btn-warning btn-sm" asp-controller="Product" asp-route-Id="@item.Id">Edit</a>
-                        <a asp-action="Delete" class="btn btn-danger btn-sm confirmDeletion" asp-controller="Product" asp-route-Id="@item.Id" onclick="return confirm('Xác nhận xóa');">Delete</a>
-                    </td>
-                </tr>
-            }
-
-        </tbody>
-    </table>
-    @* <partial name="_paging" model="@pager" /> *@
-</body>
-
-</html>
+<div class="admin-card">
+    <div class="admin-card-body">
+        <div class="table-responsive">
+            <table class="admin-table" id="myTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Hình ảnh</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá bán</th>
+                        <th>Số lượng</th>
+                        <th>Danh mục</th>
+                        <th>Thương hiệu</th>
+                        <th>Quản lý</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>
+                                <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #f0f2f5; display: flex; align-items: center; justify-content: center;">
+                                    <img src="~/media/products/@item.Image" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                                </div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@item.Name</div>
+                                <div class="small text-muted">@item.Slug</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-danger">@item.Price.ToString("#,##0 VND")</div>
+                                <div class="small text-muted" title="Giá vốn">@item.CapitalPrice.ToString("#,##0 VND")</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@item.Quantity</div>
+                                <div class="small text-muted">Đã bán: @item.Sold</div>
+                                <a asp-action="AddQuantity" asp-route-Id="@item.Id" class="text-primary small" style="text-decoration: underline;">Nhập thêm</a>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@item.Category.Name</span></td>
+                            <td><span class="badge bg-light text-dark border">@item.Brand.Name</span></td>
+                            <td>
+                                <div class="actions-group">
+                                    <a asp-action="Edit" class="btn-admin-edit" asp-route-Id="@item.Id">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <a asp-action="Delete" class="btn-admin-delete confirmDeletion" asp-route-Id="@item.Id" onclick="return confirm('Xác nhận xóa sản phẩm này?');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

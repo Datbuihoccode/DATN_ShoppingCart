@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>@ViewData["Title"] - TechStore</title>
-	<link href="~/css/bootstrap.min.css" rel="stylesheet">
+	<title>@ViewData["Title"] - LaptopCenter</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
 	<!-- Upgrade to FontAwesome 5 -->
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
 	<link href="~/css/animate.css" rel="stylesheet">
@@ -16,61 +16,45 @@
 </head>
 <body>
 	<!-- HEADER KHUNG MỚI -->
-	<div class="tech-topbar hidden-xs">
-		<div class="container">
-			<div class="row">
-				<div class="col-sm-6">
-					<i class="fa fa-phone-alt" style="color: var(--secondary-color);"></i> Hotline tư vấn: <strong style="color: #fff;">1800.1234</strong>
-				</div>
-				<div class="col-sm-6 text-right">
-					<a href="#"><i class="fa fa-map-marker-alt"></i> Hệ thống 125 cửa hàng</a>
-					<a href="#"><i class="fa fa-truck"></i> Tra cứu đơn hàng</a>
-					<a href="#"><i class="fa fa-shield-alt"></i> Check bảo hành</a>
-				</div>
-			</div>
-		</div>
-	</div>
+
 
 	<header class="tech-header">
 		<div class="container header-flex">
 			<!-- Logo -->
 			<div class="tech-logo">
-				<a href="/">TECH<span>STORE</span></a>
+				<a href="/">LAPTOP<span>CENTER</span></a>
 			</div>
 			
 			<!-- Search Bar -->
-			<div class="tech-search hidden-xs">
+			<div class="tech-search d-none d-md-block">
 				<form asp-controller="Product" asp-action="Search" method="post">
-					<input type="text" name="searchTearm" placeholder="Bạn muốn tìm laptop, điện thoại hay phụ kiện..." required />
+					<input type="text" name="searchTearm" placeholder="Tìm kiếm Laptop Gaming, MacBook, Văn phòng..." required />
 					<button type="submit"><i class="fa fa-search"></i> Tìm kiếm</button>
 				</form>
 			</div>
 
 			<!-- User Actions -->
 			<div class="tech-actions">
-				<a asp-controller="Home" asp-action="Contact" class="action-item hidden-sm hidden-xs">
-					<i class="fa fa-headset"></i>
-					<span>Tư vấn</span>
-				</a>
-				<a asp-controller="Home" asp-action="Wishlist" class="action-item hidden-xs">
+
+				<a asp-controller="Home" asp-action="Wishlist" class="action-item d-none d-md-block">
 					<i class="fa fa-heart"></i>
 					<span>Yêu thích</span>
 				</a>
 
                 <!-- Account Dropdown Using BS3 structure -->
 				<div class="dropdown action-item" style="cursor: pointer;">
-                    <a data-toggle="dropdown" class="" style="color: #fff; height: 100%; display: flex; flex-direction: column; align-items: center; background: transparent; border: none; padding: 0;">
+                    <a data-bs-toggle="dropdown" class="" style="color: #fff; height: 100%; display: flex; flex-direction: column; align-items: center; background: transparent; border: none; padding: 0;">
 						<i class="fa fa-user" style="font-size: 22px; margin-bottom: 5px;"></i>
 						<span>@((User.Identity?.IsAuthenticated ?? false) ? "Tài khoản" : "Đăng nhập")</span>
 					</a>
-					<ul class="dropdown-menu dropdown-menu-right" style="margin-top: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none;">
+					<ul class="dropdown-menu dropdown-menu-end" style="margin-top: 15px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none;">
 						@if(User.Identity?.IsAuthenticated ?? false)
 						{
                             <li style="padding: 10px 20px; font-weight: bold; border-bottom: 1px solid #eee;">Xin chào, @User.Identity.Name!</li>
 							<li><a asp-controller="Account" asp-action="History" style="padding: 10px 20px;"><i class="fa fa-list-alt" style="width: 20px;"></i> Đơn hàng</a></li>
 							<li><a asp-controller="Account" asp-action="UpdateAccount" style="padding: 10px 20px;"><i class="fa fa-id-card" style="width: 20px;"></i> Hồ sơ</a></li>
 							<li><a asp-controller="Admin" asp-action="Index" style="padding: 10px 20px;"><i class="fa fa-cog" style="width: 20px;"></i> Quản trị</a></li>
-							<li class="divider"></li>
+							<li><hr class="dropdown-divider"></li>
 							<li><a asp-controller="Account" asp-action="Logout" style="padding: 10px 20px; color: #e3001b;"><i class="fa fa-sign-out-alt" style="width: 20px;"></i> Đăng xuất</a></li>
 						}
 						else
@@ -92,85 +76,111 @@
 	</header>
 
 	<!-- Main Navigation -->
-	<nav class="tech-nav hidden-xs">
+	<nav class="tech-nav d-none d-md-block">
 		<div class="container">
 			<ul>
 				<li><a asp-controller="Home" asp-action="Index"><i class="fa fa-home"></i> Trang chủ</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="laptop"><i class="fa fa-laptop"></i> Laptop & Macbook</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="dien-thoai"><i class="fa fa-mobile-alt"></i> Điện thoại di động</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="am-thanh"><i class="fa fa-headphones"></i> Âm thanh & Phụ kiện</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="pc-linh-kien"><i class="fa fa-desktop"></i> PC & Linh kiện</a></li>
-				<li><a asp-controller="Blog" asp-action="Index"><i class="fa fa-newspaper"></i> Tin Công Nghệ</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="laptop-gaming"><i class="fa fa-gamepad"></i> Laptop Gaming</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="laptop-van-phong"><i class="fa fa-briefcase"></i> Laptop Văn phòng</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="macbook"><i class="fab fa-apple"></i> MacBook</a></li>
+				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="do-hoa"><i class="fa fa-palette"></i> Đồ họa - Kỹ thuật</a></li>
+				<li><a asp-controller="Blog" asp-action="Index"><i class="fa fa-newspaper"></i> Review Laptop</a></li>
 			</ul>
 		</div>
 	</nav>
 
 	<!-- NỘI DUNG CHÍNH (Body Render) -->
 	<section class="container-main">
-		<div class="container">
-			<div class="row">
-				<partial name="_NotificationPartial" />
-				@RenderBody()
-			</div>
-		</div>
+		@RenderBody()
 	</section>
 
-	<!-- FOOTER KHUNG MỚI -->
+	<!-- FOOTER PREMIUM REFACTOR -->
 	<footer class="tech-footer">
 		<div class="container">
 			<div class="row">
-				<div class="col-sm-3 col-xs-6">
-					<h4>Về TechStore</h4>
-					<ul>
-						<li><a href="#">Giới thiệu công ty</a></li>
-						<li><a href="#">Chính sách bảo mật</a></li>
-						<li><a href="#">Quy chế hoạt động</a></li>
-						<li><a href="#">Tuyển dụng</a></li>
-                        <li><a href="#">Tin tức TechStore</a></li>
-					</ul>
+				<!-- Cột 1: Thương hiệu -->
+				<div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+					<a href="/" class="footer-logo">LAPTOP<span>CENTER</span></a>
+					<p class="small mb-4" style="line-height: 1.8;">
+						Chuyên gia cung cấp các dòng Laptop Gaming, Văn phòng và MacBook chính hãng hàng đầu Việt Nam. Chất lượng và sự hài lòng của bạn là ưu tiên số 1 của chúng tôi.
+					</p>
+					<div class="d-flex gap-3 fs-5">
+						<a href="#" style="color: #1877f2;"><i class="fab fa-facebook"></i></a>
+						<a href="#" style="color: #ff0000;"><i class="fab fa-youtube"></i></a>
+						<a href="#" style="color: #c32aa3;"><i class="fab fa-instagram"></i></a>
+						<a href="#" style="color: #1da1f2;"><i class="fab fa-twitter"></i></a>
+					</div>
 				</div>
-				<div class="col-sm-3 col-xs-6">
+
+				<!-- Cột 2: Hỗ trợ khách hàng -->
+				<div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
 					<h4>Hỗ Trợ Khách Hàng</h4>
 					<ul>
-						<li><a href="#">Hướng dẫn mua trả góp</a></li>
-						<li><a href="#">Hướng dẫn mua trực tuyến</a></li>
-						<li><a href="#">Giao hàng & Lắp đặt</a></li>
-						<li><a href="#">Chính sách bảo hành</a></li>
-                        <li><a href="#">Khách hàng doanh nghiệp (B2B)</a></li>
+						<li><a href="#"><i class="fas fa-chevron-right"></i> Hướng dẫn mua hàng</a></li>
+						<li><a href="#"><i class="fas fa-chevron-right"></i> Chính sách bảo hành</a></li>
+						<li><a href="#"><i class="fas fa-chevron-right"></i> Chính sách đổi trả</a></li>
+						<li><a href="#"><i class="fas fa-chevron-right"></i> Trả góp 0% lãi suất</a></li>
+						<li><a href="#"><i class="fas fa-chevron-right"></i> Vận chuyển toàn quốc</a></li>
 					</ul>
 				</div>
-				<div class="col-sm-3 col-xs-6">
-					<h4>Tổng đài hỗ trợ</h4>
-					<ul>
-						<li>Gọi tư vấn: <strong style="color: #fff">1800.1234</strong> (7h30 - 22h00)</li>
-						<li>Gọi bảo hành: <strong style="color: #fff">1800.4321</strong> (8h00 - 21h00)</li>
-						<li>Kỹ thuật: <strong style="color: #fff">1800.9999</strong> (8h00 - 21h00)</li>
-					</ul>
-                    <div style="margin-top: 15px; font-size: 20px;">
-                        <a href="#" style="color: #4267B2; margin-right: 15px;"><i class="fab fa-facebook-square"></i></a>
-                        <a href="#" style="color: #FF0000; margin-right: 15px;"><i class="fab fa-youtube"></i></a>
-                        <a href="#" style="color: #E1306C;"><i class="fab fa-instagram"></i></a>
-                    </div>
+
+				<!-- Cột 3: Liên hệ -->
+				<div class="col-lg-3 col-md-6 mb-4 mb-lg-0">
+					<h4>Tổng Đài Hỗ Trợ</h4>
+					<div class="footer-hotline-item">
+						<span>Gọi mua hàng (Miễn phí)</span>
+						<strong>1800.1234</strong>
+					</div>
+					<div class="footer-hotline-item">
+						<span>Hỗ trợ kỹ thuật</span>
+						<strong>1800.4321</strong>
+					</div>
+					<div class="footer-hotline-item">
+						<span>Email hỗ trợ</span>
+						<strong style="font-size: 15px;">contact@laptopcenter.com</strong>
+					</div>
 				</div>
-				<div class="col-sm-3 col-xs-6">
-					<h4>Khác</h4>
-					<vc:footer />
+
+				<!-- Cột 4: Thanh toán & Đối tác -->
+				<div class="col-lg-3 col-md-6">
+					<h4>Thanh Toán</h4>
+					<p class="small mb-2">Hỗ trợ đa dạng phương thức:</p>
+					<div class="payment-methods">
+						<div class="payment-item" title="VNPAY"><img src="~/media/payments/vnpay.png" alt="VNPAY"></div>
+						<div class="payment-item" title="MoMo"><img src="~/media/payments/momo.png" alt="MOMO"></div>
+						<div class="payment-item" title="Thanh toán khi nhận hàng" style="color: #1a1a2e; font-weight: bold; font-size: 11px;">COD</div>
+					</div>
+					
 				</div>
 			</div>
+
 			<div class="footer-bottom-bar">
-				<p>&copy; 2026 TechStore Mobile Shopping. Hệ thống bán lẻ thiết bị công nghệ hàng đầu Việt Nam.</p>
+				<p>&copy; 2026 LaptopCenter. Hệ thống bán lẻ Laptop chính hãng toàn quốc.</p>
 			</div>
 		</div>
 	</footer>
 
 	<script src="~/js/jquery.js"></script>
-	<script src="~/js/bootstrap.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="~/js/jquery.scrollUp.min.js"></script>
 	<script src="~/js/price-range.js"></script>
 	<script src="~/js/jquery.prettyPhoto.js"></script>
 	<script src="~/js/main.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.all.min.js"></script>
 	<script src="~/js/techstore.js"></script>
+
+    <script>
+        $(function () {
+            var msg = '@Html.Raw(TempData["success"])';
+            if (msg && msg.trim() !== '') {
+                Swal.fire({ icon: 'success', title: 'Thành công!', text: msg, timer: 2500, showConfirmButton: false });
+            }
+            var err = '@Html.Raw(TempData["error"])';
+            if (err && err.trim() !== '') {
+                Swal.fire({ icon: 'error', title: 'Lỗi!', text: err });
+            }
+        });
+    </script>
 
 	@await RenderSectionAsync("Scripts", required: false)
 </body>

@@ -4,75 +4,85 @@
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<div class="container py-4">
+	<!-- Slider full width -->
+	<div class="row mb-4">
+		<div class="col-12">
+			<partial name="_SliderPartial" />
+		</div>
+	</div>
 
+	<!-- Sidebar + Products -->
+	<div class="row">
+		<div class="col-md-3 mb-4">
+			@Html.Partial("_SidebarPartial")
+		</div>
 
-<div class="col-sm-12" style="margin-bottom: 30px;">
-	<partial name="_SliderPartial" />
-</div>
-
-<div class="col-sm-3 col-md-3">
-	@Html.Partial("_SidebarPartial")
-</div>
-
-<div class="col-sm-9 col-md-9 padding-right">
-	<div class="features_items">
-		<h2 class="section-title">Sản Phẩm Nổi Bật</h2>
-        <div class="row">
-            @foreach (var item in Model)
-            {
-                <div class="col-sm-6 col-md-4 product-wrapper">
-                    <div class="tech-card">
-                        <!-- Nút yêu thích -->
-                        <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
-                            <i class="fa fa-heart"></i>
-                        </a>
-
-                        <!-- Hình ảnh -->
-                        <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-img">
-                            <img src="~/media/products/@item.Image" alt="@item.Name" />
-                        </a>
-
-                        <div class="tech-card-body">
-                            <!-- Tiêu đề -->
-                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-title">
-                                @item.Name
+		<div class="col-md-9">
+			<h2 class="section-title">Sản Phẩm Nổi Bật</h2>
+            <div class="row g-4">
+                @foreach (var item in Model)
+                {
+                    <div class="col-6 col-lg-4">
+                        <div class="tech-card h-100">
+                            <!-- Nút yêu thích -->
+                            <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
+                                <i class="fa fa-heart"></i>
                             </a>
 
-                            <!-- Giá -->
-                            <div class="tech-card-price">
-                                @item.Price.ToString("#,##0 VNĐ")
-                                @* @if(item.CapitalPrice > item.Price) {
-                                    <s>@item.CapitalPrice.ToString("#,##0 VNĐ")</s>
-                                } *@
-                            </div>
+                            <!-- Hình ảnh -->
+                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
+                                <div class="tech-card-img">
+                                    @{
+                                        string labelClass = "label-default";
+                                        string catName = item.Category.Name.ToLower();
+                                        if(catName.Contains("gaming")) labelClass = "label-gaming";
+                                        else if(catName.Contains("văn phòng") || catName.Contains("học tập")) labelClass = "label-office";
+                                        else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
+                                        else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
+                                    }
+                                    <div class="tech-card-label @labelClass">@item.Category.Name</div>
+                                    <img src="~/media/products/@item.Image" alt="@item.Name" />
+                                </div>
+                            </a>
 
-                            <!-- Thông số ngắn gọn -->
-                            <div class="tech-card-specs">
-                                <span class="tech-spec-item"><i class="fa fa-tag"></i> @item.Category.Name</span>
-                                <span class="tech-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
-                            </div>
+                            <div class="tech-card-body">
+                                <!-- Tiêu đề -->
+                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-title">
+                                    @item.Name
+                                </a>
 
-                            <!-- Trạng thái & Action -->
-                            <div class="tech-card-actions">
-                                @if(item.Quantity > 0)
-                                {
-                                    <button class="btn-brand add-to-cart" data-product_id="@item.Id">
-                                        <i class="fa fa-shopping-cart" style="margin-right: 5px;"></i> Thêm vào giỏ
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button class="btn-brand btn-disabled" disabled>
-                                        <i class="fa fa-ban" style="margin-right: 5px;"></i> Hết hàng
-                                    </button>
-                                }
+                                <!-- Giá -->
+                                <div class="tech-card-price">
+                                    @item.Price.ToString("#,##0 VNĐ")
+                                </div>
+
+                                <!-- Thông số -->
+                                <div class="tech-card-specs">
+                                    <span class="tech-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
+                                    <span class="tech-spec-item text-success"><i class="fa fa-check-circle"></i> Chính hãng</span>
+                                </div>
+
+                                <!-- Action -->
+                                <div class="tech-card-actions mt-auto">
+                                    @if(item.Quantity > 0)
+                                    {
+                                        <button class="btn-brand w-100 add-to-cart" data-product_id="@item.Id">
+                                            <i class="fa fa-shopping-cart me-1"></i> Thêm vào giỏ
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-brand btn-disabled w-100" disabled>
+                                            <i class="fa fa-ban me-1"></i> Hết hàng
+                                        </button>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
+                }
+            </div>
         </div>
-    </div>
+	</div>
 </div>
-
-

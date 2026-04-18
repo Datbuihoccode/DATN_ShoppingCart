@@ -1,40 +1,48 @@
-﻿@model LoginViewModel
+@model LoginViewModel
 @{
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Đăng nhập";
 }
 
-<section>
-    <div class="container">
-        <div class="row">
-            <div class="col-sm-8 col-sm-offset-1">
-                <div class="login-form">
-					<!--login form-->
-					<h2>Đăng nhập tại đây</h2>
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                    <form asp-action="Login" asp-controller="Account" method="post">
-                        <input asp-for="ReturnUrl" type="hidden" />
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="tech-card p-4 p-md-5">
+                <h2 class="section-title mb-4">Đăng nhập</h2>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small alert alert-danger" style="display:none;"></div>
+                <form asp-action="Login" asp-controller="Account" method="post">
+                    <input asp-for="ReturnUrl" type="hidden" />
 
-                        <div class="form-group">
-                            <input asp-for="UserName" class="form-control" placeholder="Tên đăng nhập" />
-                            <span asp-validation-for="UserName" class="text-danger"></span>
+                    <div class="mb-3">
+                        <label asp-for="UserName" class="form-label fw-600 text-muted">Tên đăng nhập</label>
+                        <input asp-for="UserName" class="form-control" placeholder="username..." />
+                        <span asp-validation-for="UserName" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Password" class="form-label fw-600 text-muted">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-grid mb-4">
+                        <button class="btn-brand" style="width:100%; padding: 13px; font-size: 15px; border-radius: 8px;">ĐĂNG NHẬP</button>
+                    </div>
+
+                    <div class="text-center border-top pt-4 mt-2">
+                        <a asp-action="LoginByGoogle" asp-controller="Account" class="btn btn-outline-dark w-100 mb-3 d-flex align-items-center justify-content-center gap-2" style="font-weight: 600; border-radius: 8px; padding: 10px;">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google">
+                            Đăng nhập bằng Google
+                        </a>
+                        <div class="d-flex justify-content-between small">
+                            <a asp-action="Create" asp-controller="Account" class="text-muted text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--secondary-color)'" onmouseout="this.style.color=''">Chưa có tài khoản? Đăng ký</a>
+                            <a asp-action="ForgetPass" asp-controller="Account" class="text-muted text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--secondary-color)'" onmouseout="this.style.color=''">Quên mật khẩu?</a>
                         </div>
-
-                        <div class="form-group">
-                            <input asp-for="Password" type="password" class="form-control" placeholder="Mật khẩu" />
-                            <span asp-validation-for="Password" class="text-danger"></span>
-                        </div>
-
-                        <button class="btn btn-default">Đăng nhập</button>
-                        <br />
-                        <a asp-action="Create" asp-controller="Account">Đăng ký tài khoản tại đây</a> |
-                        <a asp-action="ForgetPass" asp-controller="Account">Quên mật khẩu</a> |
-                        <a asp-action="LoginByGoogle" asp-controller="Account">Đăng nhập bằng Google</a>
-                    </form>
-                </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-</section>
+</div>
 
 @section Scripts {
     @{

@@ -47,15 +47,50 @@ namespace ShoppingCard.Controllers
                 cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
             }
 
-            decimal shippingPrice = 0;
+            decimal discount = 0;
+            string couponMessage = "";
             var coupon_code = Request.Cookies["CouponTitle"];
+
+            if (!string.IsNullOrEmpty(coupon_code))
+            {
+                var validCoupon = await _dataContext.Coupons
+                    .FirstOrDefaultAsync(x => x.Name == coupon_code && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
+
+                if (validCoupon != null)
+                {
+                    decimal grandTotal = cartItems.Sum(x => x.Quantity * x.Price);
+                    if (grandTotal >= validCoupon.MinAmount)
+                    {
+                        if (validCoupon.Type == 1) // Percentage
+                        {
+                            discount = (grandTotal * validCoupon.DiscountValue) / 100;
+                            // Apply Max Discount Case
+                            if (validCoupon.MaxDiscountAmount > 0 && discount > validCoupon.MaxDiscountAmount)
+                            {
+                                discount = validCoupon.MaxDiscountAmount;
+                            }
+                        }
+                        else // Fixed
+                        {
+                            discount = validCoupon.DiscountValue;
+                        }
+                        couponMessage = $"Áp dụng thành công: {validCoupon.Description}";
+                    }
+                    else
+                    {
+                        couponMessage = $"Đơn hàng tối thiểu {validCoupon.MinAmount.ToString("#,##0")} VNĐ để sử dụng mã này.";
+                        discount = 0;
+                    }
+                }
+            }
 
             CartItemViewModel cartVM = new()
             {
                 CartItems = cartItems,
                 GrandTotal = cartItems.Sum(x => x.Quantity * x.Price),
-                ShippingCost = shippingPrice,
-                CouponCode = coupon_code
+                CouponCode = coupon_code,
+                DiscountAmount = discount,
+                CouponMessage = couponMessage
             };
             return View(cartVM);
         }
@@ -263,51 +298,48 @@ namespace ShoppingCard.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult DeleteShipping()
-        {
-            TempData["success"] = "Shipping deleted successfully!";
-            return RedirectToAction("Index");
-        }
+
 
         [HttpPost]
         [Route("Cart/GetCoupon")]
-        public async Task<IActionResult> GetCoupon(CouponModel couponModel, string coupon_value)
+        public async Task<IActionResult> GetCoupon(string coupon_value)
         {
-            var validCoupon = await _dataContext.Coupons.FirstOrDefaultAsync(x => x.Name == coupon_value);
+            // Check if coupon already applied
+            var existingCoupon = Request.Cookies["CouponTitle"];
+            if (!string.IsNullOrEmpty(existingCoupon))
+            {
+                return Json(new { success = false, message = "Bạn đã áp dụng mã giảm giá. Hãy xóa mã cũ trước khi thêm mã mới." });
+            }
+
+            var validCoupon = await _dataContext.Coupons
+                .FirstOrDefaultAsync(x => x.Name == coupon_value && x.Status == 1 && x.Quantity > 0);
+
             if (validCoupon == null)
             {
-                return Json(new { success = false, message = "Coupon not existed" });
+                return Json(new { success = false, message = "Mã giảm giá không tồn tại hoặc đã hết lượt dùng." });
             }
 
-            string couponTitle = validCoupon.Name + " | " + validCoupon.Description;
-
-            TimeSpan remainingTime = validCoupon.DateExpired - DateTime.Now;
-            int daysRemaining = remainingTime.Days;
-
-            if (daysRemaining >= 0)
+            if (validCoupon.DateExpired < DateTime.Today)
             {
-                try
-                {
-                    CookieOptions cookieOptions = new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Expires = DateTimeOffset.UtcNow.AddMinutes(30),
-                        Secure = Request.IsHttps,
-                        SameSite = SameSiteMode.Strict
-                    };
+                return Json(new { success = false, message = "Mã giảm giá đã hết hạn sử dụng." });
+            }
 
-                    Response.Cookies.Append("CouponTitle", couponTitle, cookieOptions);
-                    return Json(new { success = true, message = "Coupon applied successfully" });
-                }
-                catch (Exception)
-                {
-                    return Json(new { success = false, message = "Coupon applied failed" });
-                }
-            }
-            else
+            CookieOptions cookieOptions = new CookieOptions
             {
-                return Json(new { success = false, message = "Coupon has expired" });
-            }
+                HttpOnly = true,
+                Expires = DateTimeOffset.UtcNow.AddMinutes(60),
+                Secure = Request.IsHttps,
+                SameSite = SameSiteMode.Strict
+            };
+
+            Response.Cookies.Append("CouponTitle", validCoupon.Name, cookieOptions);
+            return Json(new { success = true, message = "Đã lưu mã giảm giá thành công. Vui lòng làm mới giỏ hàng." });
+        }
+
+        public IActionResult RemoveCoupon()
+        {
+            Response.Cookies.Delete("CouponTitle");
+            return RedirectToAction("Index");
         }
     }
 }

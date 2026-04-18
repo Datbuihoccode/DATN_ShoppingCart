@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
@@ -19,7 +19,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.Coupons = await _dataContext.Coupons.ToListAsync();
+            ViewBag.Coupons = await _dataContext.Coupons.OrderByDescending(c => c.Id).ToListAsync();
             return View();
         }
 
@@ -41,7 +41,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["error"] = "Thông tin coupon chưa hợp lệ.";
-                ViewBag.Coupons = await _dataContext.Coupons.ToListAsync();
+                ViewBag.Coupons = await _dataContext.Coupons.OrderByDescending(c => c.Id).ToListAsync();
                 return View("Index", coupon);
             }
 
@@ -49,6 +49,31 @@ namespace ShoppingCard.Areas.Admin.Controllers
             await _dataContext.SaveChangesAsync();
 
             TempData["success"] = "Thêm coupon thành công";
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var coupon = await _dataContext.Coupons.FindAsync(id);
+            if (coupon != null)
+            {
+                _dataContext.Coupons.Remove(coupon);
+                await _dataContext.SaveChangesAsync();
+                TempData["success"] = "Đã xóa coupon thành công.";
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var coupon = await _dataContext.Coupons.FindAsync(id);
+            if (coupon != null)
+            {
+                coupon.Status = coupon.Status == 1 ? 0 : 1;
+                _dataContext.Update(coupon);
+                await _dataContext.SaveChangesAsync();
+                TempData["success"] = "Đã cập nhật trạng thái coupon.";
+            }
             return RedirectToAction(nameof(Index));
         }
     }

@@ -1,153 +1,186 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="">
-	<meta name="author" content="">
-	<title> @ViewData["Title"] - Admin Areas </title>
-	<link href="~/css/bootstrap.min.css" rel="stylesheet">
-	<link href="~/css/font-awesome.min.css" rel="stylesheet">
-	<link href="//cdn.datatables.net/2.3.7/css/dataTables.dataTables.min.css" rel="stylesheet">
-	<link href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css" rel="stylesheet">
-	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
-	<link href="~/css/prettyPhoto.css" rel="stylesheet">
-	<link href="~/css/price-range.css" rel="stylesheet">
-	<link href="~/css/animate.css" rel="stylesheet">
-	<link href="~/css/main.css" rel="stylesheet">
-	<link href="~/css/responsive.css" rel="stylesheet">
-	<!--[if lt IE 9]>
-	<script src="js/html5shiv.js"></script>
-	<script src="js/respond.min.js"></script>
-	<![endif]-->
-	<link rel="shortcut icon" href="images/ico/favicon.ico">
-	<link rel="apple-touch-icon-precomposed" sizes="144x144" href="images/ico/apple-touch-icon-144-precomposed.png">
-	<link rel="apple-touch-icon-precomposed" sizes="114x114" href="images/ico/apple-touch-icon-114-precomposed.png">
-	<link rel="apple-touch-icon-precomposed" sizes="72x72" href="images/ico/apple-touch-icon-72-precomposed.png">
-	<link rel="apple-touch-icon-precomposed" href="images/ico/apple-touch-icon-57-precomposed.png">
-	<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.min.css" rel="stylesheet">
-</head><!--/head-->
-
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - LaptopCenter Admin</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- DataTables -->
+    <link href="//cdn.datatables.net/2.3.7/css/dataTables.dataTables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/3.2.6/css/buttons.dataTables.css" rel="stylesheet">
+    <!-- Morris Charts -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Admin CSS -->
+    <link href="~/css/admin.css" rel="stylesheet">
+</head>
 <body>
+<div class="admin-wrapper">
 
-	<header id="header">
-		<!--header-->
-		<div class="header_top">
-			<!--header_top-->
-			<div class="container">
-				<div class="row">
+    <!-- ===== SIDEBAR ===== -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-text"><span>LAPTOP</span>CENTER</div>
+        </div>
 
-				</div>
-			</div>
-		</div><!--/header_top-->
+        <nav class="sidebar-nav">
+            <div class="sidebar-section-title">Tổng quan</div>
+            <a asp-action="Index" asp-controller="Dashboard" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")">
+                <i class="fas fa-chart-line"></i><span>Dashboard</span>
+            </a>
 
-		<div class="header-middle">
-			<!--header-middle-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-4">
-						<div class="logo pull-left">
-							<a href="index.html"><img src="images/home/logo.png" alt="" /></a>
-						</div>
-						<div class="btn-group pull-right">
+            <div class="sidebar-section-title">Danh mục</div>
+            <a asp-action="Index" asp-controller="Product" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Product" ? "active" : "")">
+                <i class="fas fa-box-open"></i><span>Sản phẩm</span>
+            </a>
+            <a asp-action="Index" asp-controller="Category" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
+                <i class="fas fa-tags"></i><span>Danh mục</span>
+            </a>
+            <a asp-action="Index" asp-controller="Brand" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Brand" ? "active" : "")">
+                <i class="fas fa-trademark"></i><span>Thương hiệu</span>
+            </a>
+            <a asp-action="Index" asp-controller="Slider" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Slider" ? "active" : "")">
+                <i class="fas fa-images"></i><span>Slider</span>
+            </a>
 
-						</div>
-					</div>
-				</div>
-			</div>
-		</div><!--/header-middle-->
+            <div class="sidebar-section-title">Kinh doanh</div>
+            <a asp-action="Index" asp-controller="Order" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active" : "")">
+                <i class="fas fa-shopping-bag"></i><span>Đơn hàng</span>
+            </a>
+            <a asp-action="Index" asp-controller="Coupon" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Coupon" ? "active" : "")">
+                <i class="fas fa-ticket-alt"></i><span>Mã giảm giá</span>
+            </a>
 
-		<div class="header-bottom">
-			<!--header-bottom-->
-			<div class="container">
-				<div class="row">
-					<div class="col-sm-9">
-						<div class="navbar-header">
-							<button type="button" class="navbar-toggle" data-toggle="collapse"
-								data-target=".navbar-collapse">
-								<span class="sr-only">Toggle navigation</span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-								<span class="icon-bar"></span>
-							</button>
-						</div>
-						<div class="mainmenu pull-left">
-							<ul class="nav navbar-nav collapse navbar-collapse">
-								<li><a asp-action="Index" asp-controller="Home" asp-area="">Home</a></li>
-								<li><a asp-action="Index" asp-controller="Dashboard">Dashboard</a></li>
-								<li><a asp-action="Index" asp-controller="Slider" >Slider</a></li>
-								<li><a asp-action="Index" asp-controller="Product" >Sản phẩm</a></li>
-								<li><a asp-action="Index" asp-controller="Category" >Danh mục</a></li>
-								<li><a asp-action="Index" asp-controller="Brand" >Thương hiệu</a></li>
-								<li><a asp-action="Index" asp-controller="Order" >Đơn hàng</a></li>
-								<li><a asp-action="Index" asp-controller="User">Users</a></li>
-								<li><a asp-action="Index" asp-controller="Role">Roles</a></li>
-								<li><a asp-action="Index" asp-controller="Coupon">Quản lý Coupon</a></li>
-								<li><a asp-action="Index" asp-controller="Contact">Quản lý Contact</a></li>
-							</ul>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<div class="search_box pull-right">
-							<input type="text" placeholder="Search" />
-						</div>
-					</div>
-				</div>
-			</div>
-		</div><!--/header-bottom-->
-	</header><!--/header-->
+            <div class="sidebar-section-title">Hệ thống</div>
+            <a asp-action="Index" asp-controller="User" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+                <i class="fas fa-users"></i><span>Người dùng</span>
+            </a>
+            <a asp-action="Index" asp-controller="Role" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Role" ? "active" : "")">
+                <i class="fas fa-user-shield"></i><span>Quyền hạn</span>
+            </a>
+            <a asp-action="Index" asp-controller="Contact" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact" ? "active" : "")">
+                <i class="fas fa-address-book"></i><span>Liên hệ</span>
+            </a>
+        </nav>
 
-	<section>
-		<div class="container">
-			<div class="row">
-				@Html.Partial("_NotificationPartial")
-				@RenderBody()
-			</div>
-		</div>
-	</section>
+        <div class="sidebar-footer">
+            <a asp-action="Index" asp-controller="Home" asp-area="">
+                <i class="fas fa-store"></i><span>Về trang chủ</span>
+            </a>
+        </div>
+    </aside>
 
-	<footer id="footer">
-	</footer><!--/Footer-->
-	
-	<script src="~/js/jquery.js"></script>
-	<script src="~/js/bootstrap.min.js"></script>
-	<script src="~/js/jquery.scrollUp.min.js"></script>
-	
-	<script src="//cdn.datatables.net/2.3.7/js/dataTables.min.js"></script>
-	<script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
-	<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.dataTables.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-	<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
-	<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.print.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
-	
-	<script src="~/js/price-range.js"></script>
-	<script src="~/js/jquery.prettyPhoto.js"></script>
-	<script src="~/js/main.js"></script>
-	<script src="~/backend/js/site.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.all.min.js"></script>
-	<script>
-		$(function () {
-			var message = '@TempData["success"]';
-			if (message != '')
-				Swal.fire(message);
-		});
-	</script>
+    <!-- ===== MAIN ===== -->
+    <div class="admin-main">
 
-	<script>
-		let table = new DataTable('#myTable', {
-			layout: {
-				topStart: {
-					buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
-				}
-			}
-		});
-	</script>
+        <!-- TOPBAR -->
+        <header class="admin-topbar">
+            <div class="d-flex align-items-center gap-3">
+                <span class="topbar-title">@ViewData["Title"]</span>
+            </div>
+            <div class="topbar-right">
+                <a href="/" class="topbar-icon-btn" title="Xem trang web">
+                    <i class="fas fa-external-link-alt"></i>
+                </a>
+                @if (User.Identity?.IsAuthenticated ?? false)
+                {
+                    <div class="topbar-user dropdown">
+                        <div class="topbar-user-avatar dropdown-toggle" data-bs-toggle="dropdown">
+                            @User.Identity.Name?.Substring(0, 1).ToUpper()
+                        </div>
+                        <span class="topbar-user-name d-none d-md-block">@User.Identity.Name</span>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 10px; min-width: 180px; padding: 8px;">
+                            <li><a class="dropdown-item" asp-action="Logout" asp-controller="Account" asp-area="">
+                                <i class="fas fa-sign-out-alt me-2 text-danger"></i>Đăng xuất
+                            </a></li>
+                        </ul>
+                    </div>
+                }
+                else
+                {
+                    <a asp-action="Login" asp-controller="Account" asp-area="" class="btn-admin-primary" style="padding: 7px 16px; font-size: 13px;">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                    </a>
+                }
+            </div>
+        </header>
 
-	@await RenderSectionAsync("Scripts", required: false)
+        <!-- PAGE CONTENT -->
+        <main class="admin-content">
+            @RenderBody()
+        </main>
+
+    </div><!-- /admin-main -->
+</div><!-- /admin-wrapper -->
+
+<!-- Scripts -->
+<script src="~/js/jquery.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- DataTables -->
+<script src="//cdn.datatables.net/2.3.7/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.6/js/dataTables.buttons.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.dataTables.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.6/js/buttons.print.min.js"></script>
+
+<!-- Morris Charts -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.min.js"></script>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // Auto-init DataTable for #myTable
+    $(function () {
+        if ($('#myTable').length && !$.fn.DataTable.isDataTable('#myTable')) {
+            new DataTable('#myTable', {
+                layout: {
+                    topStart: {
+                        buttons: ['copy', 'csv', 'excel', 'pdf', 'print']
+                    }
+                },
+                language: {
+                    search: "Tìm kiếm:",
+                    lengthMenu: "Hiển thị _MENU_ dòng",
+                    info: "Đang hiện _START_ - _END_ trong _TOTAL_ bản ghi",
+                    paginate: { first: "«", last: "»", next: "›", previous: "‹" },
+                    zeroRecords: "Không có dữ liệu",
+                    infoEmpty: "Không có bản ghi nào"
+                }
+            });
+        }
+
+        // SweetAlert success notification
+        var msg = '@Html.Raw(TempData["success"])';
+        if (msg && msg.trim() !== '') {
+            Swal.fire({ icon: 'success', title: 'Thành công!', text: msg, timer: 3000, showConfirmButton: false });
+        }
+        var err = '@Html.Raw(TempData["error"])';
+        if (err && err.trim() !== '') {
+            Swal.fire({ icon: 'error', title: 'Lỗi!', text: err });
+        }
+    });
+</script>
+
+@await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>

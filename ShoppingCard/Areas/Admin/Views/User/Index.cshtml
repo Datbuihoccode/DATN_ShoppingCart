@@ -1,47 +1,55 @@
 @{
-    ViewData["Title"] = "List User";
-
-    Paginate pager = new Paginate();
-
-    int pageNo = 0;
-
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
+    ViewData["Title"] = "Quản lý người dùng";
 }
-<h3>List User</h3>
-<a asp-action="Create" asp-controller="User">Add User</a>
-<table class="table" id="myTable">
-    <thead>
-        <tr>
-            <th scope="col">UserName</th>
-            <th scope="col">Email</th>
-            @* <th scope="col">PasswordHash</th> *@
-            <th scope="col">PhoneNumber</th>
-            <th scope="col">Role</th>
-            <th scope="col">Action</th>
 
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var userWithRoles in Model)
-        {
-            <tr>
-                <td>@userWithRoles.User.UserName</td>
-                <td>@userWithRoles.User.Email</td>
-                @* <td>@userWithRoles.User.PasswordHash</td> *@
-                <td>@userWithRoles.User.PhoneNumber</td>
-                <td>@userWithRoles.RoleName</td>
-                <td>
-                    <a asp-action="Edit" class="btn btn-warning btn-sm" asp-controller="User" asp-route-Id="@userWithRoles.User.Id">Edit</a>
-                    <a asp-action="Delete" class="btn btn-danger btn-sm confirmDeletion" asp-controller="User" asp-route-Id="@userWithRoles.User.Id" onclick="return confirm('Xác nhận xóa');">Delete</a>
+<div class="admin-page-header">
+    <h2 class="admin-page-title">Danh sách người dùng</h2>
+    <a asp-action="Create" class="btn-admin-primary">
+        <i class="fas fa-user-plus"></i> Thêm người dùng
+    </a>
+</div>
 
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-<partial name="_paging" model="@pager" />
-                 
+<div class="admin-card">
+    <div class="admin-card-body">
+        <div class="table-responsive">
+            <table class="admin-table" id="myTable">
+                <thead>
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Email</th>
+                        <th>Số điện thoại</th>
+                        <th>Vai trò</th>
+                        <th width="180">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var userWithRoles in Model)
+                    {
+                        <tr>
+                            <td><div class="fw-bold">@userWithRoles.User.UserName</div></td>
+                            <td>@userWithRoles.User.Email</td>
+                            <td>@(userWithRoles.User.PhoneNumber ?? "-")</td>
+                            <td>
+                                @if(userWithRoles.RoleName == "Admin") {
+                                    <span class="badge bg-danger">Admin</span>
+                                } else {
+                                    <span class="badge bg-info text-dark">@userWithRoles.RoleName</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="actions-group">
+                                    <a asp-action="Edit" class="btn-admin-edit" asp-route-Id="@userWithRoles.User.Id">
+                                        <i class="fas fa-user-edit"></i> Sửa
+                                    </a>
+                                    <a asp-action="Delete" class="btn-admin-delete" asp-route-Id="@userWithRoles.User.Id" onclick="return confirm('Xác nhận xóa người dùng này?');">
+                                        <i class="fas fa-user-times"></i> Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

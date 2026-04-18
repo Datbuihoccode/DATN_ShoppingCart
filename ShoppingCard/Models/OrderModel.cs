@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace ShoppingCard.Models
 {
@@ -10,6 +10,7 @@ namespace ShoppingCard.Models
         public DateTime CreateDate { get; set; }
         public int Status { get; set; }
         public string CouponCode { get; set; }
+        public decimal DiscountAmount { get; set; }
         public string PaymentMethod { get; set; }
     }
 }

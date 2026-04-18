@@ -202,8 +202,37 @@ namespace ShoppingCard.Controllers
             }
 
             var couponCode = Request.Cookies["CouponTitle"];
-            var paymentMethod = string.IsNullOrWhiteSpace(orderId) ? "COD" : orderId;
+            decimal discount = 0;
 
+            if (!string.IsNullOrEmpty(couponCode))
+            {
+                var coupon = await _dataContext.Coupons
+                    .FirstOrDefaultAsync(c => c.Name == couponCode && c.Status == 1 && c.Quantity > 0 && c.DateExpired >= DateTime.Today);
+
+                if (coupon != null)
+                {
+                    decimal grandTotal = cartItems.Sum(x => x.Quantity * x.Price);
+                    if (grandTotal >= coupon.MinAmount)
+                    {
+                        if (coupon.Type == 1) discount = (grandTotal * coupon.DiscountValue) / 100;
+                        else discount = coupon.DiscountValue;
+
+                        // Deduct coupon quantity
+                        coupon.Quantity -= 1;
+                        _dataContext.Update(coupon);
+                    }
+                    else
+                    {
+                        couponCode = null; // Minimum amount not met
+                    }
+                }
+                else
+                {
+                    couponCode = null; // Coupon no longer valid
+                }
+            }
+
+            var paymentMethod = string.IsNullOrWhiteSpace(orderId) ? "COD" : orderId;
             var orderCode = Guid.NewGuid().ToString();
             var orderItem = new OrderModel
             {
@@ -212,6 +241,7 @@ namespace ShoppingCard.Controllers
                 Status = 1,
                 CreateDate = DateTime.Now,
                 CouponCode = couponCode,
+                DiscountAmount = discount,
                 PaymentMethod = paymentMethod
             };
 

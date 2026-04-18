@@ -1,64 +1,58 @@
 @model IEnumerable<CategoryModel>
 @{
-    ViewData["Title"] = "Category List";
-
-    Paginate pager = new Paginate();
-
-    int pageNo = 0;
-
-    if (ViewBag.Pager != null)
-    {
-        pager = ViewBag.Pager;
-        pageNo = pager.CurrentPage;
-    }
+    ViewData["Title"] = "Danh mục sản phẩm";
 }
 
-<html>
-<head>
-    <h3>List Category </h3>
-</head>
-    <body>
-    <a asp-action="Create" asp-controller="Category">Add Category</a>
-    <table class="table" id="myTable">
-        <thead>
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Category Name</th>
-                <th scope="col">Category Description</th>
-                <th scope="col">Category Slug</th>
-                <th scope="col">Category Status</th>
-                <th scope="col">Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <th scope="row">@item.Id</th>
-                    <td>@item.Name</td>
-                    <td>@Html.Raw(@item.Description)</td>      
-                
-                    <td>@item.Slug</td>
-                    <td>
-                        @if (@item.Status == 1)
-                        {
-                            <span class="text text-success">Hiển thị</span>
-                        }
-                        else
-                        {
-                            <span class="text text-danger">Ẩn</span>
-                        }
-                    </td>
+<div class="admin-page-header">
+    <h2 class="admin-page-title">Quản lý danh mục</h2>
+    <a asp-action="Create" class="btn-admin-primary">
+        <i class="fas fa-plus"></i> Thêm danh mục
+    </a>
+</div>
 
-                    <td>
-                        <a asp-action="Edit" class="btn btn-warning btn-sm" asp-controller="Category" asp-route-Id="@item.Id">Edit</a>
-                        <a asp-action="Delete" class="btn btn-danger btn-sm confirmDeletion" asp-controller="Category" asp-route-Id="@item.Id" onclick="return confirm('Xác nhận xóa');">Delete</a>
-                    </td>
-                </tr>
-            }
-
-        </tbody>
-    </table>
-    <partial name="_paging" model="@pager"/>
-</body>
-</html>
+<div class="admin-card">
+    <div class="admin-card-body">
+        <div class="table-responsive">
+            <table class="admin-table" id="myTable">
+                <thead>
+                    <tr>
+                        <th width="80">ID</th>
+                        <th>Tên danh mục</th>
+                        <th>Mô tả</th>
+                        <th>Slug</th>
+                        <th width="120">Trạng thái</th>
+                        <th width="180">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td><div class="fw-bold">@item.Name</div></td>
+                            <td><div class="text-muted small">@Html.Raw(item.Description)</div></td>
+                            <td><code>@item.Slug</code></td>
+                            <td>
+                                @if(item.Status == 1) {
+                                    <span class="status-badge badge-new">Hiển thị</span>
+                                } else {
+                                    <span class="status-badge badge-cancelled">Ẩn</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="actions-group">
+                                    <a asp-action="Edit" class="btn-admin-edit" asp-route-Id="@item.Id">
+                                        <i class="fas fa-edit"></i> Sửa
+                                    </a>
+                                    <a asp-action="Delete" class="btn-admin-delete" asp-route-Id="@item.Id" onclick="return confirm('Xóa danh mục này?');">
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

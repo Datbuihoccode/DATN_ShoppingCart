@@ -1,62 +1,67 @@
-﻿@model IEnumerable<ProductModel>
+@model IEnumerable<ProductModel>
 @{
 	ViewData["Title"] = ViewBag.Keyword;
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<div class="col-sm-3">
-	@Html.Partial("_SidebarPartial")
-</div>
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            @Html.Partial("_SidebarPartial")
+        </div>
 
-<style>
-	.product-image-wrapper {
-		height: 450px;
-	}
-</style>
+        <div class="col-md-9">
+            <h2 class="section-title">Kết quả: "@ViewBag.Keyword"</h2>
 
-<div class="col-sm-9 padding-right">
-	<div class="features_items">
-		<!--features_items-->
-		<h2 class="title text-center">@ViewBag.Keyword</h2>
-		@foreach (var item in Model)
-		{
-			<div class="col-sm-4">
-				<div class="product-image-wrapper">
-					<a href="#"></a>
-					<div class="single-products">
-						<div class="productinfo text-center">
-							<img src="~/media/products/@item.Image" alt="@item." width="100%" />
-							<h2>$@item.Price.ToString("#,##0 VNĐ")</h2>
-							<p>@item.Name</p>
-							<p>Danh mục : @item.Category.Name</p>
-							<p>Thương hiệu : @item.Brand.Name</p>
-							@if(item.Quantity > 0)
-							{
-								<a class="btn btn-default add-to-cart" 
-									asp-action="Add" 
-									asp-controller="Cart" 
-									asp-route-Id="@item.Id">
-									<i class="fa fa-shopping-cart"></i>
-										Thêm giỏ hàng
-								</a>
-							}
-							else
-							{
-								<a class="btn btn-default">
-									<i class="fa fa-shopping-cart"></i>
-										Hết hàng
-								</a>
-							}
-						</div>
-					</div>
-					<div class="choose">
-						<ul class="nav nav-pills nav-justified">
-							<li><a href="#"><i class="fa fa-plus-square"></i>Add to wishlist</a></li>
-							<li><a href="#"><i class="fa fa-plus-square"></i>Add to compare</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		}
-	</div><!--features_items-->
-
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center py-5">
+                    <i class="fa fa-search text-muted" style="font-size: 60px;"></i>
+                    <h4 class="mt-3 text-muted">Không tìm thấy sản phẩm phù hợp.</h4>
+                    <a href="/" class="btn-brand d-inline-block mt-3" style="width: auto; padding: 10px 30px;">Quay về trang chủ</a>
+                </div>
+            }
+            else
+            {
+                <div class="row g-4">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-6 col-md-4">
+                            <div class="tech-card h-100">
+                                <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id">
+                                    <i class="fa fa-heart"></i>
+                                </a>
+                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
+                                    <div class="tech-card-img">
+                                        <img src="~/media/products/@item.Image" alt="@item.Name" />
+                                    </div>
+                                </a>
+                                <div class="tech-card-body">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-title">
+                                        @item.Name
+                                    </a>
+                                    <div class="tech-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
+                                    <div class="tech-card-specs">
+                                        <span class="tech-spec-item">@item.Category.Name</span>
+                                        <span class="tech-spec-item">@item.Brand.Name</span>
+                                    </div>
+                                    <div class="tech-card-actions mt-auto">
+                                        @if(item.Quantity > 0)
+                                        {
+                                            <a class="btn-brand add-to-cart" href="javascript:void(0)" data-product_id="@item.Id">
+                                                <i class="fa fa-shopping-cart me-1"></i> Thêm vào giỏ
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn-brand btn-disabled" disabled>Hết hàng</button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
 </div>
