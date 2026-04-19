@@ -1,41 +1,76 @@
-﻿@model BrandModel
+@model BrandModel
 @{
-    ViewData["Title"] = "Create Brand";
+    ViewData["Title"] = "Thêm thương hiệu";
 }
-<h4>Create Brand</h4>
-<div class=" col-md-9">
-    <form asp-action="Create" enctype="multipart/form-data">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="form-group">
-            <label>Name</label>
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+
+<nav aria-label="breadcrumb">
+    <ol class="admin-breadcrumb">
+        <li><a asp-action="Index">Thương hiệu</a></li>
+        <li class="sep">/</li>
+        <li class="current">Thêm mới</li>
+    </ol>
+</nav>
+
+<div class="admin-page-header">
+    <h2 class="admin-page-title">Thêm thương hiệu mới</h2>
+</div>
+
+<div class="admin-form-card mx-auto" style="max-width: 600px;">
+    <form asp-action="Create">
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        
+        <div class="form-group mb-3">
+            <label class="form-label">Tên thương hiệu *</label>
+            <input asp-for="Name" class="form-control" id="Name" placeholder="Nhập tên thương hiệu..." />
+            <span asp-validation-for="Name" class="text-danger small"></span>
         </div>
 
-        <div class="form-group">
-            <label>Description</label>
-            <textarea asp-for="Description" class="form-control"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
+        <div class="form-group mb-3">
+            <label class="form-label">Slug</label>
+            <input asp-for="Slug" class="form-control" id="Slug" placeholder="Tự động tạo hoặc nhập slug..." />
+            <span asp-validation-for="Slug" class="text-danger small"></span>
         </div>
 
-        <div class="form-group">
-            <label>Status</label>
-            <select asp-for="Status" class="form-control">
+        <div class="form-group mb-3">
+            <label class="form-label">Mô tả</label>
+            <textarea asp-for="Description" class="form-control" placeholder="Nhập mô tả thương hiệu..."></textarea>
+            <span asp-validation-for="Description" class="text-danger small"></span>
+        </div>
+
+        <div class="form-group mb-4">
+            <label class="form-label">Trạng thái</label>
+            <select asp-for="Status" class="form-select">
                 <option value="1">Hiển thị</option>
                 <option value="0">Ẩn</option>
             </select>
-            <span asp-validation-for="Status" class="text-danger"></span>
+            <span asp-validation-for="Status" class="text-danger small"></span>
         </div>
 
-        <div class="form-group">
-            <button class="btn btn-primary">Create</button>
+        <div class="pt-3 border-top d-flex gap-2">
+            <button type="submit" class="btn-admin-primary">
+                <i class="fas fa-save"></i> Tạo thương hiệu
+            </button>
+            <a asp-action="Index" class="btn btn-outline-secondary" style="border-radius: 8px; padding: 9px 20px; font-weight: 600;">
+                Hủy bỏ
+            </a>
         </div>
-
     </form>
-    <a asp-action="Index">Back to List Brands</a>
 </div>
+
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <script>
+        $("#Name").on('keyup input', function () {
+            var title, slug;
+            title = $(this).val();
+            slug = title.toLowerCase();
+            slug = slug.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+            slug = slug.replace(/[đĐ]/g, 'd');
+            slug = slug.replace(/([^0-9a-z-\s])/g, '');
+            slug = slug.replace(/(\s+)/g, '-');
+            slug = slug.replace(/-+/g, '-');
+            slug = slug.replace(/^-+|-+$/g, '');
+            $("#Slug").val(slug);
+        });
+    </script>
 }

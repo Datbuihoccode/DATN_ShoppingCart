@@ -1,7 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
@@ -22,27 +20,16 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("Index")]
         public async Task<IActionResult> Index(int pg = 1)
         {
-            List<CategoryModel> category = _dataContext.Categories.ToList(); //33 datas
+            List<CategoryModel> category = _dataContext.Categories.ToList();
 
-
-            const int pageSize = 10; //10 items/trang
-
-            if (pg < 1) //page < 1;
-            {
-                pg = 1; //page ==1
-            }
-            int recsCount = category.Count(); //33 items;
-
+            const int pageSize = 10;
+            if (pg < 1) pg = 1;
+            int recsCount = category.Count();
             var pager = new Paginate(recsCount, pg, pageSize);
-
-            int recSkip = (pg - 1) * pageSize; //(3 - 1) * 10; 
-
-            //category.Skip(20).Take(10).ToList()
-
+            int recSkip = (pg - 1) * pageSize;
             var data = category.Skip(recSkip).Take(pager.PageSize).ToList();
 
             ViewBag.Pager = pager;
-
             return View(data);
         }
 
@@ -52,7 +39,6 @@ namespace ShoppingCard.Areas.Admin.Controllers
             return View();
         }
 
-        // -- Create category --
         [Route("Create")]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -60,12 +46,14 @@ namespace ShoppingCard.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                //code them du lieu
-                category.Slug = category.Name.Replace(" ", "-");
-                var slug = await _dataContext.Categories.FirstOrDefaultAsync(c => c.Slug == category.Slug);
-                if (slug != null)
+                if (string.IsNullOrEmpty(category.Slug)) {
+                    category.Slug = category.Name.Replace(" ", "-").ToLower();
+                }
+
+                var slugCheck = await _dataContext.Categories.FirstOrDefaultAsync(c => c.Slug == category.Slug);
+                if (slugCheck != null)
                 {
-                    ModelState.AddModelError("", "Danh mục đã có trong database");
+                    ModelState.AddModelError("", "Danh mục với slug này đã tồn tại.");
                     return View(category);
                 }
 
@@ -74,25 +62,9 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 TempData["success"] = "Thêm danh mục thành công.";
                 return RedirectToAction("Index");
             }
-            else
-            {
-                TempData["error"] = "Model có 1 vài thứ đang bị lỗi.";
-                List<string> errors = new List<string>();
-
-                foreach (var value in ModelState.Values)
-                {
-                    foreach (var error in value.Errors)
-                    {
-                        errors.Add(error.ErrorMessage);
-                    }
-                }
-                string errorMessages = string.Join("\n", errors);
-                return BadRequest(errorMessages);
-            }
             return View(category);
         }
 
-        // -- Edit category --
         [Route("Edit/{Id}")]
         public async Task<IActionResult> Edit(int Id)
         {
@@ -107,12 +79,14 @@ namespace ShoppingCard.Areas.Admin.Controllers
         {
             if (ModelState.IsValid)
             {
-                //code them du lieu
-                category.Slug = category.Name.Replace(" ", "-");
-                var slug = await _dataContext.Categories.FirstOrDefaultAsync(c => c.Slug == category.Slug && c.Id != category.Id);
-                if (slug != null)
+                if (string.IsNullOrEmpty(category.Slug)) {
+                    category.Slug = category.Name.Replace(" ", "-").ToLower();
+                }
+
+                var slugCheck = await _dataContext.Categories.FirstOrDefaultAsync(c => c.Slug == category.Slug && c.Id != category.Id);
+                if (slugCheck != null)
                 {
-                    ModelState.AddModelError("", "Danh mục đã có trong database");
+                    ModelState.AddModelError("", "Danh mục với slug này đã tồn tại.");
                     return View(category);
                 }
 
@@ -121,32 +95,18 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 TempData["success"] = "Cập nhật danh mục thành công.";
                 return RedirectToAction("Index");
             }
-            else
-            {
-                TempData["error"] = "Model có 1 vài thứ đang bị lỗi.";
-                List<string> errors = new List<string>();
-
-                foreach (var value in ModelState.Values)
-                {
-                    foreach (var error in value.Errors)
-                    {
-                        errors.Add(error.ErrorMessage);
-                    }
-                }
-                string errorMessages = string.Join("\n", errors);
-                return BadRequest(errorMessages);
-            }
             return View(category);
         }
 
-        // -- Delete category --
+        [Route("Delete/{Id}")]
         public async Task<IActionResult> Delete(int Id)
         {
             CategoryModel category = await _dataContext.Categories.FindAsync(Id); 
+            if (category == null) return NotFound();
 
             _dataContext.Categories.Remove(category);
             await _dataContext.SaveChangesAsync();
-            TempData["success"] = "Đã xóa sản phẩm.";
+            TempData["success"] = "Đã xóa danh mục.";
             return RedirectToAction("Index");
         }
     }

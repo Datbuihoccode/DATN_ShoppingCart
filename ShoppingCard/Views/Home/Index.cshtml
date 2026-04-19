@@ -31,7 +31,7 @@
                             </a>
 
                             <!-- Hình ảnh -->
-                            <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
+                            <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
                                 <div class="tech-card-img">
                                     @{
                                         string labelClass = "label-default";
@@ -48,7 +48,7 @@
 
                             <div class="tech-card-body">
                                 <!-- Tiêu đề -->
-                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-title">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="tech-card-title">
                                     @item.Name
                                 </a>
 

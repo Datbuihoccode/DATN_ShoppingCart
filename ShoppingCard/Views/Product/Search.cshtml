@@ -30,13 +30,13 @@
                                 <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id">
                                     <i class="fa fa-heart"></i>
                                 </a>
-                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
                                     <div class="tech-card-img">
                                         <img src="~/media/products/@item.Image" alt="@item.Name" />
                                     </div>
                                 </a>
                                 <div class="tech-card-body">
-                                    <a asp-action="Details" asp-controller="Product" asp-route-Id="@item.Id" class="tech-card-title">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="tech-card-title">
                                         @item.Name
                                     </a>
                                     <div class="tech-card-price">@item.Price.ToString("#,##0 VNĐ")</div>

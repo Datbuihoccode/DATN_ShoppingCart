@@ -24,13 +24,14 @@
             <div class="col-md-8">
                 <div class="form-group">
                     <label class="form-label">Tên sản phẩm *</label>
-                    <input asp-for="Name" class="form-control" placeholder="Nhập tên sản phẩm..." />
+                    <input asp-for="Name" class="form-control" id="Name" placeholder="Nhập tên sản phẩm..." />
                     <span asp-validation-for="Name" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
                     <label class="form-label">Slug</label>
-                    <input asp-for="Slug" class="form-control" readonly style="background: #f8f9fc;" />
+                    <input asp-for="Slug" class="form-control" id="Slug" placeholder="Tự động tạo hoặc nhập slug..." />
+                    <span asp-validation-for="Slug" class="text-danger small"></span>
                 </div>
 
                 <div class="form-group">
@@ -121,6 +122,19 @@
 
         $(function() {
             $(".typing-price, .typing-capital-price").trigger("input");
+        });
+
+        $("#Name").on('keyup input', function () {
+            var title, slug;
+            title = $(this).val();
+            slug = title.toLowerCase();
+            slug = slug.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+            slug = slug.replace(/[đĐ]/g, 'd');
+            slug = slug.replace(/([^0-9a-z-\s])/g, '');
+            slug = slug.replace(/(\s+)/g, '-');
+            slug = slug.replace(/-+/g, '-');
+            slug = slug.replace(/^-+|-+$/g, '');
+            $("#Slug").val(slug);
         });
     </script>
 }

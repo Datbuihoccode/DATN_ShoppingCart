@@ -120,14 +120,14 @@
                                     <i class="fa fa-heart"></i>
                                 </a>
 
-                                <a asp-action="Details" asp-controller="Product" asp-route-Id="@related.Id">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug">
                                     <div class="tech-card-img">
                                         <img src="~/media/products/@related.Image" alt="@related.Name" />
                                     </div>
                                 </a>
 
                                 <div class="tech-card-body">
-                                    <a asp-action="Details" asp-controller="Product" asp-route-Id="@related.Id" class="tech-card-title">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug" class="tech-card-title">
                                         @related.Name
                                     </a>
 

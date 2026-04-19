@@ -24,24 +24,30 @@ namespace ShoppingCard.Controllers
             return View(products);
         }
 
-        public async Task<IActionResult> Details(int Id)
+        [Route("/product/{Slug}")]
+        public async Task<IActionResult> Details(string Slug)
         {
-            if (Id == null)
+            if (string.IsNullOrEmpty(Slug))
                 return RedirectToAction("Index");
-            var productsById = _dataContext.Products
-                .Include(p=>p.Ratings)
-                .Where(p => p.Id == Id).FirstOrDefault();
+
+            var productsBySlug = await _dataContext.Products
+                .Include(p => p.Ratings)
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .FirstOrDefaultAsync(p => p.Slug == Slug);
+
+            if (productsBySlug == null)
+                return RedirectToAction("Index");
 
             var relatedProducts = await _dataContext.Products
-                .Where(p => p.CategoryId == productsById.CategoryId && p.Id != productsById.Id)
+                .Where(p => p.CategoryId == productsBySlug.CategoryId && p.Id != productsBySlug.Id)
                 .Take(4)
                 .ToListAsync();
             ViewBag.RelatedProducts = relatedProducts;
 
             var viewModel = new Models.ViewsModels.ProductDetailViewModel
             {
-                ProductDetails = productsById,
-                
+                ProductDetails = productsBySlug,
             };
             return View(viewModel);
         }
@@ -80,9 +86,10 @@ namespace ShoppingCard.Controllers
                 string errorMessages = string.Join("\n", errors);
                 TempData["error"] = errorMessages;
                 
-                return RedirectToAction("Details", new { id = rating.ProductId});
+                var product = await _dataContext.Products.FindAsync(rating.ProductId);
+                return RedirectToAction("Details", new { Slug = product?.Slug });
             }
-            return RedirectToAction(Request.Headers["Referer"]);
+            return Redirect(Request.Headers["Referer"]);
         }
     }
 }
