@@ -1,48 +1,98 @@
-﻿@model AppUserModel
+@model AppUserModel
 
 @{
-    ViewData["Title"] = "Update Account Information";
+    ViewData["Title"] = "Thông tin tài khoản";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Update Account Information</h2>
+<div class="container lc-account-container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="lc-card">
+                <div class="lc-card-header text-center d-block">
+                    <div class="profile-avatar-wrap mb-3">
+                        <div class="avatar-circle mx-auto">
+                            <i class="fa fa-user"></i>
+                        </div>
+                    </div>
+                    <h3 class="mb-1">HỒ SƠ CỦA BẠN</h3>
+                    <p class="text-muted small mb-0">Quản lý và bảo mật thông tin tài khoản</p>
+                </div>
+                <div class="lc-card-body">
+                    <form asp-action="UpdateInfoAccount" asp-controller="Account" method="post" autocomplete="off">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                        <input type="hidden" asp-for="Id" />
 
-<form asp-action="UpdateInfoAccount" asp-controller="Account" method="post" autocomplete="off">
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-    <input type="hidden" asp-for="Id" />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="lc-form-group">
+                                    <label class="lc-form-label">Tên đăng nhập</label>
+                                    <input asp-for="UserName" class="lc-form-control" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="lc-form-group">
+                                    <label class="lc-form-label">Email hệ thống</label>
+                                    <input asp-for="Email" class="lc-form-control" readonly />
+                                </div>
+                            </div>
+                        </div>
 
-    <div class="form-group">
-        <label>Username</label>
-        <input asp-for="UserName" class="form-control" readonly />
-        <span asp-validation-for="UserName" class="text-danger"></span>
+                        <div class="lc-form-group">
+                            <label class="lc-form-label">Số điện thoại liên hệ</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-phone text-muted"></i></span>
+                                <input asp-for="PhoneNumber" class="lc-form-control" placeholder="Nhập số điện thoại..." />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+
+                        <div class="lc-form-group">
+                            <label class="lc-form-label">Đổi mật khẩu mới</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-lock text-muted"></i></span>
+                                <input type="password" name="PasswordHash" class="lc-form-control" placeholder="Để trống nếu không muốn đổi" />
+                            </div>
+                            <p class="text-muted small mt-1"><i class="fa fa-info-circle"></i> Vui lòng nhập mật khẩu mới nếu bạn muốn thay đổi.</p>
+                        </div>
+
+                        <div class="pt-3">
+                            <button type="submit" class="btn btn-brand w-100 py-2 fw-bold">
+                                LƯU THAY ĐỔI
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+</div>
 
-    <div class="form-group">
-        <label>Email</label>
-        <input asp-for="Email" class="form-control" readonly />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label>Phone Number</label>
-        <input asp-for="PhoneNumber" class="form-control" />
-        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label>Password Hash (Old - Chi hien thi)</label>
-        <input type="text" class="form-control" value="@Model?.PasswordHash" readonly />
-    </div>
-
-    <div class="form-group">
-        <label>New Password</label>
-        <input type="password" name="PasswordHash" class="form-control" required />
-        <span asp-validation-for="PasswordHash" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <button type="submit" class="btn btn-primary">Update info</button>
-    </div>
-</form>
+<style>
+    .avatar-circle {
+        width: 80px;
+        height: 80px;
+        background: #f8f9fa;
+        border: 3px solid #eee;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        color: #ddd;
+    }
+    .input-group-text {
+        border: 1px solid var(--border);
+        border-right: none;
+        border-radius: 8px 0 0 8px;
+    }
+    .lc-form-control {
+        border-radius: 8px;
+    }
+    .input-group .lc-form-control {
+        border-radius: 0 8px 8px 0;
+    }
+</style>
 
 @section Scripts {
     @{

@@ -1,0 +1,20 @@
+@model IEnumerable<ShoppingCard.Models.CategoryModel>
+
+<ul class="nav-centered">
+    <li><a asp-controller="Home" asp-action="Index"><i class="fa fa-home"></i> Trang chủ</a></li>
+    @foreach (var cat in Model)
+    {
+        <li>
+            <a asp-controller="Category" asp-action="Index" asp-route-Slug="@cat.Slug">
+                @if (cat.Slug.Contains("gaming")) { <i class="fa fa-gamepad"></i> }
+                else if (cat.Slug.Contains("van-phong")) { <i class="fa fa-briefcase"></i> }
+                else if (cat.Slug.Contains("macbook")) { <i class="fab fa-apple"></i> }
+                else if (cat.Slug.Contains("do-hoa")) { <i class="fa fa-palette"></i> }
+                else if (cat.Slug.Contains("linh-kien")) { <i class="fa fa-plug"></i> }
+                else { <i class="fa fa-laptop"></i> }
+                
+                @cat.Name
+            </a>
+        </li>
+    }
+</ul>

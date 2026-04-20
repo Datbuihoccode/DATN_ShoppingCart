@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
+using System.Security.Claims;
 
 namespace ShoppingCard.Controllers
 {
@@ -45,19 +46,53 @@ namespace ShoppingCard.Controllers
                 .ToListAsync();
             ViewBag.RelatedProducts = relatedProducts;
 
+            // Kiểm tra đã mua hàng chưa
+            bool hasPurchased = false;
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity.Name;
+                hasPurchased = await _dataContext.OrderDetails
+                    .AnyAsync(od => od.ProductId == productsBySlug.Id && od.UserName == userEmail);
+            }
+            ViewBag.HasPurchased = hasPurchased;
+
             var viewModel = new Models.ViewsModels.ProductDetailViewModel
             {
                 ProductDetails = productsBySlug,
             };
             return View(viewModel);
         }
-
+        [Route("comment-product")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CommentProduct(RatingModel rating)
         {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                TempData["error"] = "Bạn cần đăng nhập để đánh giá.";
+                return Redirect(Request.Headers["Referer"]);
+            }
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity.Name;
+
+            // Ghi đè thông tin Email từ User đã đăng nhập để kiểm tra mua hàng
+            rating.Email = userEmail;
+
+            // Xóa lỗi ModelState cho Email vì chúng ta đã tự điền
+            ModelState.Remove("Email");
+
             if (ModelState.IsValid)
             {
+                // Kiểm tra lại việc mua hàng ở phía Server
+                var hasPurchased = await _dataContext.OrderDetails
+                    .AnyAsync(od => od.ProductId == rating.ProductId && od.UserName == userEmail);
+
+                if (!hasPurchased)
+                {
+                    TempData["error"] = "Bạn phải mua sản phẩm này mới được đánh giá.";
+                    return Redirect(Request.Headers["Referer"]);
+                }
+
                 var ratingEntity = new RatingModel
                 {
                     ProductId = rating.ProductId,
@@ -69,27 +104,14 @@ namespace ShoppingCard.Controllers
                 _dataContext.Ratings.Add(ratingEntity);
                 await _dataContext.SaveChangesAsync();
 
-                TempData["SuccessMessage"] = "Your comment has been submitted successfully.";
+                TempData["success"] = "Cảm ơn bạn đã gửi đánh giá!";
                 return Redirect(Request.Headers["Referer"]);
             }
             else
             {
-                List<string> errors = new List<string>();
-
-                foreach (var value in ModelState.Values)
-                {
-                    foreach (var error in value.Errors)
-                    {
-                        errors.Add(error.ErrorMessage);
-                    }
-                }
-                string errorMessages = string.Join("\n", errors);
-                TempData["error"] = errorMessages;
-                
-                var product = await _dataContext.Products.FindAsync(rating.ProductId);
-                return RedirectToAction("Details", new { Slug = product?.Slug });
+                TempData["error"] = "Vui lòng nhập đầy đủ nội dung đánh giá.";
+                return Redirect(Request.Headers["Referer"]);
             }
-            return Redirect(Request.Headers["Referer"]);
         }
     }
 }

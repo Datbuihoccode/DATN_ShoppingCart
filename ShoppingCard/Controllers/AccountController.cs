@@ -347,6 +347,30 @@ namespace ShoppingCard.Controllers
             return View(orders);
         }
 
+        public async Task<IActionResult> ViewOrder(string ordercode)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode && o.UserName == userEmail);
+
+            if (order == null)
+            {
+                return NotFound();
+            }
+
+            var detailsOrder = await _dataContext.OrderDetails
+                .Include(od => od.Product)
+                .Where(od => od.OrderCode == ordercode)
+                .ToListAsync();
+
+            ViewBag.Order = order;
+            return View(detailsOrder);
+        }
+
         public async Task<IActionResult> CancelOrder(string ordercode)
         {
             if (User.Identity?.IsAuthenticated != true)

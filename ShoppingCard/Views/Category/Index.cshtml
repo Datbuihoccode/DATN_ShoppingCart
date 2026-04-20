@@ -1,27 +1,19 @@
 @model IEnumerable<ProductModel>
 <div class="container py-4">
     <div class="row">
-        <div class="col-md-3 mb-4">
-            @Html.Partial("_SidebarPartial")
-        </div>
-
-        <style>
-            .product-image-wrapper { height: 220px; overflow: hidden; }
-        </style>
-
-        <div class="col-md-9">
+        <div class="col-12">
             <partial name="_FilterProductPartial" />
             <h2 class="section-title">Sản Phẩm</h2>
             <div class="row g-4">
                 @foreach (var item in Model)
                 {
-                    <div class="col-6 col-md-4">
-                        <div class="tech-card h-100">
-                            <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id">
+                    <div class="col-6 col-md-3">
+                        <div class="laptopcenter-card h-100">
+                            <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@item.Id">
                                 <i class="fa fa-heart"></i>
                             </a>
                             <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
-                                <div class="tech-card-img">
+                                <div class="laptopcenter-card-img">
                                     @{
                                         string labelClass = "label-default";
                                         string catName = item.Category.Name.ToLower();
@@ -30,20 +22,20 @@
                                         else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
                                         else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
                                     }
-                                    <div class="tech-card-label @labelClass">@item.Category.Name</div>
+                                    <div class="laptopcenter-card-label @labelClass">@item.Category.Name</div>
                                     <img src="~/media/products/@item.Image" alt="@item.Name" />
                                 </div>
                             </a>
-                            <div class="tech-card-body">
-                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="tech-card-title">
+                            <div class="laptopcenter-card-body">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
                                     @item.Name
                                 </a>
-                                <div class="tech-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
-                                <div class="tech-card-specs">
-                                    <span class="tech-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
-                                    <span class="tech-spec-item text-success"><i class="fa fa-check-circle"></i> New Fullbox</span>
+                                <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
+                                <div class="laptopcenter-card-specs">
+                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
+                                    <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> New Fullbox</span>
                                 </div>
-                                <div class="tech-card-actions mt-auto">
+                                <div class="laptopcenter-card-actions mt-auto">
                                     @if(item.Quantity > 0)
                                     {
                                         <button class="btn-brand add-to-cart w-100" data-product_id="@item.Id">
@@ -72,41 +64,11 @@
                 if (url) { window.location = url; }
                 return false;
             });
-        });
-    </script>
 
-    <script type="text/javascript">
-        $(document).ready(function () {
-            var query = new URLSearchParams(window.location.search);
-            var startQuery = parseInt(query.get('startprice'), 10);
-            var endQuery = parseInt(query.get('endprice'), 10);
-            var startValue = Number.isFinite(startQuery) ? startQuery : 1000000;
-            var endValue = Number.isFinite(endQuery) ? endQuery : 30000000;
-
-            $("#slider-range").slider({
-                min: 1000000, max: 50000000, step: 100000,
-                value: [startValue, endValue],
-                tooltip: 'hide', handle: 'round'
-            });
-
-            function formatVnd(value) {
-                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
-            }
-            function updateAmount(values) {
-                $("#amount").val(formatVnd(values[0]) + " - " + formatVnd(values[1]));
-            }
-
-            var sliderInstance = $("#slider-range").data("slider");
-            if (!sliderInstance) return;
-            updateAmount(sliderInstance.getValue());
-
-            $("#slider-range").on("slide", function (event) { updateAmount(event.value); });
-
-            $('.btn-locgia').on('click', function () {
-                var url = $(this).data('current_url');
+            $(document).on('click', '.btn-lc-filter', function () {
+                var url = $('#sort_by').val();
                 if (url) {
-                    var vals = sliderInstance.getValue();
-                    window.location = url + "?startprice=" + vals[0] + "&endprice=" + vals[1];
+                    window.location = url;
                 }
                 return false;
             });

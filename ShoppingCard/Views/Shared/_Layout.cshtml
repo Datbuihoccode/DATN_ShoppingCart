@@ -12,21 +12,25 @@
 	<link href="~/css/responsive.css" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.min.css" rel="stylesheet">
 	
-	<link href="~/css/techstore.css" rel="stylesheet">
+	<link href="~/css/laptopcenter.css" rel="stylesheet">
 </head>
 <body>
 	<!-- HEADER KHUNG MỚI -->
 
-
-	<header class="tech-header">
+	<header class="laptopcenter-header">
 		<div class="container header-flex">
 			<!-- Logo -->
-			<div class="tech-logo">
+			<div class="laptopcenter-logo">
 				<a href="/">LAPTOP<span>CENTER</span></a>
 			</div>
 			
+			<!-- Category Menu Component -->
+            <div class="header-menu-block">
+                @await Component.InvokeAsync("HeaderMenu")
+            </div>
+
 			<!-- Search Bar -->
-			<div class="tech-search d-none d-md-block">
+			<div class="laptopcenter-search d-none d-md-block">
 				<form asp-controller="Product" asp-action="Search" method="post">
 					<input type="text" name="searchTearm" placeholder="Tìm kiếm Laptop Gaming, MacBook, Văn phòng..." required />
 					<button type="submit"><i class="fa fa-search"></i> Tìm kiếm</button>
@@ -34,7 +38,7 @@
 			</div>
 
 			<!-- User Actions -->
-			<div class="tech-actions">
+			<div class="laptopcenter-actions">
 
 				<a asp-controller="Home" asp-action="Wishlist" class="action-item d-none d-md-block">
 					<i class="fa fa-heart"></i>
@@ -76,16 +80,9 @@
 	</header>
 
 	<!-- Main Navigation -->
-	<nav class="tech-nav d-none d-md-block">
+	<nav class="laptopcenter-nav d-none d-md-block">
 		<div class="container">
-			<ul>
-				<li><a asp-controller="Home" asp-action="Index"><i class="fa fa-home"></i> Trang chủ</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="laptop-gaming"><i class="fa fa-gamepad"></i> Laptop Gaming</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="laptop-van-phong"><i class="fa fa-briefcase"></i> Laptop Văn phòng</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="macbook"><i class="fab fa-apple"></i> MacBook</a></li>
-				<li><a asp-controller="Category" asp-action="Index" asp-route-slug="do-hoa"><i class="fa fa-palette"></i> Đồ họa - Kỹ thuật</a></li>
-				<li><a asp-controller="Blog" asp-action="Index"><i class="fa fa-newspaper"></i> Review Laptop</a></li>
-			</ul>
+			@await Component.InvokeAsync("CategoryNav")
 		</div>
 	</nav>
 
@@ -95,7 +92,7 @@
 	</section>
 
 	<!-- FOOTER PREMIUM REFACTOR -->
-	<footer class="tech-footer">
+	<footer class="laptopcenter-footer">
 		<div class="container">
 			<div class="row">
 				<!-- Cột 1: Thương hiệu -->
@@ -167,7 +164,7 @@
 	<script src="~/js/jquery.prettyPhoto.js"></script>
 	<script src="~/js/main.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.all.min.js"></script>
-	<script src="~/js/techstore.js"></script>
+	<script src="~/js/laptopcenter.js"></script>
 
     <script>
         $(function () {

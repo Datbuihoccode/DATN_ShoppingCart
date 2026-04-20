@@ -1,0 +1,69 @@
+@model IEnumerable<OrderDetailsModel>
+
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var order = ViewBag.Order as OrderModel;
+}
+
+<div class="container lc-account-container">
+    <div class="lc-card">
+        <div class="lc-card-header">
+            <h3><i class="fa fa-info-circle me-2"></i> CHI TIẾT ĐƠN HÀNG #@order?.OrderCode</h3>
+            <a asp-action="History" class="btn btn-outline-dark btn-sm">Quay lại danh sách</a>
+        </div>
+        <div class="lc-card-body">
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
+                    <p class="mb-1"><strong>Trạng thái:</strong> 
+                        @if (order?.Status == 1) { <span class="lc-badge badge-new">Đang chờ xử lý</span> }
+                        else if (order?.Status == 3) { <span class="lc-badge badge-cancel">Đã hủy</span> }
+                        else { <span class="lc-badge badge-done">Hoàn thành</span> }
+                    </p>
+                    <p class="mb-1"><strong>Ngày đặt:</strong> @order?.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1"><strong>Phương thức thanh toán:</strong> @order?.PaymentMethod</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <h5 class="fw-bold mb-3">Thông tin khách hàng</h5>
+                    <p class="mb-1"><strong>Email:</strong> @order?.UserName</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="lc-table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Đơn giá</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="~/media/products/@item.Product.Image" alt="@item.Product.Name" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 15px;" />
+                                        <span class="fw-bold text-dark">@item.Product.Name</span>
+                                    </div>
+                                </td>
+                                <td class="text-center">@item.Price.ToString("#,##0 VNĐ")</td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end fw-bold text-brand">@((item.Price * item.Quantity).ToString("#,##0 VNĐ"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end py-3 fw-bold fs-5">TỔNG CỘNG:</td>
+                            <td class="text-end py-3 fw-bold fs-5 text-brand">@Model.Sum(x => x.Price * x.Quantity).ToString("#,##0 VNĐ")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -5,11 +5,7 @@
 }
 <div class="container py-4">
     <div class="row">
-        <div class="col-md-3 mb-4">
-            @Html.Partial("_SidebarPartial")
-        </div>
-
-        <div class="col-md-9">
+        <div class="col-12">
             <h2 class="section-title">Kết quả: "@ViewBag.Keyword"</h2>
 
             @if (Model == null || !Model.Any())
@@ -25,26 +21,26 @@
                 <div class="row g-4">
                     @foreach (var item in Model)
                     {
-                        <div class="col-6 col-md-4">
-                            <div class="tech-card h-100">
-                                <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id">
+                        <div class="col-6 col-md-3">
+                            <div class="laptopcenter-card h-100">
+                                <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@item.Id">
                                     <i class="fa fa-heart"></i>
                                 </a>
                                 <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
-                                    <div class="tech-card-img">
+                                    <div class="laptopcenter-card-img">
                                         <img src="~/media/products/@item.Image" alt="@item.Name" />
                                     </div>
                                 </a>
-                                <div class="tech-card-body">
-                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="tech-card-title">
+                                <div class="laptopcenter-card-body">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
                                         @item.Name
                                     </a>
-                                    <div class="tech-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
-                                    <div class="tech-card-specs">
-                                        <span class="tech-spec-item">@item.Category.Name</span>
-                                        <span class="tech-spec-item">@item.Brand.Name</span>
+                                    <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
+                                    <div class="laptopcenter-card-specs">
+                                        <span class="laptopcenter-spec-item">@item.Category.Name</span>
+                                        <span class="laptopcenter-spec-item">@item.Brand.Name</span>
                                     </div>
-                                    <div class="tech-card-actions mt-auto">
+                                    <div class="laptopcenter-card-actions mt-auto">
                                         @if(item.Quantity > 0)
                                         {
                                             <a class="btn-brand add-to-cart" href="javascript:void(0)" data-product_id="@item.Id">

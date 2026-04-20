@@ -1,66 +1,93 @@
-﻿@model IEnumerable<OrderModel>
+@model IEnumerable<OrderModel>
 
 @{
-    ViewData["Title"] = "List History Orders placed by " + ViewBag.UserEmail;
+    ViewData["Title"] = "Lịch sử mua hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h3>List History Orders placed by @ViewBag.UserEmail</h3>
-
-<table class="table table-responsive" id="myTable">
-    <thead>
-        <tr>
-            <th>Id</th>
-            <th>Order Code</th>
-            <th>UserName</th>
-            <th>Order Status</th>
-            <th>Created Date</th>
-            <th>Payment Method</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.Id</td>
-                <td>@item.OrderCode</td>
-                <td>@item.UserName</td>
-                <td>
-                    @if (item.Status == 1)
-                    {
-                        <span class="text text-success">Đơn hàng mới</span>
-                    }
-                    else if (item.Status == 3)
-                    {
-                        <span class="text text-danger">Đã hủy</span>
-                    }
-                    else
-                    {
-                        <span class="text text-primary">Đã xử lý</span>
-                    }
-                </td>
-                <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
-                <td>
-                    @if (item.PaymentMethod == "COD")
-                    {
-                        <span class="text text-primary">@item.PaymentMethod</span>
-                    }
-                    else if (!string.IsNullOrWhiteSpace(item.PaymentMethod))
-                    {
-                        <span class="text text-success">@item.PaymentMethod</span>
-                    }
-                    else
-                    {
-                        <span class="text text-danger">N/A</span>
-                    }
-                </td>
-                <td>
-                    @if (item.Status != 3)
-                    {
-                        <a class="btn btn-danger btn-sm" asp-action="CancelOrder" asp-controller="Account" asp-route-ordercode="@item.OrderCode" onclick="return confirm('Xác nhận hủy đơn');">Cancel Order</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="container lc-account-container">
+    <div class="lc-card">
+        <div class="lc-card-header">
+            <h3><i class="fa fa-history me-2"></i> LỊCH SỬ ĐƠN HÀNG</h3>
+            <span class="text-muted small">Tài khoản: @ViewBag.UserEmail</span>
+        </div>
+        <div class="lc-card-body p-0">
+            <div class="table-responsive">
+                <table class="lc-table">
+                    <thead>
+                        <tr>
+                            <th>Mã đơn hàng</th>
+                            <th>Ngày đặt</th>
+                            <th>Thanh toán</th>
+                            <th>Trạng thái</th>
+                            <th class="text-end">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td class="fw-bold text-dark">#@item.OrderCode</td>
+                                    <td>@item.CreateDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        <div class="d-flex align-items:center gap-2">
+                                            @if (item.PaymentMethod == "COD")
+                                            {
+                                                <span class="badge bg-light text-dark border">COD</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info text-white">@item.PaymentMethod</span>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (item.Status == 1)
+                                        {
+                                            <span class="lc-badge badge-new">Đang chờ xử lý</span>
+                                        }
+                                        else if (item.Status == 3)
+                                        {
+                                            <span class="lc-badge badge-cancel">Đã hủy</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="lc-badge badge-done">Hoàn thành</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        @if (item.Status != 3)
+                                        {
+                                            <a asp-action="CancelOrder" asp-controller="Account" asp-route-ordercode="@item.OrderCode" 
+                                               class="btn btn-outline-danger btn-sm" 
+                                               onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                                Hủy đơn
+                                            </a>
+                                        }
+                                        <a asp-action="ViewOrder" asp-controller="Account" asp-route-ordercode="@item.OrderCode" 
+                                           class="btn btn-light btn-sm ms-2">
+                                            Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fa fa-box-open d-block mb-3" style="font-size: 40px; opacity: 0.3;"></i>
+                                        Bạn chưa có đơn hàng nào.
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

@@ -13,13 +13,22 @@ namespace ShoppingCard.Controllers
             _dataContext = context;
         }
 
-        public async Task<IActionResult> Index(string slug = "", string sort_by = "", string startprice = "", string endprice = "")
+        public async Task<IActionResult> Index(string slug = "", string sort_by = "", string startprice = "", string endprice = "", string brand = "")
         {
             CategoryModel category = await _dataContext.Categories.Where(c => c.Slug == slug).FirstOrDefaultAsync();
             if (category == null)
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Home");
 
             IQueryable<ProductModel> products = _dataContext.Products.Where(p => p.CategoryId == category.Id);
+
+            if (!string.IsNullOrEmpty(brand))
+            {
+                var brandModel = await _dataContext.Brands.FirstOrDefaultAsync(b => b.Slug == brand);
+                if (brandModel != null)
+                {
+                    products = products.Where(p => p.BrandId == brandModel.Id);
+                }
+            }
 
             if (products.Count() > 0)
             {
@@ -61,7 +70,7 @@ namespace ShoppingCard.Controllers
                     products = products.OrderByDescending(p => p.Id);
                 }
             }
-            return View(await products.ToListAsync());
+            return View(await products.Include(p => p.Category).Include(p => p.Brand).ToListAsync());
         }
     }
 }

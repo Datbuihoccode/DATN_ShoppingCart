@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
@@ -14,12 +14,11 @@ namespace ShoppingCard.Controllers
         }
         public async Task<IActionResult> Index(string Slug = "")
         {
-            BrandModel brand = _dataContext.Brands.Where(c => c.Slug == Slug).FirstOrDefault();
+            BrandModel brand = await _dataContext.Brands.Where(c => c.Slug == Slug).FirstOrDefaultAsync();
             if (brand == null)
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Home");
             var productsByBrand = _dataContext.Products.Where(p => p.BrandId == brand.Id);
-            return View(await productsByBrand.OrderByDescending(p =>p.Id).ToListAsync());
-
+            return View(await productsByBrand.OrderByDescending(p => p.Id).Include(p => p.Category).Include(p => p.Brand).ToListAsync());
         }
     }
 }

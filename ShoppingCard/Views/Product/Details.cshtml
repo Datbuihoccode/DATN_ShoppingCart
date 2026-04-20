@@ -8,36 +8,61 @@
 
 <div class="container py-4">
 <div class="row">
-    <!-- Cột Menu Trái (Giữ Sidebar nếu cần thiết) -->
-	<div class="col-md-3">
-        @Html.Partial("_SidebarPartial")
-	</div>
-
-	<div class="col-md-9">
+	<div class="col-12">
         
         <!-- Khung hiển thị Chi tiết -->
-        <div class="tech-detail-wrap row g-0">
+        <div class="laptopcenter-detail-wrap row g-0">
             <div class="col-md-6">
-                <div class="tech-detail-img p-4">
+                <div class="laptopcenter-detail-img p-4">
                     <img src="~/media/products/@Model.ProductDetails.Image" alt="@Model.ProductDetails.Name" class="img-fluid" />
                 </div>
             </div>
             
             <div class="col-md-6">
-                <div class="tech-detail-info p-4">
+                <div class="laptopcenter-detail-info p-4">
                     <h1>@Model.ProductDetails.Name</h1>
-                    <div class="tech-detail-price">
+                    
+                    @{
+                        decimal averageRating = 0;
+                        int totalRatings = 0;
+                        if (Model.ProductDetails.Ratings != null && Model.ProductDetails.Ratings.Any())
+                        {
+                            averageRating = (decimal)Model.ProductDetails.Ratings.Average(r => int.TryParse(r.Star, out int s) ? s : 5);
+                            totalRatings = Model.ProductDetails.Ratings.Count();
+                        }
+                    }
+
+                    <div class="product-rating-summary mb-3 d-flex align-items-center">
+                        <div class="stars me-2" style="color: #ffc107;">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= Math.Round(averageRating))
+                                {
+                                    <i class="fa fa-star"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star"></i>
+                                }
+                            }
+                        </div>
+                        <span class="text-muted small">
+                            <strong>@averageRating.ToString("0.0")</strong> (@totalRatings đánh giá)
+                        </span>
+                    </div>
+
+                    <div class="laptopcenter-detail-price">
                         @Model.ProductDetails.Price.ToString("#,##0 VNĐ")
                     </div>
                     
-                    <div class="tech-detail-specs">
+                    <div class="laptopcenter-detail-specs">
                         <p><strong><i class="fa fa-tag"></i> Danh mục:</strong> @Model.ProductDetails.Category?.Name</p>
                         <p><strong><i class="fa fa-building"></i> Thương hiệu:</strong> @Model.ProductDetails.Brand?.Name</p>
                         <p><strong><i class="fa fa-check-circle"></i> Tình trạng:</strong> Hàng mới 100%</p>
                         <p><strong><i class="fa fa-shield-alt"></i> Bảo hành:</strong> 12 Tháng chính hãng</p>
                     </div>
 
-                    <div class="tech-detail-action">
+                    <div class="laptopcenter-detail-action">
                         @if(Model.ProductDetails.Quantity > 0){
                             <input type="number" class="quantity-input" value="1" min="1" max="@Model.ProductDetails.Quantity" title="Số lượng" />
                             <a class="btn-buy-now add-to-cart" href="javascript:void(0)" data-product_id="@Model.ProductDetails.Id">
@@ -59,7 +84,7 @@
         </div>
 
         <!-- Khối Thông tin Tabs -->
-        <div class="tech-tabs">
+        <div class="laptopcenter-tabs">
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item">
                     <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">Mô tả sản phẩm</button>
@@ -77,30 +102,111 @@
                 </div>
 
                 <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
-                    <p class="h5 mb-4 fw-bold" style="color: var(--text-main);">Viết đánh giá của bạn</p>
-                    <div class="review-form">
-                        <form autocomplete="off" asp-action="CommentProduct" asp-controller="Product" method="POST">
-                            <input asp-for="@Model.ProductDetails.Id" name="ProductId" type="hidden" />
-                            <input name="Star" type="hidden" value="5"/>
+                    <div class="row">
+                        <div class="col-md-6 border-end">
+                            <h5 class="fw-bold mb-4" style="color: var(--text-main);">Đánh giá từ khách hàng</h5>
                             
-                            <div class="row">
-                                <div class="col-6">
-                                    <input asp-for="@Model.Name" type="text" placeholder="Tên của bạn *" required />
-                                    <span asp-validation-for="@Model.Name" class="text-danger"></span>
+                            @if (Model.ProductDetails.Ratings != null && Model.ProductDetails.Ratings.Any())
+                            {
+                                <div class="review-list">
+                                    @foreach (var r in Model.ProductDetails.Ratings.OrderByDescending(x => x.Id))
+                                    {
+                                        <div class="review-item mb-4 pb-3 border-bottom">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong class="text-dark">@r.Name</strong>
+                                                    <span class="badge bg-success ms-2" style="font-size: 10px;"><i class="fa fa-check-circle"></i> Đã mua hàng</span>
+                                                </div>
+                                            </div>
+                                            <div class="review-stars mb-2" style="color: #ffc107;">
+                                                @for (int i = 1; i <= 5; i++)
+                                                {
+                                                    if (i <= (int.TryParse(r.Star, out int s) ? s : 5))
+                                                    {
+                                                        <i class="fa fa-star"></i>
+                                                    }
+                                                    else
+                                                    {
+                                                        <i class="far fa-star"></i>
+                                                    }
+                                                }
+                                            </div>
+                                            <p class="mb-0 text-secondary" style="font-style: italic;">"@r.Comment"</p>
+                                        </div>
+                                    }
                                 </div>
-                                <div class="col-6">
-                                    <input asp-for="@Model.Email" type="email" placeholder="Email của bạn (không bắt buộc)" />
-                                    <span asp-validation-for="@Model.Email" class="text-danger"></span>
+                            }
+                            else
+                            {
+                                <div class="text-center py-5 text-muted">
+                                    <i class="fa fa-comment-slash fa-3x mb-3" style="opacity: 0.2;"></i>
+                                    <p>Chưa có đánh giá nào cho sản phẩm này.</p>
                                 </div>
-                            </div>
+                            }
+                        </div>
 
-                            <textarea asp-for="@Model.Comment" placeholder="Chia sẻ cảm nhận về sản phẩm..." required></textarea>
-                            <span asp-validation-for="@Model.Comment" class="text-danger"></span>
+                        <div class="col-md-6">
+                            <h5 class="fw-bold mb-4" style="color: var(--text-main);">Viết đánh giá của bạn</h5>
+                            <div class="review-form">
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    @if (ViewBag.HasPurchased)
+                                    {
+                                        <form autocomplete="off" action="/comment-product" method="POST">
+                                            @Html.AntiForgeryToken()
+                                            <input asp-for="@Model.ProductDetails.Id" name="ProductId" type="hidden" />
+                                            
+                                            <div class="lc-rating-picker mb-3">
+                                                <label class="form-label d-block mb-1">Mức độ hài lòng của bạn:</label>
+                                                <div class="stars-select fs-4" style="color: #ffc107; cursor: pointer;">
+                                                    <i class="fa fa-star star-select" data-value="1"></i>
+                                                    <i class="fa fa-star star-select" data-value="2"></i>
+                                                    <i class="fa fa-star star-select" data-value="3"></i>
+                                                    <i class="fa fa-star star-select" data-value="4"></i>
+                                                    <i class="fa fa-star star-select" data-value="5"></i>
+                                                    <input name="Star" id="StarInput" type="hidden" value="5"/>
+                                                </div>
+                                            </div>
 
-                            <div class="text-end mt-2">
-                                <button type="submit" class="btn btn-brand-primary">Gửi đánh giá</button>
+                                            <div class="alert alert-info py-2 small mb-3">
+                                                <i class="fa fa-user-check me-1"></i> Đăng nhập với tư cách: <strong>@User.Identity.Name</strong>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <input asp-for="@Model.Name" class="form-control" placeholder="Họ và tên bạn muốn hiển thị *" required />
+                                                <span asp-validation-for="@Model.Name" class="text-danger small"></span>
+                                            </div>
+                                            
+                                            <input asp-for="@Model.Email" type="hidden" value="@User.Identity.Name" />
+
+                                            <div class="mb-3">
+                                                <textarea asp-for="@Model.Comment" class="form-control" rows="4" placeholder="Ví dụ: Sản phẩm rất tốt, đúng mô tả..." required></textarea>
+                                                <span asp-validation-for="@Model.Comment" class="text-danger small"></span>
+                                            </div>
+
+                                            <div class="text-end">
+                                                <button type="submit" class="btn btn-brand w-100 py-2 fw-bold">GỬI ĐÁNH GIÁ</button>
+                                            </div>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning text-center py-4">
+                                            <i class="fa fa-exclamation-triangle fa-2x mb-2 d-block"></i>
+                                            <p class="mb-0">Bạn cần mua sản phẩm này để có thể để lại đánh giá.</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="alert alert-dark text-center py-4">
+                                        <i class="fa fa-lock fa-2x mb-2 d-block"></i>
+                                        <p class="mb-2">Vui lòng đăng nhập để đánh giá sản phẩm.</p>
+                                        <a href="/Account/Login" class="btn btn-sm btn-brand">Đăng nhập ngay</a>
+                                    </div>
+                                }
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -115,32 +221,32 @@
                     @foreach (var related in @ViewBag.RelatedProducts as IEnumerable<ProductModel>)
                     {
                         <div class="col-6 col-md-4">
-                            <div class="tech-card h-100">
-                                <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@related.Id" title="Thêm vào yêu thích">
+                            <div class="laptopcenter-card h-100">
+                                <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@related.Id" title="Thêm vào yêu thích">
                                     <i class="fa fa-heart"></i>
                                 </a>
 
                                 <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug">
-                                    <div class="tech-card-img">
+                                    <div class="laptopcenter-card-img">
                                         <img src="~/media/products/@related.Image" alt="@related.Name" />
                                     </div>
                                 </a>
 
-                                <div class="tech-card-body">
-                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug" class="tech-card-title">
+                                <div class="laptopcenter-card-body">
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug" class="laptopcenter-card-title">
                                         @related.Name
                                     </a>
 
-                                    <div class="tech-card-price">
+                                    <div class="laptopcenter-card-price">
                                         @related.Price.ToString("#,##0 VNĐ")
                                     </div>
 
-                                    <div class="tech-card-specs">
-                                        <span class="tech-spec-item"><i class="fa fa-tag"></i> @related.Category?.Name</span>
-                                        <span class="tech-spec-item"><i class="fa fa-building"></i> @related.Brand?.Name</span>
+                                    <div class="laptopcenter-card-specs">
+                                        <span class="laptopcenter-spec-item"><i class="fa fa-tag"></i> @related.Category?.Name</span>
+                                        <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @related.Brand?.Name</span>
                                     </div>
 
-                                    <div class="tech-card-actions">
+                                    <div class="laptopcenter-card-actions">
                                         @if(related.Quantity > 0)
                                         {
                                             <button class="btn-brand add-to-cart" data-product_id="@related.Id">
@@ -168,4 +274,34 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Star rating picker logic
+            $('.star-select').on('click', function() {
+                var val = $(this).data('value');
+                $('#StarInput').val(val);
+                
+                // Color the stars
+                $('.star-select').each(function() {
+                    if($(this).data('value') <= val) {
+                        $(this).removeClass('far').addClass('fa');
+                    } else {
+                        $(this).removeClass('fa').addClass('far');
+                    }
+                });
+            });
+
+            // Hover effect
+            $('.star-select').on('mouseover', function() {
+                var val = $(this).data('value');
+                $('.star-select').each(function() {
+                    if($(this).data('value') <= val) {
+                        $(this).css('opacity', '0.7');
+                    }
+                });
+            }).on('mouseout', function() {
+                $('.star-select').css('opacity', '1');
+            });
+        });
+    </script>
 }

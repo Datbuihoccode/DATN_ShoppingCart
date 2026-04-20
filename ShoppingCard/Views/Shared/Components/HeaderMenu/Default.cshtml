@@ -1,0 +1,48 @@
+@model ShoppingCard.Repository.Components.HeaderMenuViewModel
+
+<div class="laptopcenter-mega-menu">
+    <div class="mega-menu-trigger">
+        <i class="fa fa-bars"></i>
+        <span>DANH MỤC</span>
+        
+        <div class="mega-menu-content">
+            <ul class="mega-category-list">
+                @foreach (var cat in Model.Categories)
+                {
+                    <li class="mega-cat-item">
+                        <a asp-controller="Category" asp-action="Index" asp-route-Slug="@cat.Slug">
+                            <span>@cat.Name</span>
+                            <i class="fa fa-chevron-right"></i>
+                        </a>
+                        
+                        <!-- Submenu Brands (Except for specific categories) -->
+                        @if (cat.Slug != "linh-kien-phu-kien")
+                        {
+                            <div class="mega-brand-dropdown">
+                                <div class="brand-dropdown-header">Thương hiệu @cat.Name</div>
+                                <div class="brand-dropdown-grid">
+                                    @{
+                                        var displayBrands = Model.Brands;
+                                        if (cat.Slug.Contains("macbook"))
+                                        {
+                                            displayBrands = Model.Brands.Where(b => b.Slug.ToLower().Contains("apple")).ToList();
+                                        }
+                                    }
+                                    @foreach (var brand in displayBrands)
+                                    {
+                                        <a asp-controller="Category" asp-action="Index" 
+                                           asp-route-Slug="@cat.Slug" 
+                                           asp-route-brand="@brand.Slug" 
+                                           class="brand-sub-link">
+                                            @brand.Name
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

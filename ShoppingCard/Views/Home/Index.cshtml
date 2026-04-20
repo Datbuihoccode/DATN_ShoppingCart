@@ -12,27 +12,22 @@
 		</div>
 	</div>
 
-	<!-- Sidebar + Products -->
 	<div class="row">
-		<div class="col-md-3 mb-4">
-			@Html.Partial("_SidebarPartial")
-		</div>
-
-		<div class="col-md-9">
+		<div class="col-12">
 			<h2 class="section-title">Sản Phẩm Nổi Bật</h2>
             <div class="row g-4">
                 @foreach (var item in Model)
                 {
                     <div class="col-6 col-lg-4">
-                        <div class="tech-card h-100">
+                        <div class="laptopcenter-card h-100">
                             <!-- Nút yêu thích -->
-                            <a href="javascript:void(0)" class="tech-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
+                            <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
                                 <i class="fa fa-heart"></i>
                             </a>
 
                             <!-- Hình ảnh -->
                             <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
-                                <div class="tech-card-img">
+                                <div class="laptopcenter-card-img">
                                     @{
                                         string labelClass = "label-default";
                                         string catName = item.Category.Name.ToLower();
@@ -41,30 +36,30 @@
                                         else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
                                         else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
                                     }
-                                    <div class="tech-card-label @labelClass">@item.Category.Name</div>
+                                    <div class="laptopcenter-card-label @labelClass">@item.Category.Name</div>
                                     <img src="~/media/products/@item.Image" alt="@item.Name" />
                                 </div>
                             </a>
 
-                            <div class="tech-card-body">
+                            <div class="laptopcenter-card-body">
                                 <!-- Tiêu đề -->
-                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="tech-card-title">
+                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
                                     @item.Name
                                 </a>
 
                                 <!-- Giá -->
-                                <div class="tech-card-price">
+                                <div class="laptopcenter-card-price">
                                     @item.Price.ToString("#,##0 VNĐ")
                                 </div>
 
                                 <!-- Thông số -->
-                                <div class="tech-card-specs">
-                                    <span class="tech-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
-                                    <span class="tech-spec-item text-success"><i class="fa fa-check-circle"></i> Chính hãng</span>
+                                <div class="laptopcenter-card-specs">
+                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
+                                    <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> Chính hãng</span>
                                 </div>
 
                                 <!-- Action -->
-                                <div class="tech-card-actions mt-auto">
+                                <div class="laptopcenter-card-actions mt-auto">
                                     @if(item.Quantity > 0)
                                     {
                                         <button class="btn-brand w-100 add-to-cart" data-product_id="@item.Id">
