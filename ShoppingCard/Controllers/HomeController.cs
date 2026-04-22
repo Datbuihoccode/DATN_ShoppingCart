@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
@@ -27,8 +27,10 @@ namespace ShoppingCard.Controllers
         public IActionResult Index()
         {
             var products = _dataContext.Products
-                .Include("Category")
-                .Include("Brand")
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.ProductCategories)
+                    .ThenInclude(pc => pc.Category)
                 .ToList();
 
             ViewBag.Sliders = _dataContext.Sliders.Where(s => s.Status == 1).ToList();
@@ -40,11 +42,6 @@ namespace ShoppingCard.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Contact()
-        {
-            var contact = await _dataContext.Contacts.FirstAsync();
-            return View(contact);
-        }
 
         public async Task<IActionResult> Wishlist()
         {

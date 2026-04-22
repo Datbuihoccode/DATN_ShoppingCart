@@ -11,14 +11,14 @@ namespace ShoppingCard.Repository
         }
         public DbSet<BrandModel> Brands { get; set; }
         public DbSet<SliderModel> Sliders { get; set; }
-        public DbSet<CategoryModel> Categories { get; set; } 
+        public DbSet<CategoryModel> Categories { get; set; }
         public DbSet<ProductModel> Products { get; set; }
+        public DbSet<ProductCategoryModel> ProductCategories { get; set; }
         public DbSet<OrderModel> Orders { get; set; }
         public DbSet<OrderDetailsModel> OrderDetails { get; set; }
         public DbSet<MomoInfoModel> MomoInfos { get; set; }
         public DbSet<VnpayModel> VnpayInfos { get; set; }
         public DbSet<RatingModel> Ratings { get; set; }
-        public DbSet<ContactModel> Contacts { get; set; }
         public DbSet<WishlistModel> Wishlists { get; set; }
         public DbSet<ProductQuantityModel> ProductQuantities { get; set; }
         public DbSet<CouponModel> Coupons { get; set; }
@@ -31,6 +31,11 @@ namespace ShoppingCard.Repository
 
             modelBuilder.Entity<WishlistModel>()
                 .HasIndex(w => new { w.UserId, w.ProductId })
+                .IsUnique();
+
+            // Unique: 1 sản phẩm chỉ liên kết 1 lần với 1 danh mục
+            modelBuilder.Entity<ProductCategoryModel>()
+                .HasIndex(pc => new { pc.ProductId, pc.CategoryId })
                 .IsUnique();
         }
     }

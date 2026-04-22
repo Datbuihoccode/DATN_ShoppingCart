@@ -45,8 +45,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     date = s.DateCreated.ToString("yyyy-MM-dd"),
                     sold = s.Sold,
                     quantity = s.Quantity,
-                    revenue = s.Revenue,
-                    profit = s.Profit
+                    revenue = s.Revenue
                 })
                 .ToListAsync();
 
@@ -73,8 +72,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     date = s.DateCreated.ToString("yyyy-MM-dd"),
                     sold = s.Sold,
                     quantity = s.Quantity,
-                    revenue = s.Revenue,
-                    profit = s.Profit
+                    revenue = s.Revenue
                 })
                 .ToListAsync();
 
@@ -106,8 +104,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     date = s.DateCreated.ToString("yyyy-MM-dd"),
                     sold = s.Sold,
                     quantity = s.Quantity,
-                    revenue = s.Revenue,
-                    profit = s.Profit
+                    revenue = s.Revenue
                 })
                 .ToListAsync();
 

@@ -12,6 +12,7 @@ namespace ShoppingCard.Controllers
         {
             _dataContext = dataContext;
         }
+        [Route("Brand/{Slug?}")]
         public async Task<IActionResult> Index(string Slug = "")
         {
             BrandModel brand = await _dataContext.Brands.Where(c => c.Slug == Slug).FirstOrDefaultAsync();

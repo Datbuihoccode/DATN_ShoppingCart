@@ -1,23 +1,40 @@
+@inject ShoppingCard.Repository.DataContext _context
 @{
     var currentUrl = Url.ActionContext.HttpContext.Request.Path;
     var currentSort = Url.ActionContext.HttpContext.Request.Query["sort_by"].ToString();
+    var currentBrand = Url.ActionContext.HttpContext.Request.Query["brand"].ToString(); 
+    var brands = _context.Brands.Where(b => b.Status == 1).ToList();
+
+    string BuildUrl(string sortBy, string brandSlug)
+    {
+        var query = new List<string>();
+        if (!string.IsNullOrEmpty(sortBy)) query.Add($"sort_by={sortBy}");
+        if (!string.IsNullOrEmpty(brandSlug)) query.Add($"brand={brandSlug}");
+        return currentUrl + (query.Any() ? "?" + string.Join("&", query) : "");
+    }
 }
 
 <div class="filter-bar-wrap">
     <!-- Group: Sort -->
-    <div class="filter-group" style="max-width: 400px;">
+    <div class="filter-group" style="max-width: 300px;">
         <label class="filter-label"><i class="fa fa-sort-amount-down me-1"></i> Sắp xếp theo</label>
-        <select id="sort_by" class="lc-select">
-            <option value="">Mặc định</option>
-            <option value="@currentUrl?sort_by=price_increase" selected="@(currentSort == "price_increase" ? "selected" : null)">Giá: Thấp đến Cao</option>
-            <option value="@currentUrl?sort_by=price_decrease" selected="@(currentSort == "price_decrease" ? "selected" : null)">Giá: Cao đến Thấp</option>
-            <option value="@currentUrl?sort_by=price_newest" selected="@(currentSort == "price_newest" ? "selected" : null)">Mới nhất</option>
-            <option value="@currentUrl?sort_by=price_oldest" selected="@(currentSort == "price_oldest" ? "selected" : null)">Cũ nhất</option>
+        <select id="sort_by" class="lc-select" onchange="window.location = this.value;">
+            <option value="@BuildUrl("", currentBrand)">Mặc định</option>
+            <option value="@BuildUrl("price_increase", currentBrand)" selected="@(currentSort == "price_increase" ? "selected" : null)">Giá: Thấp đến Cao</option>
+            <option value="@BuildUrl("price_decrease", currentBrand)" selected="@(currentSort == "price_decrease" ? "selected" : null)">Giá: Cao đến Thấp</option>
+            <option value="@BuildUrl("price_newest", currentBrand)" selected="@(currentSort == "price_newest" ? "selected" : null)">Mới nhất</option>
+            <option value="@BuildUrl("price_oldest", currentBrand)" selected="@(currentSort == "price_oldest" ? "selected" : null)">Cũ nhất</option>
         </select>
     </div>
 
-    <!-- Action -->
-    <div class="filter-action d-none">
-        <!-- Hidden button if needed, but removing visible one -->
+    <!-- Group: Brand -->
+    <div class="filter-group d-flex flex-column" style="flex: 1;">
+        <label class="filter-label mb-2"><i class="fa fa-tags me-1"></i> Thương hiệu</label>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="@BuildUrl(currentSort, "")" class="btn btn-sm rounded-pill @(string.IsNullOrEmpty(currentBrand) ? "btn-danger fw-bold text-white border-danger" : "btn-outline-secondary")">Tất cả</a>
+            @foreach(var b in brands) {
+                <a href="@BuildUrl(currentSort, b.Slug)" class="btn btn-sm rounded-pill @(currentBrand == b.Slug ? "btn-danger fw-bold text-white border-danger" : "btn-outline-secondary")">@b.Name</a>
+            }
+        </div>
     </div>
 </div>

@@ -13,13 +13,16 @@ namespace ShoppingCard.Controllers
             _dataContext = context;
         }
 
-        public async Task<IActionResult> Index(string slug = "", string sort_by = "", string startprice = "", string endprice = "", string brand = "")
+        [Route("Category/{slug?}")]
+        public async Task<IActionResult> Index(string slug = "", string sort_by = "", string startprice = "", string endprice = "", string brand = "", int pg = 1)
         {
             CategoryModel category = await _dataContext.Categories.Where(c => c.Slug == slug).FirstOrDefaultAsync();
             if (category == null)
                 return RedirectToAction("Index", "Home");
 
-            IQueryable<ProductModel> products = _dataContext.Products.Where(p => p.CategoryId == category.Id);
+            IQueryable<ProductModel> products = _dataContext.Products
+                .Include(p => p.ProductCategories)
+                .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == category.Id));
 
             if (!string.IsNullOrEmpty(brand))
             {
@@ -53,15 +56,12 @@ namespace ShoppingCard.Controllers
                     decimal startPriceValue;
                     decimal endPriceValue;
 
-                    // Ép kiểu (TryParse) từ chuỗi string nhận được trên URL sang kiểu decimal để so sánh
                     if (decimal.TryParse(startprice, out startPriceValue) && decimal.TryParse(endprice, out endPriceValue))
                     {
-                        // Tiến hành Query lọc điều kiện giá
                         products = products.Where(p => p.Price >= startPriceValue && p.Price <= endPriceValue);
                     }
                     else
                     {
-                        // Lấy mặc định nếu ép kiểu lỗi
                         products = products.OrderByDescending(p => p.Id);
                     }
                 }
@@ -70,7 +70,20 @@ namespace ShoppingCard.Controllers
                     products = products.OrderByDescending(p => p.Id);
                 }
             }
-            return View(await products.Include(p => p.Category).Include(p => p.Brand).ToListAsync());
+
+            int pageSize = 40;
+            if (pg < 1) pg = 1;
+
+            int totalProducts = await products.CountAsync();
+            int totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+
+            var data = await products.Include(p => p.Category).Include(p => p.Brand)
+                                     .Skip((pg - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            ViewBag.CurrentPage = pg;
+            ViewBag.TotalPages = totalPages;
+
+            return View(data);
         }
     }
 }

@@ -114,8 +114,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     .Select(od => new
                     {
                         od.Quantity,
-                        od.Price,
-                        CapitalPrice = od.Product != null ? od.Product.CapitalPrice : 0m
+                        od.Price
                     })
                     .ToListAsync();
 
@@ -129,7 +128,6 @@ namespace ShoppingCard.Areas.Admin.Controllers
                         statisticalModel.Quantity += 1;
                         statisticalModel.Sold += orderDetail.Quantity;
                         statisticalModel.Revenue += orderDetail.Quantity * orderDetail.Price;
-                        statisticalModel.Profit += orderDetail.Quantity * (orderDetail.Price - orderDetail.CapitalPrice);
                     }
 
                     _dataContext.Update(statisticalModel);
@@ -139,14 +137,11 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     var newQuantity = 0;
                     var newSold = 0;
                     decimal newRevenue = 0m;
-                    decimal newProfit = 0m;
-
                     foreach (var orderDetail in detailsOrder)
                     {
                         newQuantity += 1;
                         newSold += orderDetail.Quantity;
                         newRevenue += orderDetail.Quantity * orderDetail.Price;
-                        newProfit += orderDetail.Quantity * (orderDetail.Price - orderDetail.CapitalPrice);
                     }
 
                     statisticalModel = new StatisticalModel
@@ -154,8 +149,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                         DateCreated = order.CreateDate.Date,
                         Quantity = newQuantity,
                         Sold = newSold,
-                        Revenue = newRevenue,
-                        Profit = newProfit
+                        Revenue = newRevenue
                     };
 
                     _dataContext.Add(statisticalModel);

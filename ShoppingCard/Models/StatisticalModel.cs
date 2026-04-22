@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,9 +15,6 @@ namespace ShoppingCard.Models
 
         [Column(TypeName = "decimal(18,2)")]
         public decimal Revenue { get; set; } // Doanh thu
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Profit { get; set; } // Lợi nhuận
 
         public DateTime DateCreated { get; set; } // Ngay dat hang
     }

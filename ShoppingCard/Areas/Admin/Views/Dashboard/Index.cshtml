@@ -90,9 +90,9 @@
                 element: 'myfirstchart',
                 data: [],
                 xkey: 'date',
-                ykeys: ['sold', 'quantity', 'revenue', 'profit'],
-                labels: ['Số lượng bán', 'Đơn hàng', 'Doanh thu', 'Lợi nhuận'],
-                lineColors: ['#e3001b', '#2563eb', '#16a34a', '#f97316'],
+                ykeys: ['sold', 'quantity', 'revenue'],
+                labels: ['Số lượng bán', 'Đơn hàng', 'Doanh thu'],
+                lineColors: ['#e3001b', '#2563eb', '#16a34a'],
                 lineWidth: 2,
                 pointSize: 4,
                 smooth: true,
@@ -103,7 +103,7 @@
 
             function renderChart(data) {
                 chartMorris.setData(Array.isArray(data) ? data.map(function(item) {
-                    return { date: item.date, sold: item.sold, quantity: item.quantity, revenue: item.revenue, profit: item.profit };
+                    return { date: item.date, sold: item.sold, quantity: item.quantity, revenue: item.revenue };
                 }) : []);
             }
 

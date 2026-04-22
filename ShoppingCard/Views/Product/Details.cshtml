@@ -14,7 +14,7 @@
         <div class="laptopcenter-detail-wrap row g-0">
             <div class="col-md-6">
                 <div class="laptopcenter-detail-img p-4">
-                    <img src="~/media/products/@Model.ProductDetails.Image" alt="@Model.ProductDetails.Name" class="img-fluid" />
+                    <img src="@Model.ProductDetails.Image" alt="@Model.ProductDetails.Name" class="img-fluid" />
                 </div>
             </div>
             
@@ -56,9 +56,8 @@
                     </div>
                     
                     <div class="laptopcenter-detail-specs">
-                        <p><strong><i class="fa fa-tag"></i> Danh mục:</strong> @Model.ProductDetails.Category?.Name</p>
                         <p><strong><i class="fa fa-building"></i> Thương hiệu:</strong> @Model.ProductDetails.Brand?.Name</p>
-                        <p><strong><i class="fa fa-check-circle"></i> Tình trạng:</strong> Hàng mới 100%</p>
+                        <p><strong><i class="fa fa-check-circle"></i> Tình trạng:</strong> @(string.IsNullOrEmpty(Model.ProductDetails.Condition) ? "Mới 100%" : Model.ProductDetails.Condition)</p>
                         <p><strong><i class="fa fa-shield-alt"></i> Bảo hành:</strong> 12 Tháng chính hãng</p>
                     </div>
 
@@ -87,7 +86,7 @@
         <div class="laptopcenter-tabs">
             <ul class="nav nav-tabs" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">Mô tả sản phẩm</button>
+                    <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">Thông số kỹ thuật</button>
                 </li>
                 <li class="nav-item">
                     <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">Đánh giá & Bình luận</button>
@@ -97,7 +96,40 @@
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
                     <div style="line-height: 1.8; color: #555;">
-                        @Html.Raw(Model.ProductDetails.Description)
+                        @{
+                            var rawDesc = Model.ProductDetails.Description ?? "";
+                            if (rawDesc.Contains("|"))
+                            {
+                                var parts = rawDesc.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                                <table class="table table-bordered table-striped mt-3" style="width: 100%;">
+                                    <tbody>
+                                        @foreach (var p in parts)
+                                        {
+                                            var pTrim = p.Trim();
+                                            var colonIndex = pTrim.IndexOf(':');
+                                            // Handle special cases where colon might be part of an inner string
+                                            if (colonIndex > 0 && colonIndex < 30) // Assuming property names are short
+                                            {
+                                                <tr>
+                                                    <td style="width: 30%; font-weight: bold; background-color: #f8f9fa;">@pTrim.Substring(0, colonIndex).Trim()</td>
+                                                    <td>@pTrim.Substring(colonIndex + 1).Trim()</td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                <tr>
+                                                    <td colspan="2">@pTrim</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            }
+                            else
+                            {
+                                @Html.Raw(rawDesc)
+                            }
+                        }
                     </div>
                 </div>
 
@@ -213,56 +245,70 @@
         </div>
 
         <!-- Sản phẩm liên quan (Sử dụng Product Grid chuẩn) -->
+        <!-- Sản phẩm liên quan (Sử dụng Slider tương tự Trang chủ) -->
         @if (ViewBag.RelatedProducts != null && (ViewBag.RelatedProducts as IEnumerable<ProductModel>).Any())
         {
-            <div class="related-section">
-                <h2 class="section-title">Sản Phẩm Cùng Danh Mục</h2>
-                <div class="row g-4">
-                    @foreach (var related in @ViewBag.RelatedProducts as IEnumerable<ProductModel>)
-                    {
-                        <div class="col-6 col-md-4">
-                            <div class="laptopcenter-card h-100">
-                                <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@related.Id" title="Thêm vào yêu thích">
-                                    <i class="fa fa-heart"></i>
-                                </a>
-
-                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug">
-                                    <div class="laptopcenter-card-img">
-                                        <img src="~/media/products/@related.Image" alt="@related.Name" />
-                                    </div>
-                                </a>
-
-                                <div class="laptopcenter-card-body">
-                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug" class="laptopcenter-card-title">
-                                        @related.Name
+            var relatedProducts = ViewBag.RelatedProducts as IEnumerable<ProductModel>;
+            <div class="related-section mt-5 border-top pt-4">
+                <h2 class="section-title mb-4">SẢN PHẨM LIÊN QUAN</h2>
+                
+                <div class="position-relative">
+                    <div id="related-slider" class="product-slider-container pb-3 px-1">
+                        @foreach (var related in relatedProducts)
+                        {
+                            <div class="product-slider-item">
+                                <div class="laptopcenter-card h-100">
+                                    <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@related.Id" title="Thêm vào yêu thích">
+                                        <i class="fa fa-heart"></i>
                                     </a>
 
-                                    <div class="laptopcenter-card-price">
-                                        @related.Price.ToString("#,##0 VNĐ")
-                                    </div>
+                                    <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug">
+                                        <div class="laptopcenter-card-img">
+                                            <img src="@related.Image" alt="@related.Name" />
+                                        </div>
+                                    </a>
 
-                                    <div class="laptopcenter-card-specs">
-                                        <span class="laptopcenter-spec-item"><i class="fa fa-tag"></i> @related.Category?.Name</span>
-                                        <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @related.Brand?.Name</span>
-                                    </div>
+                                    <div class="laptopcenter-card-body">
+                                        <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug" class="laptopcenter-card-title">
+                                            @related.Name
+                                        </a>
 
-                                    <div class="laptopcenter-card-actions">
-                                        @if(related.Quantity > 0)
-                                        {
-                                            <button class="btn-brand add-to-cart" data-product_id="@related.Id">
-                                                <i class="fa fa-shopping-cart" style="margin-right: 5px;"></i> Thêm vào giỏ
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <button class="btn-brand btn-disabled" disabled>
-                                                <i class="fa fa-ban" style="margin-right: 5px;"></i> Hết hàng
-                                            </button>
-                                        }
+                                        <div class="laptopcenter-card-price">
+                                            @related.Price.ToString("#,##0 VNĐ")
+                                        </div>
+
+                                        <div class="laptopcenter-card-specs">
+                                            <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @related.Brand?.Name</span>
+                                            <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(related.Condition) ? "Mới 100%" : related.Condition)</span>
+                                        </div>
+
+                                        <div class="laptopcenter-card-actions mt-auto">
+                                            @if(related.Quantity > 0)
+                                            {
+                                                <button class="btn-brand add-to-cart w-100" data-product_id="@related.Id">
+                                                    <i class="fa fa-shopping-cart me-1"></i> Thêm vào giỏ
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn-brand btn-disabled w-100" disabled>
+                                                    <i class="fa fa-ban me-1"></i> Hết hàng
+                                                </button>
+                                            }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        }
+                    </div>
+
+                    @if(relatedProducts.Count() > 4) {
+                        <button class="slider-nav-btn slider-prev" type="button" onclick="document.getElementById('related-slider').scrollBy({left: -250, behavior: 'smooth'})">
+                            <i class="fa fa-chevron-left"></i>
+                        </button>
+                        <button class="slider-nav-btn slider-next" type="button" onclick="document.getElementById('related-slider').scrollBy({left: 250, behavior: 'smooth'})">
+                            <i class="fa fa-chevron-right"></i>
+                        </button>
                     }
                 </div>
             </div>

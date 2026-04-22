@@ -28,7 +28,7 @@
                                 </a>
                                 <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
                                     <div class="laptopcenter-card-img">
-                                        <img src="~/media/products/@item.Image" alt="@item.Name" />
+                                        <img src="@item.Image" alt="@item.Name" />
                                     </div>
                                 </a>
                                 <div class="laptopcenter-card-body">
@@ -37,8 +37,8 @@
                                     </a>
                                     <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
                                     <div class="laptopcenter-card-specs">
-                                        <span class="laptopcenter-spec-item">@item.Category.Name</span>
-                                        <span class="laptopcenter-spec-item">@item.Brand.Name</span>
+                                        <span class="laptopcenter-spec-item">@item.Category?.Name</span>
+                                        <span class="laptopcenter-spec-item">@item.Brand?.Name</span>
                                     </div>
                                     <div class="laptopcenter-card-actions mt-auto">
                                         @if(item.Quantity > 0)

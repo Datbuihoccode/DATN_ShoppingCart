@@ -100,8 +100,11 @@ namespace ShoppingCard.Controllers
             return View("~/Views/Checkout/Index.cshtml");
         }
 
-        public async Task<IActionResult> Add(long Id)
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> Add(long Id, int quantity = 1)
         {
+            if (quantity < 1) quantity = 1;
             var product = await _dataContext.Products.FindAsync(Id);
             if (product == null) return NotFound();
 
@@ -116,12 +119,12 @@ namespace ShoppingCard.Controllers
                     {
                         UserId = userId,
                         ProductId = Id,
-                        Quantity = 1
+                        Quantity = quantity
                     });
                 }
                 else
                 {
-                    cartItem.Quantity += 1;
+                    cartItem.Quantity += quantity;
                 }
                 await _dataContext.SaveChangesAsync();
             }
@@ -131,15 +134,22 @@ namespace ShoppingCard.Controllers
                 CartItemModel cartItemSession = cart.FirstOrDefault(c => c.ProductId == Id);
                 if (cartItemSession == null)
                 {
-                    cart.Add(new CartItemModel(product));
+                    var newItem = new CartItemModel(product);
+                    newItem.Quantity = quantity;
+                    cart.Add(newItem);
                 }
                 else
                 {
-                    cartItemSession.Quantity += 1;
+                    cartItemSession.Quantity += quantity;
                 }
                 HttpContext.Session.SetJson("Cart", cart);
             }
 
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true, message = "Sản phẩm đã được thêm vào giỏ hàng!" });
+            }
+            
             TempData["success"] = "Product added to cart successfully!";
             return Redirect(Request.Headers["Referer"].ToString());
         }

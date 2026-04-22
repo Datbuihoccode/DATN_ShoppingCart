@@ -1,4 +1,4 @@
-﻿using ShoppingCard.Repository.Validation;
+using ShoppingCard.Repository.Validation;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -9,7 +9,7 @@ namespace ShoppingCard.Models
         [Key]
         public long Id { get; set; }
 
-        [Required( ErrorMessage = "Yêu cầu nhập Tên sản phẩm.")]
+        [Required(ErrorMessage = "Yêu cầu nhập Tên sản phẩm.")]
         public string Name { get; set; }
 
         public string Slug { get; set; }
@@ -17,25 +17,30 @@ namespace ShoppingCard.Models
         [Required(ErrorMessage = "Yêu cầu nhập Mô tả sản phẩm.")]
         public string Description { get; set; }
 
-        [Required ( ErrorMessage = "Yêu cầu nhập Giá sản phẩm.")]
+        [Required(ErrorMessage = "Yêu cầu nhập Giá sản phẩm.")]
         [Range(0.01, double.MaxValue)]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; }
 
-        [Required(ErrorMessage = "Yêu cầu nhập giá vốn sản phẩm")]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal CapitalPrice { get; set; }
-
         [Required(ErrorMessage = "Yêu cầu chọn Thương hiệu.")]
         public int BrandId { get; set; }
 
-        [Required(ErrorMessage = "Yêu cầu chọn Danh mục.")]
-        public int CategoryId { get; set; }
+        /// <summary>
+        /// CategoryId chính (tương thích ngược với dữ liệu cũ, dùng cho navigation đơn).
+        /// Danh mục đầy đủ (nhiều danh mục) xem qua ProductCategories.
+        /// </summary>
+        public int? CategoryId { get; set; }
 
-        public CategoryModel Category { get; set; }
+        public CategoryModel? Category { get; set; }
 
         public BrandModel Brand { get; set; }
-        
+
+        /// <summary>
+        /// Tình trạng sản phẩm: "Mới 100%" hoặc "Like New"
+        /// </summary>
+        [Required(ErrorMessage = "Yêu cầu chọn tình trạng sản phẩm.")]
+        public string Condition { get; set; } = "Mới 100%";
+
         public string Image { get; set; }
 
         public int Quantity { get; set; }
@@ -44,9 +49,19 @@ namespace ShoppingCard.Models
 
         public ICollection<RatingModel> Ratings { get; set; }
 
+        /// <summary>
+        /// Quan hệ nhiều-nhiều với Category (qua bảng ProductCategories)
+        /// </summary>
+        public ICollection<ProductCategoryModel> ProductCategories { get; set; } = new List<ProductCategoryModel>();
+
         [NotMapped]
-        [FileExtension] 
+        [FileExtension]
         public IFormFile? ImageUpload { get; set; }
 
+        /// <summary>
+        /// Danh sách Id danh mục được chọn khi submit form (không lưu vào DB)
+        /// </summary>
+        [NotMapped]
+        public List<int> SelectedCategoryIds { get; set; } = new List<int>();
     }
 }

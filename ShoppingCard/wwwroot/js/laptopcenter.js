@@ -3,17 +3,20 @@ $(document).ready(function () {
     // Thêm vào giỏ hàng chung
     $(document).on('click', '.add-to-cart', function () {
         var Id = $(this).data("product_id");
+        var quantity = 1;
+        var qInput = $(this).parent().find('.quantity-input');
+        if (qInput.length > 0) quantity = parseInt(qInput.val()) || 1;
 
         $.ajax({
             type: "POST",
             url: "/Cart/Add",
-            data: { Id: Id },
+            data: { Id: Id, quantity: quantity },
             success: function (result) {
                 if (result) {
                     Swal.fire({
                         icon: 'success',
                         title: 'Thành công',
-                        text: 'Thêm vào giỏ hàng thành công!',
+                        text: result.message || 'Thêm vào giỏ hàng thành công!',
                         timer: 1500,
                         showConfirmButton: false
                     });

@@ -12,72 +12,126 @@
 		</div>
 	</div>
 
-	<div class="row">
-		<div class="col-12">
-			<h2 class="section-title">Sản Phẩm Nổi Bật</h2>
-            <div class="row g-4">
-                @foreach (var item in Model)
-                {
-                    <div class="col-6 col-lg-4">
-                        <div class="laptopcenter-card h-100">
-                            <!-- Nút yêu thích -->
-                            <a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
-                                <i class="fa fa-heart"></i>
-                            </a>
+	@{
+		var allCategories = Model
+			.SelectMany(p => p.ProductCategories?.Select(pc => pc.Category) ?? Enumerable.Empty<CategoryModel>())
+			.Where(c => c != null)
+			.GroupBy(c => c.Id)
+			.Select(g => g.First())
+			.ToList();
 
-                            <!-- Hình ảnh -->
-                            <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
-                                <div class="laptopcenter-card-img">
-                                    @{
-                                        string labelClass = "label-default";
-                                        string catName = item.Category.Name.ToLower();
-                                        if(catName.Contains("gaming")) labelClass = "label-gaming";
-                                        else if(catName.Contains("văn phòng") || catName.Contains("học tập")) labelClass = "label-office";
-                                        else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
-                                        else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
-                                    }
-                                    <div class="laptopcenter-card-label @labelClass">@item.Category.Name</div>
-                                    <img src="~/media/products/@item.Image" alt="@item.Name" />
-                                </div>
-                            </a>
+		if (!allCategories.Any())
+		{
+			allCategories = Model
+				.Where(p => p.Category != null)
+				.Select(p => p.Category)
+				.GroupBy(c => c.Id)
+				.Select(g => g.First())
+				.ToList();
+		}
+	}
 
-                            <div class="laptopcenter-card-body">
-                                <!-- Tiêu đề -->
-                                <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
-                                    @item.Name
-                                </a>
+	@foreach (var category in allCategories)
+	{
+		var categoryProducts = Model
+			.Where(p => (p.CategoryId == category.Id || p.Category?.Id == category.Id) || 
+						(p.ProductCategories != null && p.ProductCategories.Any(pc => pc.CategoryId == category.Id)))
+			.OrderBy(x => Guid.NewGuid())
+			.Take(15)
+			.ToList();
+			
+		if (!categoryProducts.Any()) continue;
+		
+		string catLower = category.Name.ToLower();
 
-                                <!-- Giá -->
-                                <div class="laptopcenter-card-price">
-                                    @item.Price.ToString("#,##0 VNĐ")
-                                </div>
+		<div class="category-block mb-5 bg-white p-4 rounded shadow-sm border">
+			<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 border-bottom pb-3">
+				<h2 class="section-title mb-0" style="padding-bottom: 0;">
+					@category.Name.ToUpper()
+				</h2>
+				
+				<div class="category-filters d-flex gap-2 align-items-center mt-3 mt-md-0">
+					<span class="text-muted fw-bold me-2">Mức giá:</span>
+					<a href="/Category?slug=@category.Slug&startprice=10000000&endprice=20000000" class="btn btn-sm btn-outline-secondary rounded-pill">10 - 20 triệu</a>
+					<a href="/Category?slug=@category.Slug&startprice=20000000&endprice=30000000" class="btn btn-sm btn-outline-secondary rounded-pill">20 - 30 triệu</a>
+					<a href="/Category?slug=@category.Slug&startprice=30000000&endprice=40000000" class="btn btn-sm btn-outline-secondary rounded-pill">30 - 40 triệu</a>
+					<a href="/Category?slug=@category.Slug&startprice=40000000&endprice=999000000" class="btn btn-sm btn-outline-secondary rounded-pill">Trên 40 triệu</a>
+				</div>
+			</div>
 
-                                <!-- Thông số -->
-                                <div class="laptopcenter-card-specs">
-                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
-                                    <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> Chính hãng</span>
-                                </div>
+			<!-- Carousel Slider -->
+			<div class="position-relative">
+				<div id="slider-@category.Id" class="product-slider-container pb-3 px-2">
+					@foreach (var item in categoryProducts)
+					{
+						<div class="product-slider-item">
+							<div class="laptopcenter-card h-100">
+								<!-- Nút yêu thích -->
+								<a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
+									<i class="fa fa-heart"></i>
+								</a>
 
-                                <!-- Action -->
-                                <div class="laptopcenter-card-actions mt-auto">
-                                    @if(item.Quantity > 0)
-                                    {
-                                        <button class="btn-brand w-100 add-to-cart" data-product_id="@item.Id">
-                                            <i class="fa fa-shopping-cart me-1"></i> Thêm vào giỏ
-                                        </button>
-                                    }
-                                    else
-                                    {
-                                        <button class="btn-brand btn-disabled w-100" disabled>
-                                            <i class="fa fa-ban me-1"></i> Hết hàng
-                                        </button>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-	</div>
+								<!-- Hình ảnh -->
+								<a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
+									<div class="laptopcenter-card-img">
+										<!-- Nhãn hạt đậu đã được gỡ bỏ theo yêu cầu -->
+										<img src="@item.Image" alt="@item.Name" />
+									</div>
+								</a>
+
+								<div class="laptopcenter-card-body">
+									<!-- Tiêu đề -->
+									<a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
+										@item.Name
+									</a>
+
+									<!-- Giá -->
+									<div class="laptopcenter-card-price">
+										@item.Price.ToString("#,##0 VNĐ")
+									</div>
+
+									<!-- Thông số -->
+									<div class="laptopcenter-card-specs">
+										<span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand?.Name</span>
+										<span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(item.Condition) ? "Mới 100%" : item.Condition)</span>
+									</div>
+
+									<!-- Action -->
+									<div class="laptopcenter-card-actions mt-auto">
+										@if(item.Quantity > 0)
+										{
+											<button class="btn-brand w-100 add-to-cart" data-product_id="@item.Id">
+												<i class="fa fa-shopping-cart me-1"></i> Thêm vào giỏ
+											</button>
+										}
+										else
+										{
+											<button class="btn-brand btn-disabled w-100" disabled>
+												<i class="fa fa-ban me-1"></i> Hết hàng
+											</button>
+										}
+									</div>
+								</div>
+							</div>
+						</div>
+					}
+				</div>
+
+				@if(categoryProducts.Count > 5) {
+					<button class="slider-nav-btn slider-prev" type="button" onclick="document.getElementById('slider-@category.Id').scrollBy({left: -250, behavior: 'smooth'})">
+						<i class="fa fa-chevron-left"></i>
+					</button>
+					<button class="slider-nav-btn slider-next" type="button" onclick="document.getElementById('slider-@category.Id').scrollBy({left: 250, behavior: 'smooth'})">
+						<i class="fa fa-chevron-right"></i>
+					</button>
+				}
+			</div>
+
+			<div class="mt-4 text-center">
+				<a asp-controller="Category" asp-action="Index" asp-route-slug="@category.Slug" class="btn btn-danger text-white fw-bold px-4 py-2" style="border-radius: 8px;">
+					Xem thêm @category.Name.ToUpper() <i class="fa fa-arrow-right ms-2"></i>
+				</a>
+			</div>
+		</div>
+	}
 </div>

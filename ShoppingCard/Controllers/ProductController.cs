@@ -14,9 +14,15 @@ namespace ShoppingCard.Controllers
             _dataContext = context;
         }
 
-        public async Task<IActionResult> Search( string searchTearm)
+        [Route("Product/Search")]
+        public async Task<IActionResult> Search(string searchTearm)
         {
+            if (string.IsNullOrEmpty(searchTearm))
+                return View(new List<ProductModel>());
+
             var products = await _dataContext.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
                 .Where(p => p.Name.Contains(searchTearm) || p.Description.Contains(searchTearm))
                 .ToListAsync();
 
@@ -42,7 +48,8 @@ namespace ShoppingCard.Controllers
 
             var relatedProducts = await _dataContext.Products
                 .Where(p => p.CategoryId == productsBySlug.CategoryId && p.Id != productsBySlug.Id)
-                .Take(4)
+                .OrderBy(x => Guid.NewGuid())
+                .Take(10)
                 .ToListAsync();
             ViewBag.RelatedProducts = relatedProducts;
 

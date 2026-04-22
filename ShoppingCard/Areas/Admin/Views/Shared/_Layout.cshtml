@@ -71,10 +71,6 @@
                class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Role" ? "active" : "")">
                 <i class="fas fa-user-shield"></i><span>Quyền hạn</span>
             </a>
-            <a asp-action="Index" asp-controller="Contact" asp-area="Admin"
-               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact" ? "active" : "")">
-                <i class="fas fa-address-book"></i><span>Liên hệ</span>
-            </a>
         </nav>
 
         <div class="sidebar-footer">

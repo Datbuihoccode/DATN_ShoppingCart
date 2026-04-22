@@ -15,14 +15,14 @@
                                 <div class="laptopcenter-card-img">
                                     @{
                                         string labelClass = "label-default";
-                                        string catName = item.Category.Name.ToLower();
+                                        string catName = item.Category?.Name?.ToLower() ?? "";
                                         if(catName.Contains("gaming")) labelClass = "label-gaming";
                                         else if(catName.Contains("văn phòng") || catName.Contains("học tập")) labelClass = "label-office";
                                         else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
                                         else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
                                     }
-                                    <div class="laptopcenter-card-label @labelClass">@item.Category.Name</div>
-                                    <img src="~/media/products/@item.Image" alt="@item.Name" />
+                                    <div class="laptopcenter-card-label @labelClass">@item.Category?.Name</div>
+                                    <img src="@item.Image" alt="@item.Name" />
                                 </div>
                             </a>
                             <div class="laptopcenter-card-body">
@@ -31,8 +31,8 @@
                                 </a>
                                 <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
                                 <div class="laptopcenter-card-specs">
-                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand.Name</span>
-                                    <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> New Fullbox</span>
+                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand?.Name</span>
+                                    <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(item.Condition) ? "Mới 100%" : item.Condition)</span>
                                 </div>
                                 <div class="laptopcenter-card-actions mt-auto">
                                     @if(item.Quantity > 0)
