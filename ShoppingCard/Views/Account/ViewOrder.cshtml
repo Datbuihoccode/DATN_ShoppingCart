@@ -1,9 +1,15 @@
-@model IEnumerable<OrderDetailsModel>
+﻿@model IEnumerable<OrderDetailsModel>
 
 @{
     ViewData["Title"] = "Chi tiết đơn hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var order = ViewBag.Order as OrderModel;
+    var details = Model?.ToList() ?? new List<OrderDetailsModel>();
+    decimal subtotalAmount = details.Sum(x => x.Price * x.Quantity);
+    decimal discountAmount = order?.DiscountAmount ?? 0m;
+    if (discountAmount < 0m) { discountAmount = 0m; }
+    if (discountAmount > subtotalAmount) { discountAmount = subtotalAmount; }
+    decimal totalAmount = subtotalAmount - discountAmount;
 }
 
 <div class="container lc-account-container">
@@ -16,13 +22,14 @@
             <div class="row mb-5">
                 <div class="col-md-6">
                     <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
-                    <p class="mb-1"><strong>Trạng thái:</strong> 
+                    <p class="mb-1"><strong>Trạng thái:</strong>
                         @if (order?.Status == 1) { <span class="lc-badge badge-new">Đang chờ xử lý</span> }
                         else if (order?.Status == 3) { <span class="lc-badge badge-cancel">Đã hủy</span> }
                         else { <span class="lc-badge badge-done">Hoàn thành</span> }
                     </p>
                     <p class="mb-1"><strong>Ngày đặt:</strong> @order?.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p class="mb-1"><strong>Phương thức thanh toán:</strong> @order?.PaymentMethod</p>
+                    <p class="mb-1"><strong>Coupon:</strong> @(string.IsNullOrWhiteSpace(order?.CouponCode) ? "-" : order.CouponCode)</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <h5 class="fw-bold mb-3">Thông tin khách hàng</h5>
@@ -41,25 +48,33 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var item in details)
                         {
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="@item.Product.Image" alt="@item.Product.Name" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 15px;" />
-                                        <span class="fw-bold text-dark">@item.Product.Name</span>
+                                        <img src="@(item.Product?.Image ?? string.Empty)" alt="@(item.Product?.Name ?? "Sản phẩm")" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 15px;" />
+                                        <span class="fw-bold text-dark">@(item.Product?.Name ?? "Sản phẩm")</span>
                                     </div>
                                 </td>
-                                <td class="text-center">@item.Price.ToString("#,##0 VNĐ")</td>
+                                <td class="text-center">@item.Price.ToString("#,##0 VND")</td>
                                 <td class="text-center">@item.Quantity</td>
-                                <td class="text-end fw-bold text-brand">@((item.Price * item.Quantity).ToString("#,##0 VNĐ"))</td>
+                                <td class="text-end fw-bold text-brand">@((item.Price * item.Quantity).ToString("#,##0 VND"))</td>
                             </tr>
                         }
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="3" class="text-end py-3 fw-bold fs-5">TỔNG CỘNG:</td>
-                            <td class="text-end py-3 fw-bold fs-5 text-brand">@Model.Sum(x => x.Price * x.Quantity).ToString("#,##0 VNĐ")</td>
+                            <td colspan="3" class="text-end py-2">Tạm tính:</td>
+                            <td class="text-end py-2">@subtotalAmount.ToString("#,##0 VND")</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end py-2">Giảm giá:</td>
+                            <td class="text-end py-2 text-success">-@discountAmount.ToString("#,##0 VND")</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end py-3 fw-bold fs-5">TỔNG THANH TOÁN:</td>
+                            <td class="text-end py-3 fw-bold fs-5 text-brand">@totalAmount.ToString("#,##0 VND")</td>
                         </tr>
                     </tfoot>
                 </table>

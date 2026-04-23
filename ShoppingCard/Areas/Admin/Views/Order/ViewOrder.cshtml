@@ -3,12 +3,17 @@
     ViewData["Title"] = "Đơn hàng";
 
     var details = Model?.ToList() ?? new List<OrderDetailsModel>();
+    var order = ViewBag.Order as OrderModel;
     var orderCode = Convert.ToString(ViewBag.OrderCode) ?? details.FirstOrDefault()?.OrderCode ?? string.Empty;
     var couponText = Convert.ToString(ViewBag.CouponCode);
     var couponCode = string.IsNullOrWhiteSpace(couponText) ? "-" : couponText;
     var currentStatus = Convert.ToInt32(ViewBag.Status ?? ViewBag.OrderStatus ?? 1);
     var selectedStatus = currentStatus == 0 ? 2 : currentStatus;
-    decimal total = details.Sum(x => x.Price * x.Quantity);
+    decimal subtotalAmount = details.Sum(x => x.Price * x.Quantity);
+    decimal discountAmount = order?.DiscountAmount ?? 0m;
+    if (discountAmount < 0m) { discountAmount = 0m; }
+    if (discountAmount > subtotalAmount) { discountAmount = subtotalAmount; }
+    decimal totalAmount = subtotalAmount - discountAmount;
 }
 
 <h3>Chi tiết đơn hàng</h3>
@@ -45,21 +50,29 @@
             for (var i = 0; i < details.Count; i++)
             {
                 var item = details[i];
-                var subtotal = item.Price * item.Quantity;
+                var lineSubtotal = item.Price * item.Quantity;
                 <tr>
                     <td>@(i + 1)</td>
-                    <td>@item.Product.Name</td>
-                    <td>@item.Price.ToString("#,## VNĐ")</td>
+                    <td>@(item.Product?.Name ?? "Sản phẩm")</td>
+                    <td>@item.Price.ToString("#,## VND")</td>
                     <td>@item.Quantity</td>
-                    <td>@subtotal.ToString("#,## VNĐ")</td>
+                    <td>@lineSubtotal.ToString("#,## VND")</td>
                 </tr>
             }
         }
     </tbody>
     <tfoot>
         <tr>
-            <th colspan="4" class="text-right">Tổng tiền</th>
-            <th>@total.ToString("#,## VNĐ")</th>
+            <th colspan="4" class="text-right">Tạm tính</th>
+            <th>@subtotalAmount.ToString("#,## VND")</th>
+        </tr>
+        <tr>
+            <th colspan="4" class="text-right">Giảm giá</th>
+            <th>-@discountAmount.ToString("#,## VND")</th>
+        </tr>
+        <tr>
+            <th colspan="4" class="text-right">Tổng thanh toán</th>
+            <th>@totalAmount.ToString("#,## VND")</th>
         </tr>
     </tfoot>
 </table>

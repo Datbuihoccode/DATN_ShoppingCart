@@ -2,12 +2,34 @@
 @{
 	ViewData["Title"] = "Đăng ký";
 }
+
+<style>
+    .auth-link {
+        color: var(--secondary-color);
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+    }
+    .auth-link:hover {
+        color: #b80015;
+        text-decoration: underline !important;
+        transform: translateY(-1px);
+    }
+    .btn-hover-effect {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-hover-effect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        filter: brightness(1.1);
+    }
+</style>
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <div class="tech-card p-4 p-md-5">
                 <h2 class="section-title mb-4">Đăng ký</h2>
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small alert alert-danger"></div>
                 <form asp-action="Create" asp-controller="Account">
                     <div class="mb-3">
                         <label asp-for="UserName" class="form-label text-muted">Tên đăng nhập</label>
@@ -28,11 +50,11 @@
                     </div>
 
                     <div class="d-grid mb-4">
-                        <button class="btn-brand" style="width:100%; padding: 13px; font-size: 15px; border-radius: 8px;">TẠO TÀI KHOẢN</button>
+                        <button class="btn-brand btn-hover-effect" style="width:100%; padding: 13px; font-size: 15px; border-radius: 8px;">TẠO TÀI KHOẢN</button>
                     </div>
 
                     <div class="text-center border-top pt-3 mt-2">
-                        <p class="text-muted small mb-0">Đã có tài khoản? <a asp-action="Login" asp-controller="Account" class="text-decoration-none fw-bold" style="color: var(--secondary-color);">Đăng nhập ngay</a></p>
+                        <p class="text-muted small mb-0">Đã có tài khoản? <a asp-action="Login" asp-controller="Account" class="auth-link">Đăng nhập ngay</a></p>
                     </div>
                 </form>
             </div>

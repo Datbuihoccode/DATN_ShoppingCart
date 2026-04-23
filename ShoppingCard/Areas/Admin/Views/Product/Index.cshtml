@@ -27,8 +27,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model ?? Enumerable.Empty<ProductModel>())
                     {
+                        var categoryName = item.Category?.Name ?? "Chưa gán danh mục";
+                        var brandName = item.Brand?.Name ?? "Chưa gán thương hiệu";
                         <tr>
                             <td>@item.Id</td>
                             <td>
@@ -48,8 +50,8 @@
                                 <div class="small text-muted">Đã bán: @item.Sold</div>
                                 <a asp-action="AddQuantity" asp-route-Id="@item.Id" class="text-primary small" style="text-decoration: underline;">Nhập thêm</a>
                             </td>
-                            <td><span class="badge bg-light text-dark border">@item.Category.Name</span></td>
-                            <td><span class="badge bg-light text-dark border">@item.Brand.Name</span></td>
+                            <td><span class="badge bg-light text-dark border">@categoryName</span></td>
+                            <td><span class="badge bg-light text-dark border">@brandName</span></td>
                             <td>
                                 <div class="actions-group">
                                     <a asp-action="Edit" class="btn-admin-edit" asp-route-Id="@item.Id">

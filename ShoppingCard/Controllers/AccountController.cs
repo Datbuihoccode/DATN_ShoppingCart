@@ -43,22 +43,28 @@ namespace ShoppingCard.Controllers
         {
             if (ModelState.IsValid)
             {
-                var result = await _signInManager.PasswordSignInAsync(loginVM.UserName, loginVM.Password, false, false);
-                if (result.Succeeded)
+                // Check if the input is an email or username
+                var user = await _userManager.FindByNameAsync(loginVM.UserName);
+                if (user == null && loginVM.UserName.Contains("@"))
                 {
-                    var user = await _userManager.FindByNameAsync(loginVM.UserName);
-                    if (user != null)
+                    user = await _userManager.FindByEmailAsync(loginVM.UserName);
+                }
+
+                if (user != null)
+                {
+                    var result = await _signInManager.PasswordSignInAsync(user.UserName, loginVM.Password, false, false);
+                    if (result.Succeeded)
                     {
                         await MergeSessionCartToDbAsync(user.Id);
+
+                        TempData["success"] = "Đăng nhập thành công!";
+                        var receiver = "1977datbui@gmail.com";
+                        var subject = "Đăng nhập thành công";
+                        var message = "Bạn đã đăng nhập thành công vào hệ thống.";
+
+                        await _emailSender.SendEmailAsync(receiver, subject, message);
+                        return Redirect(loginVM.ReturnUrl ?? "/");
                     }
-
-                    TempData["success"] = "Đăng nhập thành công!";
-                    var receiver = "1977datbui@gmail.com";
-                    var subject = "Đăng nhập thành công";
-                    var message = "Bạn đã đăng nhập thành công vào hệ thống.";
-
-                    await _emailSender.SendEmailAsync(receiver, subject, message);
-                    return Redirect(loginVM.ReturnUrl ?? "/");
                 }
 
                 ModelState.AddModelError("", "Mật khẩu hoặc tên đăng nhập sai!");

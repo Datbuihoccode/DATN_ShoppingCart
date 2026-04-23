@@ -150,7 +150,7 @@ namespace ShoppingCard.Controllers
                 return Json(new { success = true, message = "Sản phẩm đã được thêm vào giỏ hàng!" });
             }
             
-            TempData["success"] = "Product added to cart successfully!";
+            TempData["success"] = "Sản phẩm đã được thêm vào giỏ hàng thành công!";
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
@@ -199,7 +199,7 @@ namespace ShoppingCard.Controllers
                 }
             }
 
-            TempData["success"] = "Product quantity updated successfully!";
+
             return RedirectToAction("Index");
         }
 
@@ -218,12 +218,12 @@ namespace ShoppingCard.Controllers
                     if (product.Quantity > cartItem.Quantity)
                     {
                         cartItem.Quantity += 1;
-                        TempData["success"] = "Product quantity updated successfully!";
+
                     }
                     else
                     {
                         cartItem.Quantity = product.Quantity;
-                        TempData["error"] = "Maximum quantity reached!";
+                        TempData["error"] = "Đã đạt số lượng tối đa trong kho!";
                     }
                     await _dataContext.SaveChangesAsync();
                 }
@@ -239,12 +239,12 @@ namespace ShoppingCard.Controllers
                         if (product.Quantity > cartItem.Quantity)
                         {
                             ++cartItem.Quantity;
-                            TempData["success"] = "Product quantity updated successfully!";
+
                         }
                         else
                         {
                             cartItem.Quantity = product.Quantity;
-                            TempData["error"] = "Maximum quantity reached!";
+                            TempData["error"] = "Đã đạt số lượng tối đa trong kho!";
                         }
 
                         if (cart.Count == 0)
@@ -283,7 +283,7 @@ namespace ShoppingCard.Controllers
                 }
             }
 
-            TempData["success"] = "Product removed from cart successfully!";
+            TempData["success"] = "Đã xóa sản phẩm khỏi giỏ hàng!";
             return RedirectToAction("Index");
         }
 
@@ -304,7 +304,7 @@ namespace ShoppingCard.Controllers
             HttpContext.Session.Remove("Cart");
             Response.Cookies.Delete("CouponTitle");
 
-            TempData["success"] = "Cart cleared successfully!";
+            TempData["success"] = "Đã làm trống giỏ hàng!";
             return RedirectToAction("Index");
         }
 

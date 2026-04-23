@@ -6,18 +6,18 @@
 :root {
     --admin-sidebar-width: 240px;
     --admin-topbar-height: 60px;
-    --admin-bg: #f0f2f5;
+    --admin-bg: #f5f6fa;        /* Unified with user-side --primary-bg */
     --admin-sidebar-bg: #1a1a2e;
     --admin-sidebar-text: #a8b3c5;
     --admin-sidebar-active: #e3001b;
     --admin-topbar-bg: #ffffff;
     --admin-card-bg: #ffffff;
-    --admin-border: #e5e9f0;
+    --admin-border: #e8ecf0;    /* Unified with user-side --border */
     --admin-text: #1a1a2e;
     --admin-muted: #6c757d;
     --admin-accent: #e3001b;
-    --admin-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    --admin-shadow-md: 0 4px 24px rgba(0,0,0,0.1);
+    --admin-shadow: 0 2px 12px rgba(0,0,0,0.08); /* Unified with user-side --shadow */
+    --admin-shadow-md: 0 8px 30px rgba(0,0,0,0.14); /* Unified with user-side --shadow-hover */
 }
 
 /* ===== RESET & BASE ===== */

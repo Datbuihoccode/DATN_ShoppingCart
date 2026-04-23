@@ -3,18 +3,40 @@
     ViewData["Title"] = "Đăng nhập";
 }
 
+<style>
+    .auth-link {
+        color: var(--secondary-color);
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s ease-in-out;
+    }
+    .auth-link:hover {
+        color: #b80015;
+        text-decoration: underline !important;
+        transform: translateY(-1px);
+    }
+    .btn-hover-effect {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-hover-effect:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        filter: brightness(1.1);
+    }
+</style>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-6 col-lg-5">
             <div class="tech-card p-4 p-md-5">
                 <h2 class="section-title mb-4">Đăng nhập</h2>
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small alert alert-danger" style="display:none;"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small alert alert-danger"></div>
                 <form asp-action="Login" asp-controller="Account" method="post">
                     <input asp-for="ReturnUrl" type="hidden" />
 
                     <div class="mb-3">
-                        <label asp-for="UserName" class="form-label fw-600 text-muted">Tên đăng nhập</label>
-                        <input asp-for="UserName" class="form-control" placeholder="username..." />
+                        <label asp-for="UserName" class="form-label fw-600 text-muted">Tên đăng nhập hoặc Email</label>
+                        <input asp-for="UserName" class="form-control" placeholder="Tên đăng nhập hoặc email..." />
                         <span asp-validation-for="UserName" class="text-danger small"></span>
                     </div>
 
@@ -25,17 +47,17 @@
                     </div>
 
                     <div class="d-grid mb-4">
-                        <button class="btn-brand" style="width:100%; padding: 13px; font-size: 15px; border-radius: 8px;">ĐĂNG NHẬP</button>
+                        <button class="btn-brand btn-hover-effect" style="width:100%; padding: 13px; font-size: 15px; border-radius: 8px;">ĐĂNG NHẬP</button>
                     </div>
 
                     <div class="text-center border-top pt-4 mt-2">
-                        <a asp-action="LoginByGoogle" asp-controller="Account" class="btn btn-outline-dark w-100 mb-3 d-flex align-items-center justify-content-center gap-2" style="font-weight: 600; border-radius: 8px; padding: 10px;">
+                        <a asp-action="LoginByGoogle" asp-controller="Account" class="btn btn-outline-dark w-100 mb-3 d-flex align-items-center justify-content-center gap-2 btn-hover-effect" style="font-weight: 600; border-radius: 8px; padding: 10px;">
                             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="Google">
                             Đăng nhập bằng Google
                         </a>
-                        <div class="d-flex justify-content-between small">
-                            <a asp-action="Create" asp-controller="Account" class="text-muted text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--secondary-color)'" onmouseout="this.style.color=''">Chưa có tài khoản? Đăng ký</a>
-                            <a asp-action="ForgetPass" asp-controller="Account" class="text-muted text-decoration-none" style="transition: color 0.2s;" onmouseover="this.style.color='var(--secondary-color)'" onmouseout="this.style.color=''">Quên mật khẩu?</a>
+                        <div class="d-flex justify-content-between align-items-center small mt-2">
+                            <a asp-action="Create" asp-controller="Account" class="auth-link">Chưa có tài khoản? Đăng ký</a>
+                            <a asp-action="ForgetPass" asp-controller="Account" class="auth-link">Quên mật khẩu?</a>
                         </div>
                     </div>
                 </form>

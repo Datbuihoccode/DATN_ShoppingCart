@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
@@ -14,13 +15,21 @@ namespace ShoppingCard.Controllers
     {
         private readonly DataContext _dataContext;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<CheckoutController> _logger;
         private readonly IMomoService _momoService;
         private readonly IVnPayService _vnPayService;
 
-        public CheckoutController(DataContext dataContext, IEmailSender emailSender, IMomoService momoService, IVnPayService vnPayService)
+        [ActivatorUtilitiesConstructor]
+        public CheckoutController(
+            DataContext dataContext,
+            IEmailSender emailSender,
+            ILogger<CheckoutController> logger,
+            IMomoService momoService,
+            IVnPayService vnPayService)
         {
             _dataContext = dataContext;
             _emailSender = emailSender;
+            _logger = logger;
             _momoService = momoService;
             _vnPayService = vnPayService;
         }
@@ -34,19 +43,29 @@ namespace ShoppingCard.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            TempData["Success"] = string.IsNullOrWhiteSpace(orderId)
+            TempData["success"] = string.IsNullOrWhiteSpace(orderId)
                 ? "Thanh toán thành công, vui lòng chờ duyệt đơn hàng."
                 : "Giao dịch thanh toán thành công, đơn hàng đã được tạo.";
 
             return RedirectToAction("History", "Account");
         }
 
-        [HttpGet]
+        [AcceptVerbs("GET", "POST")]
         public async Task<IActionResult> PaymentCallBack()
         {
-            _momoService.PaymentExecuteAsync(HttpContext.Request.Query);
-            var requestQuery = HttpContext.Request.Query;
-            var resultCode = requestQuery["resultCode"].ToString();
+            try
+            {
+                string GetParam(string key)
+                {
+                    if (Request.HasFormContentType && Request.Form.TryGetValue(key, out var formValue))
+                    {
+                        return formValue.ToString();
+                    }
+
+                    return Request.Query.TryGetValue(key, out var queryValue) ? queryValue.ToString() : string.Empty;
+                }
+
+                var resultCode = GetParam("resultCode");
 
             if (!string.Equals(resultCode, "0", StringComparison.Ordinal))
             {
@@ -54,7 +73,7 @@ namespace ShoppingCard.Controllers
                 return RedirectToAction("Index", "Cart");
             }
 
-            var orderId = requestQuery["orderId"].ToString();
+            var orderId = GetParam("orderId");
             if (string.IsNullOrWhiteSpace(orderId))
             {
                 TempData["error"] = "Không nhận được mã giao dịch Momo.";
@@ -76,8 +95,8 @@ namespace ShoppingCard.Controllers
                 {
                     OrderId = orderId,
                     FullName = userEmail,
-                    Amount = ParseAmount(requestQuery["amount"].ToString()),
-                    OrderInfo = requestQuery["orderInfo"].ToString(),
+                    Amount = ParseAmount(GetParam("amount")),
+                    OrderInfo = GetParam("orderInfo"),
                     DatePaid = DateTime.Now
                 };
 
@@ -90,11 +109,26 @@ namespace ShoppingCard.Controllers
 
             if (hasOrder)
             {
-                TempData["Success"] = "Giao dich Momo da duoc ghi nhan truoc do.";
-                return RedirectToAction("History", "Account");
+                TempData["success"] = "Giao dịch Momo đã được ghi nhận trước đó.";
+                return RedirectToAction("Index", "Cart");
             }
 
-            return await Checkout(paymentMethod);
+            var checkoutResult = await CreateOrderFromCartAsync(paymentMethod);
+            if (!checkoutResult.Success)
+            {
+                TempData["error"] = checkoutResult.Message;
+                return RedirectToAction("Index", "Cart");
+            }
+
+            TempData["success"] = "Giao dịch MoMo thành công.";
+            return RedirectToAction("History", "Account");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MoMo callback handling failed.");
+                TempData["error"] = "Có lỗi xảy ra khi xử lý thanh toán MoMo.";
+                return RedirectToAction("Index", "Cart");
+            }
         }
 
         [HttpGet]
@@ -175,7 +209,7 @@ namespace ShoppingCard.Controllers
             }
 
             TempData["success"] = "Giao dịch VNPay thành công.";
-            return RedirectToAction("Index", "Cart");
+            return RedirectToAction("History", "Account");
         }
 
         private async Task<(bool Success, string Message)> CreateOrderFromCartAsync(string orderId)
@@ -214,8 +248,28 @@ namespace ShoppingCard.Controllers
                     decimal grandTotal = cartItems.Sum(x => x.Quantity * x.Price);
                     if (grandTotal >= coupon.MinAmount)
                     {
-                        if (coupon.Type == 1) discount = (grandTotal * coupon.DiscountValue) / 100;
-                        else discount = coupon.DiscountValue;
+                        if (coupon.Type == 1)
+                        {
+                            discount = (grandTotal * coupon.DiscountValue) / 100;
+                            if (coupon.MaxDiscountAmount > 0 && discount > coupon.MaxDiscountAmount)
+                            {
+                                discount = coupon.MaxDiscountAmount;
+                            }
+                        }
+                        else
+                        {
+                            discount = coupon.DiscountValue;
+                        }
+
+                        if (discount < 0)
+                        {
+                            discount = 0;
+                        }
+
+                        if (discount > grandTotal)
+                        {
+                            discount = grandTotal;
+                        }
 
                         // Deduct coupon quantity
                         coupon.Quantity -= 1;
@@ -278,7 +332,23 @@ namespace ShoppingCard.Controllers
             var receiver = "1977datbui@gmail.com";
             var subject = "Đặt hàng thành công.";
             var message = "Đơn hàng đang được xử lý.";
-            await _emailSender.SendEmailAsync(receiver, subject, message);
+            try
+            {
+                var emailTask = _emailSender.SendEmailAsync(receiver, subject, message);
+                var completedTask = await Task.WhenAny(emailTask, Task.Delay(TimeSpan.FromSeconds(5)));
+                if (completedTask == emailTask)
+                {
+                    await emailTask;
+                }
+                else
+                {
+                    _logger.LogWarning("Send email timed out after 5 seconds. Receiver: {Receiver}", receiver);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Send email failed after order creation. Receiver: {Receiver}", receiver);
+            }
 
             return (true, "Success");
         }

@@ -8,6 +8,7 @@ using ShoppingCard.Models.Momo;
 using ShoppingCard.Repository;
 using ShoppingCard.Services.Momo;
 using ShoppingCard.Services.Vnpay;
+using ShoppingCard.Library;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +39,8 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddIdentity<AppUserModel, IdentityRole>()
     .AddEntityFrameworkStores<DataContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddErrorDescriber<VietnameseIdentityErrorDescriber>();
 
 // External login by Google (kept after Identity configuration)
 builder.Services

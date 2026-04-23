@@ -42,6 +42,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             ViewBag.OrderCode = order.OrderCode;
             ViewBag.CouponCode = order.CouponCode;
+            ViewBag.Order = order;
             ViewBag.OrderStatus = order.Status;
             ViewBag.Status = order.Status;
             return View(detailsOrder);

@@ -52,6 +52,7 @@
 				
 				<div class="category-filters d-flex gap-2 align-items-center mt-3 mt-md-0">
 					<span class="text-muted fw-bold me-2">Mức giá:</span>
+					<a href="/Category?slug=@category.Slug&startprice=0&endprice=10000000" class="btn btn-sm btn-outline-secondary rounded-pill">Dưới 10 triệu</a>
 					<a href="/Category?slug=@category.Slug&startprice=10000000&endprice=20000000" class="btn btn-sm btn-outline-secondary rounded-pill">10 - 20 triệu</a>
 					<a href="/Category?slug=@category.Slug&startprice=20000000&endprice=30000000" class="btn btn-sm btn-outline-secondary rounded-pill">20 - 30 triệu</a>
 					<a href="/Category?slug=@category.Slug&startprice=30000000&endprice=40000000" class="btn btn-sm btn-outline-secondary rounded-pill">30 - 40 triệu</a>
@@ -126,7 +127,6 @@
 					</button>
 				}
 			</div>
-
 			<div class="mt-4 text-center">
 				<a asp-controller="Category" asp-action="Index" asp-route-slug="@category.Slug" class="btn btn-danger text-white fw-bold px-4 py-2" style="border-radius: 8px;">
 					Xem thêm @category.Name.ToUpper() <i class="fa fa-arrow-right ms-2"></i>

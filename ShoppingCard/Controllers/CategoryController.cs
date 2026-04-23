@@ -33,42 +33,38 @@ namespace ShoppingCard.Controllers
                 }
             }
 
-            if (products.Count() > 0)
+            // Apply price filtering independently
+            if (!string.IsNullOrEmpty(startprice) && !string.IsNullOrEmpty(endprice))
             {
-                if (sort_by == "price_increase")
-                {
-                    products = products.OrderBy(p => p.Price);
-                }
-                else if (sort_by == "price_decrease")
-                {
-                    products = products.OrderByDescending(p => p.Price);
-                }
-                else if (sort_by == "price_newest")
-                {
-                    products = products.OrderByDescending(p => p.Id);
-                }
-                else if (sort_by == "price_oldest")
-                {
-                    products = products.OrderBy(p => p.Id);
-                }
-                else if (startprice != "" && endprice != "") 
-                {
-                    decimal startPriceValue;
-                    decimal endPriceValue;
+                decimal startPriceValue;
+                decimal endPriceValue;
 
-                    if (decimal.TryParse(startprice, out startPriceValue) && decimal.TryParse(endprice, out endPriceValue))
-                    {
-                        products = products.Where(p => p.Price >= startPriceValue && p.Price <= endPriceValue);
-                    }
-                    else
-                    {
-                        products = products.OrderByDescending(p => p.Id);
-                    }
-                }
-                else
+                if (decimal.TryParse(startprice, out startPriceValue) && decimal.TryParse(endprice, out endPriceValue))
                 {
-                    products = products.OrderByDescending(p => p.Id);
+                    products = products.Where(p => p.Price >= startPriceValue && p.Price <= endPriceValue);
                 }
+            }
+
+            // Apply sorting independently
+            if (sort_by == "price_increase")
+            {
+                products = products.OrderBy(p => p.Price);
+            }
+            else if (sort_by == "price_decrease")
+            {
+                products = products.OrderByDescending(p => p.Price);
+            }
+            else if (sort_by == "price_newest")
+            {
+                products = products.OrderByDescending(p => p.Id);
+            }
+            else if (sort_by == "price_oldest")
+            {
+                products = products.OrderBy(p => p.Id);
+            }
+            else
+            {
+                products = products.OrderByDescending(p => p.Id);
             }
 
             int pageSize = 40;

@@ -3,13 +3,19 @@
     var currentUrl = Url.ActionContext.HttpContext.Request.Path;
     var currentSort = Url.ActionContext.HttpContext.Request.Query["sort_by"].ToString();
     var currentBrand = Url.ActionContext.HttpContext.Request.Query["brand"].ToString(); 
+    var currentSlug = Url.ActionContext.HttpContext.Request.Query["slug"].ToString();
+    var startPrice = Url.ActionContext.HttpContext.Request.Query["startprice"].ToString();
+    var endPrice = Url.ActionContext.HttpContext.Request.Query["endprice"].ToString();
     var brands = _context.Brands.Where(b => b.Status == 1).ToList();
 
     string BuildUrl(string sortBy, string brandSlug)
     {
         var query = new List<string>();
+        if (!string.IsNullOrEmpty(currentSlug)) query.Add($"slug={currentSlug}");
         if (!string.IsNullOrEmpty(sortBy)) query.Add($"sort_by={sortBy}");
         if (!string.IsNullOrEmpty(brandSlug)) query.Add($"brand={brandSlug}");
+        if (!string.IsNullOrEmpty(startPrice)) query.Add($"startprice={startPrice}");
+        if (!string.IsNullOrEmpty(endPrice)) query.Add($"endprice={endPrice}");
         return currentUrl + (query.Any() ? "?" + string.Join("&", query) : "");
     }
 }
