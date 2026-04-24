@@ -261,14 +261,16 @@ a { text-decoration: none; color: inherit; transition: color 0.2s; }
 .stat-card.green::before { background: #16a34a; }
 .stat-card.orange::before { background: #f97316; }
 
-.stat-card:hover { transform: translateY(-4px); box-shadow: var(--admin-shadow-md); }
+.stat-card:hover { transform: translateY(-3px); }
 
 .stat-icon {
-    width: 52px; height: 52px;
+    width: 60px;
+    height: 60px;
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
+    font-size: 24px;
     flex-shrink: 0;
+    margin-right: 20px;
 }
 .stat-card.red .stat-icon { background: rgba(227,0,27,0.1); color: #e3001b; }
 .stat-card.blue .stat-icon { background: rgba(37,99,235,0.1); color: #2563eb; }
@@ -291,57 +293,87 @@ a { text-decoration: none; color: inherit; transition: color 0.2s; }
     line-height: 1.1;
 }
 
-/* ===== DATA CARD ===== */
+/* ===== CARDS ===== */
 .admin-card {
-    background: var(--admin-card-bg);
-    border-radius: 14px;
+    background: #fff;
+    border-radius: 12px;
     border: 1px solid var(--admin-border);
-    box-shadow: var(--admin-shadow);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.04); /* Softer, larger shadow */
+    margin-bottom: 30px;
     overflow: hidden;
 }
+
 .admin-card-header {
-    padding: 18px 24px;
+    padding: 20px 25px; /* Increased padding */
     border-bottom: 1px solid var(--admin-border);
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
+    align-items: center;
+    background: #fafbfe;
 }
+
 .admin-card-title {
-    font-size: 16px;
+    font-size: 18px; /* Increased */
     font-weight: 700;
-    color: var(--admin-text);
+    color: var(--admin-dark);
 }
-.admin-card-body { padding: 24px; }
+
+.admin-card-body {
+    padding: 25px 30px; /* Increased padding */
+}
 
 /* ===== TABLE ===== */
 .admin-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13.5px;
 }
-.admin-table thead tr {
+.admin-table thead th {
     background: #f8f9fc;
-    border-bottom: 2px solid var(--admin-border);
-}
-.admin-table th {
-    padding: 11px 14px;
+    padding: 18px 15px; /* Increased padding */
+    text-align: left;
+    font-size: 14px; /* Slightly larger */
     font-weight: 700;
-    font-size: 12px;
+    color: #4e73df;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--admin-muted);
-    white-space: nowrap;
+    border-bottom: 2px solid var(--admin-border);
 }
-.admin-table td {
-    padding: 12px 14px;
-    color: var(--admin-text);
+.admin-table tbody td {
+    padding: 18px 15px; /* Increased padding */
     vertical-align: middle;
-    border-bottom: 1px solid #f0f2f5;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text);
+    font-size: 15px; /* Larger body text */
 }
 .admin-table tbody tr:hover { background: #fafbfe; }
 .admin-table tbody tr:last-child td { border-bottom: none; }
+
+.admin-table-footer {
+    background: #f8f9fc;
+    border-top: 2px solid var(--admin-border);
+}
+.admin-table-footer th {
+    padding: 12px 14px;
+    font-weight: 700;
+}
+
+/* Image Box Utility */
+.admin-image-box {
+    width: 60px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f0f2f5;
+    border: 1px solid var(--admin-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.admin-image-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
 
 /* ===== STATUS BADGES ===== */
 .badge-new { background: rgba(22,163,74,0.12); color: #16a34a; border: 1px solid rgba(22,163,74,0.25); }

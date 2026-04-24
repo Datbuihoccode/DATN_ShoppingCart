@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OrderDetailsModel>
+@model IEnumerable<OrderDetailsModel>
 @{
     ViewData["Title"] = "Đơn hàng";
 
@@ -16,81 +16,109 @@
     decimal totalAmount = subtotalAmount - discountAmount;
 }
 
-<h3>Chi tiết đơn hàng</h3>
-<input type="hidden" value="@orderCode" class="getId" />
-
-<div class="row" style="margin-bottom: 12px;">
-    <div class="col-sm-6">
-        <strong>Mã đơn:</strong> @orderCode
-    </div>
-    <div class="col-sm-6 text-right">
-        <strong>Coupon:</strong> @couponCode
+<div class="admin-page-header">
+    <h2 class="admin-page-title">Chi tiết đơn hàng</h2>
+    <div class="actions-group">
+        <a asp-action="Index" class="btn-admin-view" style="background: #f5f6fa; border: 1px solid #ddd; color: #666;">
+            <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
     </div>
 </div>
 
-<table class="table table-striped table-bordered" id="OrderDetails">
-    <thead>
-        <tr>
-            <th style="width: 70px;">#</th>
-            <th>Sản phẩm</th>
-            <th style="width: 160px;">Giá</th>
-            <th style="width: 100px;">Số lượng</th>
-            <th style="width: 180px;">Tạm tính</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (details.Count == 0)
-        {
-            <tr>
-                <td colspan="5" class="text-center">Không có chi tiết đơn hàng.</td>
-            </tr>
-        }
-        else
-        {
-            for (var i = 0; i < details.Count; i++)
-            {
-                var item = details[i];
-                var lineSubtotal = item.Price * item.Quantity;
-                <tr>
-                    <td>@(i + 1)</td>
-                    <td>@(item.Product?.Name ?? "Sản phẩm")</td>
-                    <td>@item.Price.ToString("#,## VND")</td>
-                    <td>@item.Quantity</td>
-                    <td>@lineSubtotal.ToString("#,## VND")</td>
-                </tr>
-            }
-        }
-    </tbody>
-    <tfoot>
-        <tr>
-            <th colspan="4" class="text-right">Tạm tính</th>
-            <th>@subtotalAmount.ToString("#,## VND")</th>
-        </tr>
-        <tr>
-            <th colspan="4" class="text-right">Giảm giá</th>
-            <th>-@discountAmount.ToString("#,## VND")</th>
-        </tr>
-        <tr>
-            <th colspan="4" class="text-right">Tổng thanh toán</th>
-            <th>@totalAmount.ToString("#,## VND")</th>
-        </tr>
-    </tfoot>
-</table>
+<input type="hidden" value="@orderCode" class="getId" />
 
-<div class="row" style="margin-top: 16px;">
-    <div class="col-sm-4 col-sm-offset-8">
-        <label for="order-status">Trạng thái đơn hàng</label>
-        @if (currentStatus != 3)
-        {
-            <select id="order-status" class="form-control select-update-order">
-                <option value="1" selected="@(selectedStatus == 1 ? "selected" : null)">Đơn hàng mới</option>
-                <option value="2" selected="@(selectedStatus == 2 ? "selected" : null)">Đã xử lý</option>
-            </select>
-        }
-        else
-        {
-            <p class="text-danger" style="margin-top: 8px;">Đơn hàng đã hủy, không thể cập nhật trạng thái.</p>
-        }
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <span class="admin-card-title"><i class="fas fa-shopping-cart me-2"></i>Sản phẩm trong đơn</span>
+                <span class="badge bg-light text-dark border">Mã: @orderCode</span>
+            </div>
+            <div class="admin-card-body p-0">
+                <div class="table-responsive">
+                    <table class="admin-table" id="OrderDetails">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">#</th>
+                                <th>Sản phẩm</th>
+                                <th style="width: 140px;">Giá</th>
+                                <th style="width: 100px;">SL</th>
+                                <th style="width: 150px; text-align: right;">Tạm tính</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (details.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">Không có chi tiết đơn hàng.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                for (var i = 0; i < details.Count; i++)
+                                {
+                                    var item = details[i];
+                                    var lineSubtotal = item.Price * item.Quantity;
+                                    <tr>
+                                        <td>@(i + 1)</td>
+                                        <td class="fw-bold">@(item.Product?.Name ?? "Sản phẩm")</td>
+                                        <td>@item.Price.ToString("#,##0") đ</td>
+                                        <td>@item.Quantity</td>
+                                        <td style="text-align: right;" class="fw-bold">@lineSubtotal.ToString("#,##0") đ</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                        <tfoot class="admin-table-footer">
+                            <tr>
+                                <th colspan="4" style="text-align: right;">Tổng cộng sản phẩm</th>
+                                <th style="text-align: right;">@subtotalAmount.ToString("#,##0") đ</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" style="text-align: right; color: #16a34a;">Mã giảm giá (@couponCode)</th>
+                                <th style="text-align: right; color: #16a34a;">-@discountAmount.ToString("#,##0") đ</th>
+                            </tr>
+                            <tr style="border-top: 1px solid #ddd;">
+                                <th colspan="4" style="text-align: right; font-size: 16px;">TỔNG THANH TOÁN</th>
+                                <th style="text-align: right; font-size: 16px; color: var(--admin-accent);">@totalAmount.ToString("#,##0") đ</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="admin-card mb-4">
+            <div class="admin-card-header">
+                <span class="admin-card-title"><i class="fas fa-info-circle me-2"></i>Trạng thái đơn hàng</span>
+            </div>
+            <div class="admin-card-body">
+                @if (currentStatus != 3)
+                {
+                    <div class="mb-3">
+                        <label for="order-status" class="form-label">Cập nhật trạng thái</label>
+                        <select id="order-status" class="form-select select-update-order">
+                            <option value="1" selected="@(selectedStatus == 1 ? "selected" : null)">Đơn hàng mới</option>
+                            <option value="2" selected="@(selectedStatus == 2 ? "selected" : null)">Đã xử lý</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info py-2 small mb-0">
+                        <i class="fas fa-lightbulb me-1"></i> Thay đổi trạng thái sẽ tự động cập nhật hệ thống.
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-3">
+                        <div class="status-badge badge-cancelled mb-2" style="font-size: 14px;">
+                            <i class="fas fa-times-circle"></i> ĐÃ HỦY
+                        </div>
+                        <p class="text-muted small mb-0">Đơn hàng này đã bị hủy và không thể cập nhật thêm.</p>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </div>
 

@@ -21,7 +21,6 @@
                         <th>Tên sản phẩm</th>
                         <th>Giá bán</th>
                         <th>Số lượng</th>
-                        <th>Danh mục</th>
                         <th>Thương hiệu</th>
                         <th>Quản lý</th>
                     </tr>
@@ -29,13 +28,12 @@
                 <tbody>
                     @foreach (var item in Model ?? Enumerable.Empty<ProductModel>())
                     {
-                        var categoryName = item.Category?.Name ?? "Chưa gán danh mục";
                         var brandName = item.Brand?.Name ?? "Chưa gán thương hiệu";
                         <tr>
                             <td>@item.Id</td>
                             <td>
-                                <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; background: #f0f2f5; display: flex; align-items: center; justify-content: center;">
-                                    <img src="@item.Image" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                                <div class="admin-image-box">
+                                    <img src="@item.Image" alt="@item.Name" />
                                 </div>
                             </td>
                             <td>
@@ -50,7 +48,6 @@
                                 <div class="small text-muted">Đã bán: @item.Sold</div>
                                 <a asp-action="AddQuantity" asp-route-Id="@item.Id" class="text-primary small" style="text-decoration: underline;">Nhập thêm</a>
                             </td>
-                            <td><span class="badge bg-light text-dark border">@categoryName</span></td>
                             <td><span class="badge bg-light text-dark border">@brandName</span></td>
                             <td>
                                 <div class="actions-group">
