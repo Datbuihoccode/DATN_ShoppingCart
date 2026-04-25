@@ -7,8 +7,6 @@
     var orderCode = Convert.ToString(ViewBag.OrderCode) ?? details.FirstOrDefault()?.OrderCode ?? string.Empty;
     var couponText = Convert.ToString(ViewBag.CouponCode);
     var couponCode = string.IsNullOrWhiteSpace(couponText) ? "-" : couponText;
-    var currentStatus = Convert.ToInt32(ViewBag.Status ?? ViewBag.OrderStatus ?? 1);
-    var selectedStatus = currentStatus == 0 ? 2 : currentStatus;
     decimal subtotalAmount = details.Sum(x => x.Price * x.Quantity);
     decimal discountAmount = order?.DiscountAmount ?? 0m;
     if (discountAmount < 0m) { discountAmount = 0m; }
@@ -28,6 +26,7 @@
 <input type="hidden" value="@orderCode" class="getId" />
 
 <div class="row g-4">
+    @* Left: Order items *@
     <div class="col-lg-8">
         <div class="admin-card">
             <div class="admin-card-header">
@@ -89,36 +88,116 @@
         </div>
     </div>
 
+    @* Right: Sidebar *@
     <div class="col-lg-4">
-        <div class="admin-card mb-4">
-            <div class="admin-card-header">
-                <span class="admin-card-title"><i class="fas fa-info-circle me-2"></i>Trạng thái đơn hàng</span>
+
+        @* Customer Info Card *@
+        <div class="admin-card mb-3">
+            <div class="admin-card-header py-2">
+                <span class="admin-card-title" style="font-size: 13px;">
+                    <i class="fas fa-user me-2"></i>Thông tin khách hàng
+                </span>
             </div>
-            <div class="admin-card-body">
-                @if (currentStatus != 3)
-                {
-                    <div class="mb-3">
-                        <label for="order-status" class="form-label">Cập nhật trạng thái</label>
-                        <select id="order-status" class="form-select select-update-order">
-                            <option value="1" selected="@(selectedStatus == 1 ? "selected" : null)">Đơn hàng mới</option>
-                            <option value="2" selected="@(selectedStatus == 2 ? "selected" : null)">Đã xử lý</option>
-                        </select>
+            <div class="admin-card-body py-2">
+                <div class="d-flex flex-column gap-1" style="font-size: 13px;">
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Email:</span>
+                        <span class="fw-bold text-truncate ms-2" style="max-width: 200px;">@(order?.UserName ?? "-")</span>
                     </div>
-                    <div class="alert alert-info py-2 small mb-0">
-                        <i class="fas fa-lightbulb me-1"></i> Thay đổi trạng thái sẽ tự động cập nhật hệ thống.
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Tên tài khoản:</span>
+                        <span class="fw-bold ms-2">@(ViewBag.CustomerName ?? "-")</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Số điện thoại:</span>
+                        <span class="fw-bold ms-2">
+                            @if (!string.IsNullOrWhiteSpace(order?.ShippingPhone))
+                            {
+                                <a href="tel:@order.ShippingPhone" class="text-decoration-none">@order.ShippingPhone</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic">Chưa cập nhật</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Order Status + Payment Status — compact combined card *@
+        <div class="admin-card mb-3">
+            <div class="admin-card-header py-2">
+                <span class="admin-card-title" style="font-size: 13px;">
+                    <i class="fas fa-info-circle me-2"></i>Trạng thái
+                </span>
+            </div>
+            <div class="admin-card-body py-2">
+                @* Payment status — compact row *@
+                @{
+                    var (payIcon, payColor, payLabel) = order?.PaymentStatus switch
+                    {
+                        PaymentStatus.Paid => ("fas fa-check-circle", "#16a34a", "Đã thanh toán"),
+                        PaymentStatus.Pending => ("fas fa-hourglass-half", "#f59e0b", "Chờ thanh toán"),
+                        PaymentStatus.Unpaid => ("fas fa-clock", "#6b7280", "Chưa thanh toán (COD)"),
+                        PaymentStatus.Failed => ("fas fa-times-circle", "#dc2626", "Thanh toán thất bại"),
+                        PaymentStatus.Refunded => ("fas fa-undo-alt", "#3b82f6", "Đã hoàn tiền"),
+                        _ => ("fas fa-question-circle", "#6b7280", "Không rõ")
+                    };
+                }
+                <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
+                    <span class="text-muted">Thanh toán:</span>
+                    <span class="fw-bold" style="color: @payColor;">
+                        <i class="@payIcon me-1"></i>@payLabel
+                    </span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
+                    <span class="text-muted">Phương thức:</span>
+                    <span class="fw-bold">@(string.IsNullOrWhiteSpace(order?.PaymentMethod) ? "COD" : order.PaymentMethod)</span>
+                </div>
+
+                @if (order?.PaymentStatus == PaymentStatus.Pending)
+                {
+                    var expiresAt = order.CreateDate.AddHours(1);
+                    var remaining = (int)(expiresAt - DateTime.Now).TotalMinutes;
+                    <div class="d-flex justify-content-between align-items-center mb-2" style="font-size: 13px;">
+                        <span class="text-muted">Hết hạn TT:</span>
+                        <span class="fw-bold @(remaining < 10 ? "text-danger" : "text-warning")">
+                            @(remaining > 0 ? $"còn {remaining} phút" : "Đã hết hạn")
+                        </span>
+                    </div>
+                }
+
+                <hr class="my-2" />
+
+                @* Order status update *@
+                @if (order?.Status != OrderStatus.Cancelled)
+                {
+                    <div style="font-size: 13px;">
+                        <label for="order-status" class="form-label mb-1 text-muted">Cập nhật trạng thái đơn:</label>
+                        <select id="order-status" class="form-select form-select-sm select-update-order">
+                            <option value="0" selected="@(order.Status == OrderStatus.New ? "selected" : null)">Đơn hàng mới</option>
+                            <option value="1" selected="@(order.Status == OrderStatus.Confirmed ? "selected" : null)">Đã xác nhận</option>
+                            <option value="2" selected="@(order.Status == OrderStatus.Processing ? "selected" : null)">Đang đóng gói</option>
+                            <option value="3" selected="@(order.Status == OrderStatus.Shipping ? "selected" : null)">Đang giao hàng</option>
+                            <option value="4" selected="@(order.Status == OrderStatus.Completed ? "selected" : null)">Hoàn thành</option>
+                            <option value="5" selected="@(order.Status == OrderStatus.Cancelled ? "selected" : null)">Hủy đơn</option>
+                        </select>
                     </div>
                 }
                 else
                 {
-                    <div class="text-center py-3">
-                        <div class="status-badge badge-cancelled mb-2" style="font-size: 14px;">
+                    <div class="text-center py-1">
+                        <span class="status-badge badge-cancelled" style="font-size: 12px;">
                             <i class="fas fa-times-circle"></i> ĐÃ HỦY
-                        </div>
-                        <p class="text-muted small mb-0">Đơn hàng này đã bị hủy và không thể cập nhật thêm.</p>
+                        </span>
+                        <p class="text-muted mb-0 mt-1" style="font-size: 11px;">Không thể cập nhật thêm.</p>
                     </div>
                 }
             </div>
         </div>
+
     </div>
 </div>
 

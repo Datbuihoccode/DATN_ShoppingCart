@@ -1,4 +1,4 @@
-﻿@model IEnumerable<OrderDetailsModel>
+@model IEnumerable<OrderDetailsModel>
 
 @{
     ViewData["Title"] = "Chi tiết đơn hàng";
@@ -23,9 +23,18 @@
                 <div class="col-md-6">
                     <h5 class="fw-bold mb-3">Thông tin đơn hàng</h5>
                     <p class="mb-1"><strong>Trạng thái:</strong>
-                        @if (order?.Status == 1) { <span class="lc-badge badge-new">Đang chờ xử lý</span> }
-                        else if (order?.Status == 3) { <span class="lc-badge badge-cancel">Đã hủy</span> }
-                        else { <span class="lc-badge badge-done">Hoàn thành</span> }
+                        @{
+                            var voBadge = order?.Status switch
+                            {
+                                OrderStatus.New => "badge-new",
+                                OrderStatus.Cancelled => "badge-cancel",
+                                OrderStatus.Completed => "badge-received",
+                                _ => "badge-done"
+                            };
+                            if (order?.PaymentStatus == PaymentStatus.Pending) voBadge = "badge-new";
+                            if (order?.PaymentStatus == PaymentStatus.Failed) voBadge = "badge-cancel";
+                        }
+                        <span class="lc-badge @voBadge">@order?.DisplayStatusForUser</span>
                     </p>
                     <p class="mb-1"><strong>Ngày đặt:</strong> @order?.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p class="mb-1"><strong>Phương thức thanh toán:</strong> @order?.PaymentMethod</p>

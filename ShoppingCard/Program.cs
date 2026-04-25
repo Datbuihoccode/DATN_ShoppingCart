@@ -8,6 +8,7 @@ using ShoppingCard.Models.Momo;
 using ShoppingCard.Repository;
 using ShoppingCard.Services.Momo;
 using ShoppingCard.Services.Vnpay;
+using ShoppingCard.Services;
 using ShoppingCard.Library;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoApi"));
 builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

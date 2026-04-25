@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Thanh toán lại đơn hàng";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var order = ViewBag.Order as ShoppingCard.Models.OrderModel;
+    decimal total = (decimal)(ViewBag.Total ?? 0m);
+    DateTime expiresAt = (DateTime)(ViewBag.ExpiresAt ?? DateTime.Now);
+    var remainingSeconds = (int)(expiresAt - DateTime.Now).TotalSeconds;
+    if (remainingSeconds < 0) remainingSeconds = 0;
+}
+
+<div class="container py-5" style="max-width: 600px;">
+    <div class="tech-card p-4">
+        <div class="text-center mb-4">
+            <div class="mb-3">
+                <i class="fas fa-clock" style="font-size: 48px; color: var(--brand-primary, #f59e0b);"></i>
+            </div>
+            <h4 class="fw-bold">Thanh toán lại đơn hàng</h4>
+            <p class="text-muted small">Mã đơn: <strong>#@order?.OrderCode</strong></p>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div class="text-center mb-4">
+            <div class="alert alert-warning py-2">
+                <i class="fas fa-hourglass-half me-2"></i>
+                Đơn hàng sẽ bị hủy sau: <strong id="countdown-timer">--:--</strong>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="border rounded p-3 mb-4" style="background: #f8fafc;">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted">Tổng thanh toán:</span>
+                <strong class="text-danger fs-5">@total.ToString("#,##0") VNĐ</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span class="text-muted">Phương thức cũ:</span>
+                <span class="badge bg-info text-white">@order?.PaymentMethod</span>
+            </div>
+        </div>
+
+        <p class="text-muted small text-center mb-3">Chọn phương thức thanh toán để tiếp tục:</p>
+
+        <!-- VnPay Retry -->
+        <form asp-action="RetryPaymentVnPay" asp-controller="Payment" method="post" class="mb-3" id="retry-vnpay-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="orderCode" value="@order?.OrderCode" />
+            <input type="hidden" name="amount" value="@total" />
+            <button type="submit" class="payment-btn w-100">
+                <img src="~/media/payments/vnpay.png" alt="VNPAY" style="height: 32px;">
+                <span class="ms-2 fw-bold">Thanh toán qua VNPAY</span>
+            </button>
+        </form>
+
+        <!-- MoMo Retry -->
+        <form asp-action="RetryPaymentMomo" asp-controller="Payment" method="post" class="mb-3" id="retry-momo-form">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="orderCode" value="@order?.OrderCode" />
+            <input type="hidden" name="amount" value="@total" />
+            <button type="submit" class="payment-btn w-100">
+                <img src="~/media/payments/momo.png" alt="MoMo" style="height: 32px;">
+                <span class="ms-2 fw-bold">Thanh toán qua MoMo</span>
+            </button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a asp-action="CancelOrder" asp-controller="Account" asp-route-ordercode="@order?.OrderCode"
+               class="btn btn-outline-danger btn-sm"
+               onclick="return confirm('Bạn chắc chắn muốn hủy đơn hàng này?');">
+                <i class="fas fa-times me-1"></i> Hủy đơn hàng
+            </a>
+            <a asp-action="History" class="btn btn-light btn-sm ms-2">
+                <i class="fas fa-arrow-left me-1"></i> Quay lại
+            </a>
+        </div>
+
+        <p class="text-center text-muted mt-3" style="font-size: 11px;">
+            <i class="fas fa-shield-alt me-1"></i> Giao dịch được bảo mật bởi VNPAY / MoMo
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Countdown timer
+        var expiresAt = new Date(@Html.Raw($"'{expiresAt:yyyy-MM-ddTHH:mm:ss}'"));
+        var timerEl = document.getElementById('countdown-timer');
+        var payForms = document.querySelectorAll('#retry-vnpay-form, #retry-momo-form');
+
+        function updateTimer() {
+            var now = new Date();
+            var diff = Math.floor((expiresAt - now) / 1000);
+
+            if (diff <= 0) {
+                timerEl.textContent = '00:00';
+                timerEl.style.color = '#dc2626';
+                payForms.forEach(function(f) {
+                    f.querySelectorAll('button').forEach(function(btn) {
+                        btn.disabled = true;
+                        btn.style.opacity = '0.5';
+                        btn.style.cursor = 'not-allowed';
+                    });
+                });
+                clearInterval(timerInterval);
+                // Auto redirect after 3 seconds
+                setTimeout(function() { window.location.href = '/Account/History'; }, 3000);
+                return;
+            }
+
+            var mins = Math.floor(diff / 60);
+            var secs = diff % 60;
+            timerEl.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+
+            // Warn when < 5 minutes
+            if (diff < 300) {
+                timerEl.style.color = '#dc2626';
+            } else if (diff < 600) {
+                timerEl.style.color = '#f59e0b';
+            }
+        }
+
+        updateTimer();
+        var timerInterval = setInterval(updateTimer, 1000);
+    </script>
+}

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
@@ -33,7 +33,10 @@ namespace ShoppingCard.Services.Momo
                 var ipnUrl = ResolveCallbackUrl(model.NotifyUrl, _options.Value.NotifyUrl, nameof(MomoOptionModel.NotifyUrl));
                 var momoApiUrl = NormalizeRequired(_options.Value.MomoApiUrl, nameof(MomoOptionModel.MomoApiUrl));
 
-                model.OrderId = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
+                if (string.IsNullOrWhiteSpace(model.OrderId))
+                {
+                    model.OrderId = DateTime.UtcNow.Ticks.ToString(CultureInfo.InvariantCulture);
+                }
                 model.OrderInformation = SanitizeOrderInformation(model.OrderInformation);
                 model.OrderInformation = BuildOrderInfo(model.FullName, model.OrderInformation);
 

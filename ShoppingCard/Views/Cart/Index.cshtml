@@ -100,25 +100,45 @@
 
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
+                            <div class="mb-3">
+                                <label for="shipping-phone" class="text-muted small mb-1 d-block">
+                                    <i class="fas fa-phone me-1"></i>Số điện thoại nhận hàng: <span class="text-danger">*</span>
+                                </label>
+                                <input type="tel" id="shipping-phone" class="form-control" 
+                                       placeholder="VD: 0901234567"
+                                       pattern="^(0|\+84)[3-9]\d{8}$"
+                                       maxlength="12"
+                                       required />
+                                <div id="phone-error" class="text-danger small mt-1" style="display:none;">
+                                    Vui lòng nhập số điện thoại hợp lệ (10 số, bắt đầu bằng 0).
+                                </div>
+                            </div>
+
                             <div class="d-grid gap-2">
-                                <a class="btn btn-brand btn-lg mb-2" asp-controller="Checkout" asp-action="Checkout" onclick="return confirm('Xác nhận đặt hàng?');">
+                                <button type="button" class="btn btn-brand btn-lg mb-2" id="btn-cod-checkout">
                                     THANH TOÁN COD
-                                </a>
+                                </button>
+                                <form id="form-cod" asp-controller="Checkout" asp-action="Checkout" method="post" style="display:none;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="shippingPhone" id="cod-phone" />
+                                </form>
                                 
                                 <p class="text-muted small text-center mb-2">Hoặc thanh toán online an toàn:</p>
                                 
                                 <div class="mb-2">
-                                    <form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" class="mb-2">
+                                    <form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" class="mb-2 online-pay-form">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="Amount" value="@Model.GrandTotal" />
+                                        <input type="hidden" name="shippingPhone" class="phone-input-hidden" />
                                         <button type="submit" class="payment-btn w-100">
                                             <img src="~/media/payments/vnpay.png" alt="VNPAY">
                                         </button>
                                     </form>
  
-                                    <form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post">
+                                    <form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" class="online-pay-form">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="Amount" value="@Model.GrandTotal" />
+                                        <input type="hidden" name="shippingPhone" class="phone-input-hidden" />
                                         <button type="submit" name="RequestType" value="captureWallet" class="payment-btn w-100">
                                             <img src="~/media/payments/momo.png" alt="MOMO">
                                         </button>
@@ -153,23 +173,54 @@
 
 @section Scripts {
     <script>
+        // Coupon
         $('.btn-apply-coupon').click(function () {
             var coupon_value = $(".coupon-value").val();
-            
             $.ajax({
                 type: "POST",
                 url: "@Url.Action("GetCoupon", "Cart")",
                 data: { coupon_value: coupon_value },
                 success: function (result) {
                     if (result.success) {
-                        Swal.fire(result.message).then(function () {
-                            location.reload();
-                        });
+                        Swal.fire(result.message).then(function () { location.reload(); });
                     } else {
                         Swal.fire(result.message);
                     }
                 }
             });
+        });
+
+        // Phone validation helper
+        function validatePhone() {
+            var phone = $('#shipping-phone').val().trim();
+            var regex = /^(0|\+84)[3-9]\d{8}$/;
+            if (!regex.test(phone)) {
+                $('#phone-error').show();
+                $('#shipping-phone').addClass('is-invalid');
+                return null;
+            }
+            $('#phone-error').hide();
+            $('#shipping-phone').removeClass('is-invalid');
+            return phone;
+        }
+
+        // COD button
+        $('#btn-cod-checkout').click(function () {
+            var phone = validatePhone();
+            if (!phone) return;
+            if (!confirm('Xác nhận đặt hàng COD?')) return;
+            $('#cod-phone').val(phone);
+            $('#form-cod').submit();
+        });
+
+        // Online payment forms (VnPay, MoMo)
+        $('.online-pay-form').on('submit', function (e) {
+            var phone = validatePhone();
+            if (!phone) {
+                e.preventDefault();
+                return false;
+            }
+            $(this).find('.phone-input-hidden').val(phone);
         });
     </script>
 }

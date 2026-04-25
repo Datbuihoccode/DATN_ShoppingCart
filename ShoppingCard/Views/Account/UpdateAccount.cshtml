@@ -33,7 +33,8 @@
                             <div class="col-md-6">
                                 <div class="lc-form-group">
                                     <label class="lc-form-label">Email hệ thống</label>
-                                    <input asp-for="Email" class="lc-form-control" readonly />
+                                    <input asp-for="Email" class="lc-form-control" />
+                                    <span asp-validation-for="Email" class="text-danger small"></span>
                                 </div>
                             </div>
                         </div>

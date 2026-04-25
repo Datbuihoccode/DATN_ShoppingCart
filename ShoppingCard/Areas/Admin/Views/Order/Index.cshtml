@@ -17,8 +17,8 @@
                         <th>Ngày đặt</th>
                         <th>Khách hàng</th>
                         <th>Phương thức</th>
-                        <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
+                        <th>Thanh toán</th>
+                        <th>Trạng thái đơn</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
@@ -26,7 +26,7 @@
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td><span class="fw-bold text-dark">#@item.OrderCode</span></td>
+                            <td><span class="fw-bold text-dark">@item.OrderCode</span></td>
                             <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
                             <td>
                                 <div class="fw-bold">@item.UserName</div>
@@ -59,18 +59,39 @@
                                 }
                             </td>
                             <td>
-                                @* Assuming total is calculated elsewhere or stored in order, 
-                                   if not available, showing a placeholder or just marking as paid *@
-                                <div class="fw-bold text-primary">Xem chi tiết</div>
+                                @{
+                                    var payBadge = item.PaymentStatus switch
+                                    {
+                                        PaymentStatus.Paid => ("badge-processed", "fas fa-check-circle", "Đã thanh toán"),
+                                        PaymentStatus.Pending => ("badge-new", "fas fa-hourglass-half", "Chờ thanh toán"),
+                                        PaymentStatus.Unpaid => ("badge-cod", "fas fa-hand-holding-usd", "Chưa thanh toán"),
+                                        PaymentStatus.Failed => ("badge-cancelled", "fas fa-times-circle", "Thanh toán thất bại"),
+                                        PaymentStatus.Refunded => ("badge-new", "fas fa-undo", "Đã hoàn tiền"),
+                                        _ => ("badge-cod", "fas fa-question", "Không rõ")
+                                    };
+                                }
+                                <span class="status-badge @payBadge.Item1">
+                                    <i class="@payBadge.Item2 me-1"></i>@payBadge.Item3
+                                </span>
                             </td>
                             <td>
-                                @if (item.Status == 1) {
-                                    <span class="status-badge badge-new"><i class="fas fa-clock"></i> Mới</span>
-                                } else if (item.Status == 3) {
-                                    <span class="status-badge badge-cancelled"><i class="fas fa-times"></i> Đã hủy</span>
-                                } else {
-                                    <span class="status-badge badge-processed"><i class="fas fa-check"></i> Đã xử lý</span>
+                                @{
+                                    // Since Failed always means Cancelled now, just use Status directly
+                                    var statusClass = item.Status switch
+                                    {
+                                        OrderStatus.New => "badge-new",
+                                        OrderStatus.Confirmed => "badge-processed",
+                                        OrderStatus.Processing => "badge-processed",
+                                        OrderStatus.Shipping => "badge-processed",
+                                        OrderStatus.Completed => "badge-processed",
+                                        OrderStatus.Cancelled => "badge-cancelled",
+                                        _ => "badge-cod"
+                                    };
+                                    if (item.PaymentStatus == PaymentStatus.Pending) statusClass = "badge-new";
                                 }
+                                <span class="status-badge @statusClass">
+                                    @item.DisplayStatus
+                                </span>
                             </td>
                             <td>
                                 <div class="actions-group">

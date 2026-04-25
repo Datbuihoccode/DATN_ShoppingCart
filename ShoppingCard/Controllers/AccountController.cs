@@ -148,18 +148,18 @@ namespace ShoppingCard.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
-                if (!await _roleManager.RoleExistsAsync("Admin"))
+                if (!await _roleManager.RoleExistsAsync("User"))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole("Admin"));
+                    await _roleManager.CreateAsync(new IdentityRole("User"));
                 }
 
-                var roleExist = await _userManager.IsInRoleAsync(newUser, "Admin");
+                var roleExist = await _userManager.IsInRoleAsync(newUser, "User");
                 if (!roleExist)
                 {
-                    var roleAssignResult = await _userManager.AddToRoleAsync(newUser, "Admin");
+                    var roleAssignResult = await _userManager.AddToRoleAsync(newUser, "User");
                     if (!roleAssignResult.Succeeded)
                     {
-                        TempData["error"] = "Không thể gán quyền Admin. Vui lòng thử lại sau.";
+                        TempData["error"] = "Không thể gán quyền User. Vui lòng thử lại sau.";
                         return RedirectToAction("Login", "Account");
                     }
                 }
@@ -291,6 +291,28 @@ namespace ShoppingCard.Controllers
                 return Forbid();
             }
 
+            var oldEmail = userId.Email;
+            var oldUserName = userId.UserName;
+
+            // Check if email changed and if it's already taken
+            if (userId.Email != user.Email)
+            {
+                var exists = await _userManager.FindByEmailAsync(user.Email);
+                if (exists != null && exists.Id != userId.Id)
+                {
+                    ModelState.AddModelError("Email", "Email này đã được sử dụng bởi tài khoản khác.");
+                }
+                else
+                {
+                    userId.Email = user.Email;
+                    // Usually UserName and Email are kept in sync in this project
+                    if (oldUserName == oldEmail)
+                    {
+                        userId.UserName = user.Email;
+                    }
+                }
+            }
+
             userId.PhoneNumber = user.PhoneNumber;
 
             if (string.IsNullOrWhiteSpace(user.PasswordHash))
@@ -315,6 +337,18 @@ namespace ShoppingCard.Controllers
             var result = await _userManager.UpdateAsync(userId);
             if (result.Succeeded)
             {
+                // If email/username changed, we MUST update the orders table because it stores UserName as string
+                if (userId.UserName != oldUserName)
+                {
+                    var orders = await _dataContext.Orders.Where(o => o.UserName == oldUserName).ToListAsync();
+                    foreach (var o in orders) { o.UserName = userId.UserName; }
+
+                    var orderDetails = await _dataContext.OrderDetails.Where(od => od.UserName == oldUserName).ToListAsync();
+                    foreach (var od in orderDetails) { od.UserName = userId.UserName; }
+
+                    await _dataContext.SaveChangesAsync();
+                }
+
                 await _signInManager.RefreshSignInAsync(userId);
                 TempData["success"] = "Cập nhật tài khoản thành công";
                 return RedirectToAction("UpdateAccount", "Account");
@@ -344,12 +378,30 @@ namespace ShoppingCard.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
+            // Auto-cancel expired Pending orders (older than 1 hour)
+            var expiredPendingOrders = await _dataContext.Orders
+                .Where(o => o.UserName == userEmail
+                    && o.PaymentStatus == PaymentStatus.Pending
+                    && o.CreateDate < DateTime.Now.AddHours(-1))
+                .ToListAsync();
+
+            if (expiredPendingOrders.Any())
+            {
+                foreach (var expired in expiredPendingOrders)
+                {
+                    expired.Status = OrderStatus.Cancelled;
+                    expired.PaymentStatus = PaymentStatus.Failed;
+                }
+                await _dataContext.SaveChangesAsync();
+            }
+
             var orders = await _dataContext.Orders
                 .Where(od => od.UserName == userEmail)
                 .OrderByDescending(od => od.Id)
                 .ToListAsync();
 
             ViewBag.UserEmail = userEmail;
+            ViewBag.PaymentExpiryMinutes = 60; // 1 hour
             return View(orders);
         }
 
@@ -405,7 +457,7 @@ namespace ShoppingCard.Controllers
                 return RedirectToAction("History", "Account");
             }
 
-            if (order.Status == 3)
+            if (order.Status == OrderStatus.Cancelled)
             {
                 TempData["info"] = "Đơn hàng đã được hủy trước đó.";
                 return RedirectToAction("History", "Account");
@@ -413,7 +465,7 @@ namespace ShoppingCard.Controllers
 
             try
             {
-                order.Status = 3;
+                order.Status = OrderStatus.Cancelled;
                 _dataContext.Update(order);
                 await _dataContext.SaveChangesAsync();
                 TempData["success"] = "Hủy đơn hàng thành công.";
@@ -424,6 +476,58 @@ namespace ShoppingCard.Controllers
             }
 
             return RedirectToAction("History", "Account");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> RetryPayment(string ordercode)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return RedirectToAction("Login", "Account");
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+            if (string.IsNullOrWhiteSpace(userEmail))
+                return RedirectToAction("Login", "Account");
+
+            var order = await _dataContext.Orders
+                .FirstOrDefaultAsync(o => o.OrderCode == ordercode && o.UserName == userEmail);
+
+            if (order == null)
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction("History", "Account");
+            }
+
+            // Must be in Pending state
+            if (order.PaymentStatus != PaymentStatus.Pending)
+            {
+                TempData["error"] = "Đơn hàng này không ở trạng thái chờ thanh toán.";
+                return RedirectToAction("History", "Account");
+            }
+
+            // Check expiry (1 hour)
+            var expiresAt = order.CreateDate.AddHours(1);
+            if (DateTime.Now > expiresAt)
+            {
+                order.Status = OrderStatus.Cancelled;
+                order.PaymentStatus = PaymentStatus.Failed;
+                await _dataContext.SaveChangesAsync();
+                TempData["error"] = "Đơn hàng đã hết hạn thanh toán và bị hủy tự động.";
+                return RedirectToAction("History", "Account");
+            }
+
+            // Get order total from OrderDetails
+            var orderDetails = await _dataContext.OrderDetails
+                .Where(od => od.OrderCode == ordercode)
+                .ToListAsync();
+
+            decimal total = orderDetails.Sum(x => x.Price * x.Quantity) - order.DiscountAmount;
+            if (total < 0) total = 0;
+
+            // Pass data to view for the user to choose payment method again
+            ViewBag.Order = order;
+            ViewBag.Total = total;
+            ViewBag.ExpiresAt = expiresAt;
+            return View();
         }
 
         public IActionResult ForgetPass()

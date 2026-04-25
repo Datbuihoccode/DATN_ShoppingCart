@@ -605,6 +605,7 @@ a:hover { color: #b80015; text-decoration: none; }
 .badge-new { background: #e0f2f1; color: #00897b; }
 .badge-cancel { background: #ffebee; color: #e53935; }
 .badge-done { background: #e8eaf6; color: #3f51b5; }
+.badge-received { background: #e8f5e9; color: #2e7d32; }
 
 /* Filter Bar */
 .filter-bar-wrap {
@@ -1173,6 +1174,7 @@ a:hover { color: #b80015; text-decoration: none; }
 .badge-new { background: #e0f2f1; color: #00897b; }
 .badge-cancel { background: #ffebee; color: #e53935; }
 .badge-done { background: #e8eaf6; color: #3f51b5; }
+.badge-received { background: #e8f5e9; color: #2e7d32; }
 
 .filter-bar-wrap {
     background: #fff;

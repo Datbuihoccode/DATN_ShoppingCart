@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
@@ -11,10 +12,12 @@ namespace ShoppingCard.Areas.Admin.Controllers
     public class OrderController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly UserManager<AppUserModel> _userManager;
 
-        public OrderController(DataContext context)
+        public OrderController(DataContext context, UserManager<AppUserModel> userManager)
         {
             _dataContext = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index()
@@ -44,7 +47,13 @@ namespace ShoppingCard.Areas.Admin.Controllers
             ViewBag.CouponCode = order.CouponCode;
             ViewBag.Order = order;
             ViewBag.OrderStatus = order.Status;
-            ViewBag.Status = order.Status;
+            ViewBag.Status = (int)order.Status;
+
+            // Fetch account info to show the "Name" (UserName)
+            var customer = await _userManager.FindByEmailAsync(order.UserName) 
+                        ?? await _userManager.FindByNameAsync(order.UserName);
+            ViewBag.CustomerName = customer?.UserName ?? order.UserName;
+
             return View(detailsOrder);
         }
 
@@ -91,23 +100,25 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (order.Status == 3)
+            if (order.Status == OrderStatus.Cancelled)
             {
                 return BadRequest(new { success = false, message = "Đơn hàng đã bị hủy và không thể cập nhật." });
             }
 
-            if (status != 1 && status != 2 && status != 0)
+            var newStatus = (OrderStatus)status;
+            var isMovingToCompleted = order.Status != OrderStatus.Completed && newStatus == OrderStatus.Completed;
+
+            order.Status = newStatus;
+
+            // Optional: If Completed, set PaymentStatus to Paid if it was COD
+            if (newStatus == OrderStatus.Completed && order.PaymentStatus == PaymentStatus.Unpaid)
             {
-                return BadRequest(new { success = false, message = "Trạng thái đơn hàng không hợp lệ." });
+                order.PaymentStatus = PaymentStatus.Paid;
             }
 
-            var normalizedStatus = status == 0 ? 2 : status;
-            var isMovingToProcessed = order.Status != 2 && normalizedStatus == 2;
-
-            order.Status = normalizedStatus;
             _dataContext.Update(order);
 
-            if (isMovingToProcessed)
+            if (isMovingToCompleted)
             {
                 var detailsOrder = await _dataContext.OrderDetails
                     .Include(od => od.Product)

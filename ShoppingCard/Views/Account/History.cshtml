@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Lịch sử mua hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    int expiryMinutes = (int)(ViewBag.PaymentExpiryMinutes ?? 60);
 }
 
 <div class="container lc-account-container">
@@ -28,11 +29,16 @@
                         {
                             foreach (var item in Model)
                             {
-                                <tr>
-                                    <td class="fw-bold text-dark">#@item.OrderCode</td>
+                                var isPending = item.PaymentStatus == PaymentStatus.Pending;
+                                var expiresAt = item.CreateDate.AddHours(1);
+                                var remainingSecs = isPending ? (int)(expiresAt - DateTime.Now).TotalSeconds : 0;
+                                var isExpired = isPending && remainingSecs <= 0;
+
+                                <tr class="@(isPending && !isExpired ? "table-warning" : "")">
+                                    <td class="fw-bold text-dark">@item.OrderCode</td>
                                     <td>@item.CreateDate.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>
-                                        <div class="d-flex align-items:center gap-2">
+                                        <div class="d-flex align-items-center gap-2">
                                             @if (item.PaymentMethod == "COD")
                                             {
                                                 <span class="badge bg-light text-dark border">COD</span>
@@ -44,30 +50,55 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @if (item.Status == 1)
-                                        {
-                                            <span class="lc-badge badge-new">Đang chờ xử lý</span>
+                                        @{
+                                            var badgeClass = item.Status switch
+                                            {
+                                                OrderStatus.New => "badge-new",
+                                                OrderStatus.Cancelled => "badge-cancel",
+                                                OrderStatus.Completed => "badge-received",
+                                                _ => "badge-done"
+                                            };
+                                            if (item.PaymentStatus == PaymentStatus.Pending) badgeClass = "badge-new";
+                                            if (item.PaymentStatus == PaymentStatus.Failed) badgeClass = "badge-cancel";
                                         }
-                                        else if (item.Status == 3)
+                                        <span class="lc-badge @badgeClass">@item.DisplayStatusForUser</span>
+
+                                        @* Countdown mini for pending orders *@
+                                        @if (isPending && !isExpired)
                                         {
-                                            <span class="lc-badge badge-cancel">Đã hủy</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="lc-badge badge-done">Hoàn thành</span>
+                                            <div class="mt-1">
+                                                <small class="text-warning fw-bold">
+                                                    <i class="fas fa-hourglass-half me-1"></i>
+                                                    Hết hạn sau: <span class="pending-countdown" data-expires="@expiresAt.ToString("yyyy-MM-ddTHH:mm:ss")">--:--</span>
+                                                </small>
+                                            </div>
                                         }
                                     </td>
                                     <td class="text-end">
-                                        @if (item.Status != 3)
+                                        @* Retry payment button for valid Pending orders *@
+                                        @if (isPending && !isExpired)
                                         {
-                                            <a asp-action="CancelOrder" asp-controller="Account" asp-route-ordercode="@item.OrderCode" 
-                                               class="btn btn-outline-danger btn-sm" 
+                                            <a asp-action="RetryPayment" asp-controller="Account"
+                                               asp-route-ordercode="@item.OrderCode"
+                                               class="btn btn-warning btn-sm fw-bold">
+                                                <i class="fas fa-redo me-1"></i> Thanh toán lại
+                                            </a>
+                                        }
+
+                                        @* Cancel button: only for New or Pending (not expired) *@
+                                        @if ((item.Status == OrderStatus.New || isPending) && !isExpired)
+                                        {
+                                            <a asp-action="CancelOrder" asp-controller="Account"
+                                               asp-route-ordercode="@item.OrderCode"
+                                               class="btn btn-outline-danger btn-sm ms-1"
                                                onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
                                                 Hủy đơn
                                             </a>
                                         }
-                                        <a asp-action="ViewOrder" asp-controller="Account" asp-route-ordercode="@item.OrderCode" 
-                                           class="btn btn-light btn-sm ms-2">
+
+                                        <a asp-action="ViewOrder" asp-controller="Account"
+                                           asp-route-ordercode="@item.OrderCode"
+                                           class="btn btn-light btn-sm ms-1">
                                             Chi tiết
                                         </a>
                                     </td>
@@ -91,3 +122,32 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Update all pending countdowns every second
+        function updateCountdowns() {
+            document.querySelectorAll('.pending-countdown').forEach(function (el) {
+                var expiresAt = new Date(el.dataset.expires);
+                var diff = Math.floor((expiresAt - new Date()) / 1000);
+
+                if (diff <= 0) {
+                    el.textContent = 'Hết hạn';
+                    el.style.color = '#dc2626';
+                    // Reload after 2s so server auto-cancels and UI refreshes
+                    setTimeout(function() { location.reload(); }, 2000);
+                    return;
+                }
+
+                var mins = Math.floor(diff / 60);
+                var secs = diff % 60;
+                el.textContent = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+                if (diff < 300) el.style.color = '#dc2626';
+                else if (diff < 600) el.style.color = '#f59e0b';
+            });
+        }
+
+        updateCountdowns();
+        setInterval(updateCountdowns, 1000);
+    </script>
+}
