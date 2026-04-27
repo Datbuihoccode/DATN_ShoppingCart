@@ -9,5 +9,8 @@ namespace ShoppingCard.Models
         [Required(ErrorMessage = "Yêu cầu nhập số lượng sản phẩm")]
         public int Quantity { get; set; }
         public DateTime CreatedDate { get; set; }
+
+        [ForeignKey("ProductId")]
+        public virtual ProductModel Product { get; set; }
     }
 }

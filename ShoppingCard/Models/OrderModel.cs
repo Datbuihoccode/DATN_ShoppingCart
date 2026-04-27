@@ -18,6 +18,8 @@ namespace ShoppingCard.Models
 
         // Navigation property
         public virtual ICollection<OrderDetailsModel> OrderDetails { get; set; }
+        public virtual MomoInfoModel MomoInfo { get; set; }
+        public virtual VnpayModel VnpayInfo { get; set; }
 
         // Helper for UI display as per user's logic
         public string DisplayStatus

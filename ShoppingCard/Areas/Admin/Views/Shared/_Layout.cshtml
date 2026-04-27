@@ -74,11 +74,18 @@
                class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Role" ? "active" : "")">
                 <i class="fas fa-user-shield"></i><span>Quyền hạn</span>
             </a>
+            <a asp-action="Profile" asp-controller="Account" asp-area="Admin"
+               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
+                <i class="fas fa-user-cog"></i><span>Tài khoản của tôi</span>
+            </a>
         </nav>
 
-        <div class="sidebar-footer">
-            <a asp-action="Index" asp-controller="Home" asp-area="">
-                <i class="fas fa-store"></i><span>Về trang chủ</span>
+        <div class="sidebar-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.07);">
+            <a asp-action="Logout" asp-controller="Account" asp-area="Admin"
+               class="d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-danger fw-semibold"
+               style="font-size: 13px; background: rgba(220,53,69,0.08); text-decoration: none; transition: background 0.2s;"
+               onmouseover="this.style.background='rgba(220,53,69,0.16)'" onmouseout="this.style.background='rgba(220,53,69,0.08)'">
+                <i class="fas fa-sign-out-alt"></i> Đăng xuất
             </a>
         </div>
     </aside>
@@ -86,37 +93,6 @@
     <!-- ===== MAIN ===== -->
     <div class="admin-main">
 
-        <!-- TOPBAR -->
-        <header class="admin-topbar">
-            <div class="d-flex align-items-center gap-3">
-                <span class="topbar-title">@ViewData["Title"]</span>
-            </div>
-            <div class="topbar-right">
-                <a href="/" class="topbar-icon-btn" title="Xem trang web">
-                    <i class="fas fa-external-link-alt"></i>
-                </a>
-                @if (User.Identity?.IsAuthenticated ?? false)
-                {
-                    <div class="topbar-user dropdown">
-                        <div class="topbar-user-avatar dropdown-toggle" data-bs-toggle="dropdown">
-                            @User.Identity.Name?.Substring(0, 1).ToUpper()
-                        </div>
-                        <span class="topbar-user-name d-none d-md-block">@User.Identity.Name</span>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius: 10px; min-width: 180px; padding: 8px;">
-                            <li><a class="dropdown-item" asp-action="Logout" asp-controller="Account" asp-area="">
-                                <i class="fas fa-sign-out-alt me-2 text-danger"></i>Đăng xuất
-                            </a></li>
-                        </ul>
-                    </div>
-                }
-                else
-                {
-                    <a asp-action="Login" asp-controller="Account" asp-area="" class="btn-admin-primary" style="padding: 7px 16px; font-size: 13px;">
-                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                    </a>
-                }
-            </div>
-        </header>
 
         <!-- PAGE CONTENT -->
         <main class="admin-content">

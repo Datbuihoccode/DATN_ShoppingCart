@@ -13,5 +13,8 @@ namespace ShoppingCard.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
         public DateTime DatePaid { get; set; }
+
+        [ForeignKey("OrderId")]
+        public virtual OrderModel Order { get; set; }
     }
 }

@@ -21,6 +21,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 builder.Services.AddDistributedMemoryCache();
 
@@ -58,6 +59,23 @@ builder.Services
         options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
         options.ClientSecret = builder.Configuration.GetSection("GoogleKeys:ClientSecret").Value;
     });
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/Admin"))
+        {
+            context.Response.Redirect("/Admin/Account/Login?ReturnUrl=" + context.Request.Path);
+        }
+        else
+        {
+            context.Response.Redirect(options.LoginPath + "?ReturnUrl=" + context.Request.Path);
+        }
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -103,7 +121,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "Areas",
-    pattern: "{area:exists}/{controller=Product}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 
 

@@ -6,7 +6,6 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Route("Admin/Dashboard")]
     [Authorize(Roles = "Admin")]
     public class DashboardController : Controller
     {
@@ -17,7 +16,6 @@ namespace ShoppingCard.Areas.Admin.Controllers
             _dataContext = context;
         }
 
-        [Route("Index")]
         [HttpGet]
         public async Task<IActionResult> Index()
         {

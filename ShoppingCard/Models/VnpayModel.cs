@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShoppingCard.Models
 {
@@ -12,6 +13,9 @@ namespace ShoppingCard.Models
         public string PaymentMethod { get; set; }
         public string PaymentId { get; set; }
         public DateTime DateCreated { get; set; }
+
+        [ForeignKey("PaymentId")]
+        public virtual OrderModel Order { get; set; }
     }
 }
 

@@ -43,6 +43,26 @@ namespace ShoppingCard.Repository
                 .WithOne(od => od.Order)
                 .HasPrincipalKey(o => o.OrderCode)
                 .HasForeignKey(od => od.OrderCode);
+
+            // Cấu hình liên kết giữa Product và ProductQuantity
+            modelBuilder.Entity<ProductModel>()
+                .HasMany(p => p.ProductQuantities)
+                .WithOne(pq => pq.Product)
+                .HasForeignKey(pq => pq.ProductId);
+
+            // Cấu hình liên kết MomoInfo qua OrderCode
+            modelBuilder.Entity<OrderModel>()
+                .HasOne(o => o.MomoInfo)
+                .WithOne(m => m.Order)
+                .HasPrincipalKey<OrderModel>(o => o.OrderCode)
+                .HasForeignKey<MomoInfoModel>(m => m.OrderId);
+
+            // Cấu hình liên kết VnpayInfo qua OrderCode
+            modelBuilder.Entity<OrderModel>()
+                .HasOne(o => o.VnpayInfo)
+                .WithOne(v => v.Order)
+                .HasPrincipalKey<OrderModel>(o => o.OrderCode)
+                .HasForeignKey<VnpayModel>(v => v.PaymentId);
         }
     }
 }

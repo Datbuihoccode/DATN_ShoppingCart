@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShoppingCard.Repository;
 
@@ -11,9 +12,11 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260427053158_LinkProductAndQuantity")]
+    partial class LinkProductAndQuantity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -162,9 +165,6 @@ namespace ShoppingCard.Migrations
 
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
-
-                    b.Property<string>("Avatar")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -373,16 +373,12 @@ namespace ShoppingCard.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrderInfo")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderId")
-                        .IsUnique()
-                        .HasFilter("[OrderId] IS NOT NULL");
 
                     b.ToTable("MomoInfos");
                 });
@@ -656,7 +652,7 @@ namespace ShoppingCard.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentId")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
@@ -665,10 +661,6 @@ namespace ShoppingCard.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PaymentId")
-                        .IsUnique()
-                        .HasFilter("[PaymentId] IS NOT NULL");
 
                     b.ToTable("VnpayInfos");
                 });
@@ -760,16 +752,6 @@ namespace ShoppingCard.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShoppingCard.Models.MomoInfoModel", b =>
-                {
-                    b.HasOne("ShoppingCard.Models.OrderModel", "Order")
-                        .WithOne("MomoInfo")
-                        .HasForeignKey("ShoppingCard.Models.MomoInfoModel", "OrderId")
-                        .HasPrincipalKey("ShoppingCard.Models.OrderModel", "OrderCode");
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("ShoppingCard.Models.OrderDetailsModel", b =>
                 {
                     b.HasOne("ShoppingCard.Models.OrderModel", "Order")
@@ -840,16 +822,6 @@ namespace ShoppingCard.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShoppingCard.Models.VnpayModel", b =>
-                {
-                    b.HasOne("ShoppingCard.Models.OrderModel", "Order")
-                        .WithOne("VnpayInfo")
-                        .HasForeignKey("ShoppingCard.Models.VnpayModel", "PaymentId")
-                        .HasPrincipalKey("ShoppingCard.Models.OrderModel", "OrderCode");
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("ShoppingCard.Models.WishlistModel", b =>
                 {
                     b.HasOne("ShoppingCard.Models.ProductModel", "Product")
@@ -868,11 +840,7 @@ namespace ShoppingCard.Migrations
 
             modelBuilder.Entity("ShoppingCard.Models.OrderModel", b =>
                 {
-                    b.Navigation("MomoInfo");
-
                     b.Navigation("OrderDetails");
-
-                    b.Navigation("VnpayInfo");
                 });
 
             modelBuilder.Entity("ShoppingCard.Models.ProductModel", b =>

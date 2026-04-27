@@ -39,8 +39,8 @@ namespace ShoppingCard.Models
         public int Quantity { get; set; }
 
         public int Sold { get; set; }
-
         public ICollection<RatingModel> Ratings { get; set; }
+        public virtual ICollection<ProductQuantityModel> ProductQuantities { get; set; }
 
         /// <summary>
         /// Quan hệ nhiều-nhiều với Category (qua bảng ProductCategories)
