@@ -19,17 +19,65 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
         [Route("Index")]
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var countProduct = _dataContext.Products.Count();
-            var countOrder = _dataContext.Orders.Count();
-            var countCategory = _dataContext.Categories.Count();
-            var countUser = _dataContext.Users.Count();
+            var countProduct = await _dataContext.Products.CountAsync();
+            var countOrder = await _dataContext.Orders.CountAsync();
+            var countCategory = await _dataContext.Categories.CountAsync();
+            var countUser = await _dataContext.Users.CountAsync();
 
             ViewBag.CountProduct = countProduct;
             ViewBag.CountOrder = countOrder;
             ViewBag.CountCategory = countCategory;
             ViewBag.CountUser = countUser;
+
+            // 1. Recent Orders (Top 5)
+            var recentOrders = await _dataContext.Orders
+                .OrderByDescending(o => o.CreateDate)
+                .Take(5)
+                .Select(o => new
+                {
+                    o.OrderCode,
+                    o.UserName,
+                    o.CreateDate,
+                    o.Status,
+                    o.PaymentStatus,
+                    TotalAmount = _dataContext.OrderDetails
+                        .Where(od => od.OrderCode == o.OrderCode)
+                        .Sum(od => od.Price * od.Quantity)
+                })
+                .ToListAsync();
+
+            // 2. Top Products (Top 5 by Sold)
+            var topProducts = await _dataContext.Products
+                .OrderByDescending(p => p.Sold)
+                .Take(5)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Image,
+                    p.Sold,
+                    p.Price,
+                    p.Quantity,
+                    Revenue = _dataContext.OrderDetails
+                        .Where(od => od.ProductId == p.Id)
+                        .Sum(od => od.Price * od.Quantity)
+                })
+                .ToListAsync();
+
+            // 3. Low Stock Products (Quantity < 10)
+            var lowStock = await _dataContext.Products
+                .Where(p => p.Quantity < 10)
+                .OrderBy(p => p.Quantity)
+                .Take(5)
+                .ToListAsync();
+
+            // 4. Total Revenue from Statisticals
+            ViewBag.TotalRevenue = await _dataContext.Statisticals.SumAsync(s => s.Revenue);
+
+            ViewBag.RecentOrders = recentOrders;
+            ViewBag.TopProducts = topProducts;
+            ViewBag.LowStock = lowStock;
 
             return View();
         }

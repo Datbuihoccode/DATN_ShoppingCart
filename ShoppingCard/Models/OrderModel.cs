@@ -13,9 +13,11 @@ namespace ShoppingCard.Models
         public PaymentStatus PaymentStatus { get; set; }
         public string PaymentMethod { get; set; } // Keeps string for details like "VNPAY 123456"
         public string ShippingPhone { get; set; }  // Phone number entered at checkout
-
         public string CouponCode { get; set; }
         public decimal DiscountAmount { get; set; }
+
+        // Navigation property
+        public virtual ICollection<OrderDetailsModel> OrderDetails { get; set; }
 
         // Helper for UI display as per user's logic
         public string DisplayStatus

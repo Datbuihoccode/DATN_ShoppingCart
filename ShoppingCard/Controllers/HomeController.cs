@@ -27,7 +27,6 @@ namespace ShoppingCard.Controllers
         public IActionResult Index()
         {
             var products = _dataContext.Products
-                .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductCategories)
                     .ThenInclude(pc => pc.Category)
@@ -53,6 +52,8 @@ namespace ShoppingCard.Controllers
 
             var wishlistProducts = await _dataContext.Wishlists
                 .Include(w => w.Product)
+                    .ThenInclude(p => p.ProductCategories)
+                        .ThenInclude(pc => pc.Category)
                 .Where(w => w.UserId == userId)
                 .OrderByDescending(w => w.Id)
                 .ToListAsync();

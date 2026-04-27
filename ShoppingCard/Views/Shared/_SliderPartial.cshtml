@@ -1,39 +1,3 @@
-<style>
-    #slider-carousel .carousel-inner {
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    }
-
-    #slider-carousel .carousel-item img {
-        width: 100%;
-        height: 400px;
-        object-fit: cover;
-    }
-
-    .control-carousel {
-        position: absolute;
-        background: rgba(0,0,0,0.4);
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        top: 50%;
-        transform: translateY(-50%);
-        border: none;
-        transition: all 0.3s ease;
-        color: #fff !important;
-        z-index: 5;
-    }
-
-    .control-carousel:hover {
-        background: var(--secondary-color);
-        color: #fff;
-    }
-</style>
-
 <div id="slider-carousel" class="carousel slide mb-4" data-bs-ride="carousel">
     <div class="carousel-indicators">
         @{ int totalSliders = (ViewBag.Sliders?.Count ?? 0) + 2; }
@@ -47,7 +11,7 @@
         <!-- Banners chuyên biệt cho Laptop Store -->
         <div class="carousel-item active">
             <img src="~/media/sliders/banner_gaming.png" class="d-block w-100" alt="Laptop Gaming Banner">
-            <div class="carousel-caption d-none d-md-block" style="background: rgba(0,0,0,0.5); border-radius: 10px; padding: 20px;">
+            <div class="carousel-caption d-none d-md-block carousel-caption-custom">
                 <h2 class="fw-bold">CHINH PHỤC MỌI TỰA GAME</h2>
                 <p>Laptop Gaming cấu hình cực khủng - Trải nghiệm không giới hạn.</p>
                 <a href="#" class="btn btn-brand">XEM NGAY</a>
@@ -55,18 +19,21 @@
         </div>
         <div class="carousel-item">
             <img src="~/media/sliders/banner_office.png" class="d-block w-100" alt="Laptop Office Banner">
-            <div class="carousel-caption d-none d-md-block text-start" style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 20px; left: 10%; right: auto;">
-                <h2 class="fw-bold" style="color: #333;">SANG TRỌNG & ĐẲNG CẤP</h2>
-                <p style="color: #555;">Dòng Ultrabook mỏng nhẹ, tinh tế cho doanh nhân và văn phòng.</p>
+            <div class="carousel-caption d-none d-md-block text-start carousel-caption-custom light">
+                <h2 class="fw-bold">SANG TRỌNG & ĐẲNG CẤP</h2>
+                <p>Dòng Ultrabook mỏng nhẹ, tinh tế cho doanh nhân và văn phòng.</p>
                 <a href="#" class="btn btn-brand">KHÁM PHÁ</a>
             </div>
         </div>
 
-        @foreach (var slider in ViewBag.Sliders)
+        @if (ViewBag.Sliders != null)
         {
-            <div class="carousel-item">
-                <img src="~/media/sliders/@slider.Image" class="d-block w-100" alt="@slider.Name">
-            </div>
+            @foreach (var slider in ViewBag.Sliders)
+            {
+                <div class="carousel-item">
+                    <img src="~/media/sliders/@slider.Image" class="d-block w-100" alt="@slider.Name">
+                </div>
+            }
         }
     </div>
 

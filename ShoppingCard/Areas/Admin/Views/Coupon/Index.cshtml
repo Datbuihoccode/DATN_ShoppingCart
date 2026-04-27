@@ -52,7 +52,7 @@
                     <div class="row" id="maxDiscountRow" style="display: none;">
                         <div class="col-12">
                             <div class="form-group">
-                                <label class="form-label">Giảm tối đa (VNĐ)</label>
+                                <label class="form-label">Giảm tối đa (đ)</label>
                                 <input asp-for="MaxDiscountAmount" class="form-control" placeholder="Để trống nếu không giới hạn" />
                                 <span asp-validation-for="MaxDiscountAmount" class="text-danger small"></span>
                             </div>
@@ -80,14 +80,14 @@
                         <div class="col-6">
                             <div class="form-group">
                                 <label class="form-label">Ngày bắt đầu</label>
-                                <input asp-for="DateStart" type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                                <input asp-for="DateStart" type="text" class="form-control datepicker" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                                 <span asp-validation-for="DateStart" class="text-danger small"></span>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group">
                                 <label class="form-label">Ngày hết hạn</label>
-                                <input asp-for="DateExpired" type="date" class="form-control" value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
+                                <input asp-for="DateExpired" type="text" class="form-control datepicker" value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
                                 <span asp-validation-for="DateExpired" class="text-danger small"></span>
                             </div>
                         </div>
@@ -143,7 +143,7 @@
                                         @if (coupon.Type == 1) {
                                             <span class="text-success">@coupon.DiscountValue.ToString("0")%</span>
                                             @if(coupon.MaxDiscountAmount > 0) {
-                                                <div class="small text-muted fw-normal">(Tối đa @coupon.MaxDiscountAmount.ToString("#,##0")đ)</div>
+                                                <div class="small text-muted fw-normal">(Tối đa @coupon.MaxDiscountAmount.ToString("#,##0") đ)</div>
                                             }
                                         } else {
                                             <span class="text-danger">-@coupon.DiscountValue.ToString("#,##0") đ</span>
@@ -182,6 +182,15 @@
     @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
         $(function() {
+            // Initialize Flatpickr
+            flatpickr(".datepicker", {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                locale: "vn",
+                allowInput: true
+            });
+
             $('#couponType').change(function() {
                 if ($(this).val() == "1") {
                     $('#maxDiscountRow').slideDown();

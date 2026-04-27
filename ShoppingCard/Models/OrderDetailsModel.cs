@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ShoppingCard.Models
 {
@@ -14,7 +14,10 @@ namespace ShoppingCard.Models
         public decimal Price { get; set; }
         public int Quantity { get; set; }
 
+        [ForeignKey("OrderCode")]
+        public virtual OrderModel Order { get; set; }
+
         [ForeignKey("ProductId")]
-        public ProductModel Product { get; set; }
+        public virtual ProductModel Product { get; set; }
     }
 }

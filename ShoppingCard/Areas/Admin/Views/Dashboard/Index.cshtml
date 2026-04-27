@@ -3,128 +3,389 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<!-- Stat Cards -->
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        .dashboard-kpi-card {
+            border: none;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            position: relative;
+        }
+        .dashboard-kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+        }
+        .kpi-icon-wrapper {
+            width: 54px;
+            height: 54px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .bg-glass-primary { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
+        .bg-glass-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .bg-glass-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .bg-glass-info { background: rgba(6, 182, 212, 0.1); color: #06b6d4; }
+        
+        .chart-card {
+            border: none;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            padding: 25px;
+        }
+        
+        .table-card {
+            border: none;
+            border-radius: 24px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+        .table-card-header {
+            padding: 20px 25px;
+            background: #fff;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .hover-bg-light:hover {
+            background-color: #f8fafc;
+            cursor: pointer;
+        }
+        .transition-all {
+            transition: all 0.2s ease;
+        }
+        /* Custom Flatpickr style to match admin theme */
+        .flatpickr-calendar {
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 1px solid #f1f5f9;
+        }
+        .flatpickr-day.selected {
+            border-color: #4f46e5;
+        }
+    </style>
+}
+
+<!-- TOP FILTER BAR -->
+<div class="row mb-4 align-items-center">
+    <div class="col-md-6">
+        <h4 class="fw-bold mb-0">Chào mừng trở lại, Admin 👋</h4>
+        <p class="text-muted mb-0">Dưới đây là thống kê mới nhất của LaptopCenter.</p>
+    </div>
+    <div class="col-md-6 text-md-end mt-3 mt-md-0">
+        <div class="d-inline-flex gap-2 p-2 bg-white rounded-4 shadow-sm border">
+             <input type="text" class="form-control border-0 shadow-none datepicker" id="date_from" placeholder="Từ ngày" style="width: 145px; font-size: 13px; background: transparent;">
+             <div class="vr mx-1"></div>
+             <input type="text" class="form-control border-0 shadow-none datepicker" id="date_to" placeholder="Đến ngày" style="width: 145px; font-size: 13px; background: transparent;">
+             <button id="filterButton" class="btn btn-primary rounded-3 px-3">
+                 <i class="bi bi-funnel"></i>
+             </button>
+        </div>
+    </div>
+</div>
+
+<!-- KPI CARDS -->
 <div class="row g-4 mb-4">
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card red">
-            <div class="stat-icon"><i class="fas fa-box-open"></i></div>
-            <div class="stat-info">
-                <div class="stat-label">Sản phẩm</div>
-                <div class="stat-value">@ViewBag.CountProduct</div>
+    <!-- Doanh thu -->
+    <div class="col-md-3">
+        <div class="dashboard-kpi-card p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted mb-1 fw-medium small">Tổng doanh thu</p>
+                    <h4 class="fw-bold mb-1">@(((decimal)ViewBag.TotalRevenue).ToString("#,##0")) đ</h4>
+                    <span class="text-success small fw-semibold"><i class="bi bi-arrow-up"></i> 18.6%</span>
+                </div>
+                <div class="kpi-icon-wrapper bg-glass-primary">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card blue">
-            <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
-            <div class="stat-info">
-                <div class="stat-label">Đơn hàng</div>
-                <div class="stat-value">@ViewBag.CountOrder</div>
+    <!-- Đơn hàng -->
+    <div class="col-md-3">
+        <div class="dashboard-kpi-card p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted mb-1 fw-medium small">Đơn hàng</p>
+                    <h4 class="fw-bold mb-1">@ViewBag.CountOrder.ToString("N0")</h4>
+                    <span class="text-success small fw-semibold"><i class="bi bi-arrow-up"></i> 12.4%</span>
+                </div>
+                <div class="kpi-icon-wrapper bg-glass-success">
+                    <i class="bi bi-bag-check"></i>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card green">
-            <div class="stat-icon"><i class="fas fa-tags"></i></div>
-            <div class="stat-info">
-                <div class="stat-label">Danh mục</div>
-                <div class="stat-value">@ViewBag.CountCategory</div>
+    <!-- Khách hàng -->
+    <div class="col-md-3">
+        <div class="dashboard-kpi-card p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted mb-1 fw-medium small">Khách hàng</p>
+                    <h4 class="fw-bold mb-1">@ViewBag.CountUser.ToString("N0")</h4>
+                    <span class="text-warning small fw-semibold"><i class="bi bi-dash"></i> 2.1%</span>
+                </div>
+                <div class="kpi-icon-wrapper bg-glass-warning">
+                    <i class="bi bi-people"></i>
+                </div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-xl-3">
-        <div class="stat-card orange">
-            <div class="stat-icon"><i class="fas fa-users"></i></div>
-            <div class="stat-info">
-                <div class="stat-label">Người dùng</div>
-                <div class="stat-value">@ViewBag.CountUser</div>
+    <!-- Sản phẩm -->
+    <div class="col-md-3">
+        <div class="dashboard-kpi-card p-4">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <p class="text-muted mb-1 fw-medium small">Sản phẩm</p>
+                    <h4 class="fw-bold mb-1">@ViewBag.CountProduct.ToString("N0")</h4>
+                    <span class="text-info small fw-semibold">@ViewBag.CountCategory danh mục</span>
+                </div>
+                <div class="kpi-icon-wrapper bg-glass-info">
+                    <i class="bi bi-box-seam"></i>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Chart + Filter Row -->
-<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="chart-container">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h6 class="fw-bold mb-0" style="color: var(--admin-text);">Biểu đồ thống kê</h6>
-                <select class="form-select form-select-sm filter-select" style="width: 160px;">
-                    <option value="" selected disabled>-- Lọc theo --</option>
+<!-- MAIN CHARTS & LISTS -->
+<div class="row g-4 mb-4">
+    <!-- REVENUE CHART -->
+    <div class="col-12">
+        <div class="chart-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Doanh thu & Đơn hàng</h5>
+                <select class="form-select form-select-sm border-0 bg-light shadow-none filter-select" style="width: 150px; border-radius: 10px;">
                     <option value="7">7 ngày qua</option>
-                    <option value="30">Tháng qua</option>
+                    <option value="30" selected>30 ngày qua</option>
                     <option value="90">3 tháng qua</option>
-                    <option value="365">1 năm</option>
+                    <option value="365">1 năm qua</option>
                 </select>
             </div>
-            <div id="myfirstchart" class="chart-area"></div>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-        <div class="admin-card h-100">
-            <div class="admin-card-header">
-                <span class="admin-card-title">Lọc theo ngày</span>
-            </div>
-            <div class="admin-card-body">
-                <div class="form-group">
-                    <label class="form-label">Từ ngày</label>
-                    <input type="date" class="form-control" id="date_from" asp-for="DateCreated" />
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Đến ngày</label>
-                    <input type="date" class="form-control" id="date_to" />
-                </div>
-                <button id="filterButton" class="btn-admin-primary w-100 mt-2" style="justify-content: center;">
-                    <i class="fas fa-filter"></i> Lọc dữ liệu
-                </button>
+            <div style="height: 350px;">
+                <canvas id="mainChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
+<div class="row g-4 mb-4">
+    <!-- RECENT ORDERS -->
+    <div class="col-12">
+        <div class="table-card">
+            <div class="table-card-header d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0">Đơn hàng mới</h5>
+                <a asp-action="Index" asp-controller="Order" class="btn btn-sm btn-light rounded-3 text-primary fw-bold px-3">Tất cả</a>
+            </div>
+            <div class="p-0 table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 border-0 small text-uppercase fw-bold text-muted">Mã đơn hàng</th>
+                            <th class="py-3 border-0 small text-uppercase fw-bold text-muted">Khách hàng</th>
+                            <th class="py-3 border-0 text-center small text-uppercase fw-bold text-muted">Ngày đặt</th>
+                            <th class="py-3 border-0 text-center small text-uppercase fw-bold text-muted">Giá trị</th>
+                            <th class="pe-4 py-3 border-0 text-end small text-uppercase fw-bold text-muted">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (ViewBag.RecentOrders != null)
+                        {
+                            foreach (var order in ViewBag.RecentOrders)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-3 fw-bold text-primary">#@order.OrderCode</td>
+                                    <td class="py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-shrink-0 bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                <i class="bi bi-person text-muted"></i>
+                                            </div>
+                                            <span class="ms-2 fw-medium">@order.UserName</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center small text-muted">@order.CreateDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center fw-bold text-dark">@order.TotalAmount.ToString("#,##0") đ</td>
+                                    <td class="pe-4 text-end">
+                                        @{
+                                            var statusClass = order.Status switch
+                                            {
+                                                ShoppingCard.Models.OrderStatus.New => "badge-new",
+                                                ShoppingCard.Models.OrderStatus.Confirmed => "badge-processed",
+                                                ShoppingCard.Models.OrderStatus.Processing => "badge-processed",
+                                                ShoppingCard.Models.OrderStatus.Shipping => "badge-processed",
+                                                ShoppingCard.Models.OrderStatus.Completed => "badge-processed",
+                                                ShoppingCard.Models.OrderStatus.Cancelled => "badge-cancelled",
+                                                _ => "badge-cod"
+                                            };
+                                            if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Pending) statusClass = "badge-new";
+
+                                            string displayStatus = "";
+                                            if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Pending) displayStatus = "Chờ thanh toán";
+                                            else if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Failed || order.Status == ShoppingCard.Models.OrderStatus.Cancelled) displayStatus = "Đã hủy";
+                                            else if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Refunded) displayStatus = "Đã hoàn tiền";
+                                            else {
+                                                displayStatus = order.Status switch {
+                                                    ShoppingCard.Models.OrderStatus.New => "Đơn hàng mới",
+                                                    ShoppingCard.Models.OrderStatus.Confirmed => "Đã xác nhận",
+                                                    ShoppingCard.Models.OrderStatus.Processing => "Đang xử lý",
+                                                    ShoppingCard.Models.OrderStatus.Shipping => "Đang giao hàng",
+                                                    ShoppingCard.Models.OrderStatus.Completed => "Hoàn thành",
+                                                    _ => "Không xác định"
+                                                };
+                                            }
+                                        }
+                                        <span class="status-badge @statusClass">
+                                            @displayStatus
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         $(document).ready(function () {
-            var chartMorris = new Morris.Line({
-                element: 'myfirstchart',
-                data: [],
-                xkey: 'date',
-                ykeys: ['sold', 'quantity', 'revenue'],
-                labels: ['Số lượng bán', 'Đơn hàng', 'Doanh thu'],
-                lineColors: ['#e3001b', '#2563eb', '#16a34a'],
-                lineWidth: 2,
-                pointSize: 4,
-                smooth: true,
-                gridLineColor: '#f0f2f5',
-                gridTextColor: '#9ca3af',
-                resize: true
+            // Initialize Flatpickr
+            flatpickr(".datepicker", {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                locale: "vn",
+                allowInput: true
             });
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            let mainChart;
 
-            function renderChart(data) {
-                chartMorris.setData(Array.isArray(data) ? data.map(function(item) {
-                    return { date: item.date, sold: item.sold, quantity: item.quantity, revenue: item.revenue };
-                }) : []);
+            function initChart(data) {
+                if (mainChart) mainChart.destroy();
+
+                const labels = data.map(d => {
+                    const date = new Date(d.date);
+                    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                });
+                const revenueData = data.map(d => d.revenue);
+                const orderData = data.map(d => d.quantity);
+
+                mainChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Doanh thu (đ)',
+                                data: revenueData,
+                                borderColor: '#4f46e5',
+                                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                yAxisID: 'y',
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                pointBackgroundColor: '#4f46e5'
+                            },
+                            {
+                                label: 'Đơn hàng',
+                                data: orderData,
+                                borderColor: '#10b981',
+                                backgroundColor: 'transparent',
+                                borderDash: [5, 5],
+                                tension: 0.4,
+                                yAxisID: 'y1',
+                                borderWidth: 2,
+                                pointRadius: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { 
+                                position: 'top', 
+                                align: 'end',
+                                labels: { 
+                                    usePointStyle: true, 
+                                    boxWidth: 6,
+                                    font: { size: 12, weight: '600' }
+                                } 
+                            },
+                            tooltip: {
+                                backgroundColor: '#1e293b',
+                                padding: 12,
+                                titleFont: { size: 14 },
+                                bodyFont: { size: 13 },
+                                cornerRadius: 8,
+                                displayColors: true
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                grid: { display: false },
+                                ticks: { font: { size: 11 } }
+                            },
+                            y: { 
+                                type: 'linear', 
+                                display: true, 
+                                position: 'left',
+                                grid: { color: '#f1f5f9' },
+                                ticks: { 
+                                    callback: value => (value >= 1000000 ? (value / 1000000).toFixed(1) + 'M' : value.toLocaleString()) + 'đ',
+                                    font: { size: 11 }
+                                }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                grid: { drawOnChartArea: false },
+                                ticks: { 
+                                    stepSize: 1,
+                                    font: { size: 11 }
+                                }
+                            }
+                        },
+                        interaction: {
+                            intersect: false,
+                            mode: 'index',
+                        }
+                    }
+                });
             }
 
             function loadChartData(url, requestData) {
-                $.ajax({ url: url, type: "POST", dataType: "json", data: requestData,
-                    success: function(data) { renderChart(data); },
-                    error: function(e) { console.error("Chart error:", e); }
+                $.post(url, requestData, function(data) {
+                    if (data && data.length > 0) {
+                        initChart(data);
+                    }
                 });
             }
 
             loadChartData('@Url.Action("GetChartData", "Dashboard", new { area = "Admin" })', {});
 
             $('.filter-select').on('change', function () {
-                var days = parseInt($(this).val(), 10);
-                if (days > 0) loadChartData('@Url.Action("GetChartDataBySelect", "Dashboard", new { area = "Admin" })', { days: days });
+                loadChartData('@Url.Action("GetChartDataBySelect", "Dashboard", new { area = "Admin" })', { days: $(this).val() });
             });
 
             $('#filterButton').on('click', function () {
                 var fromDate = $('#date_from').val(), toDate = $('#date_to').val();
                 if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
-                    Swal.fire({ icon: 'warning', title: 'Chú ý', text: 'Từ ngày không được lớn hơn đến ngày.' });
+                    Swal.fire({ icon: 'warning', title: 'Lỗi', text: 'Ngày bắt đầu không được lớn hơn ngày kết thúc.' });
                     return;
                 }
                 loadChartData('@Url.Action("FilterData", "Dashboard", new { area = "Admin" })', { fromDate, toDate });

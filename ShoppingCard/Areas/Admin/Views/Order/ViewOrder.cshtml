@@ -15,7 +15,7 @@
 }
 
 <div class="admin-page-header">
-    <h2 class="admin-page-title">Chi tiết đơn hàng</h2>
+    <h2 class="admin-page-title">Chi tiết đơn hàng <small class="text-muted" style="font-size: 0.7em; font-weight: normal;">#@orderCode</small></h2>
     <div class="actions-group">
         <a asp-action="Index" class="btn-admin-view" style="background: #f5f6fa; border: 1px solid #ddd; color: #666;">
             <i class="fas fa-arrow-left"></i> Quay lại
@@ -31,7 +31,7 @@
         <div class="admin-card">
             <div class="admin-card-header">
                 <span class="admin-card-title"><i class="fas fa-shopping-cart me-2"></i>Sản phẩm trong đơn</span>
-                <span class="badge bg-light text-dark border">Mã: @orderCode</span>
+                <span class="badge bg-light text-dark border" style="font-size: 15px; padding: 6px 12px; letter-spacing: 0.5px; font-family: 'Segoe UI Mono', monospace;">Mã đơn: @orderCode</span>
             </div>
             <div class="admin-card-body p-0">
                 <div class="table-responsive">

@@ -8,7 +8,7 @@
 
 body {
   font-family: 'Roboto', sans-serif;
-  background:;
+  background: #fff;
   position: relative;
   font-weight:400px;
 }
@@ -899,7 +899,7 @@ h2.title {
   transition: height 500ms ease 0s;
   width: 100%;
   display: block;
-  opacity:;
+  opacity: 0.7;
 }
 
 .single-products:hover .product-overlay {
@@ -1556,7 +1556,7 @@ h2.title {
 }
 
 .breadcrumbs .breadcrumb > li + li:before {
-  content: " ";
+  content: "ï¿½";
 }
 
 #cart_items .cart_info {

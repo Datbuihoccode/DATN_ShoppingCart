@@ -25,13 +25,6 @@ namespace ShoppingCard.Models
         [Required(ErrorMessage = "Yêu cầu chọn Thương hiệu.")]
         public int BrandId { get; set; }
 
-        /// <summary>
-        /// CategoryId chính (tương thích ngược với dữ liệu cũ, dùng cho navigation đơn).
-        /// Danh mục đầy đủ (nhiều danh mục) xem qua ProductCategories.
-        /// </summary>
-        public int? CategoryId { get; set; }
-
-        public CategoryModel? Category { get; set; }
 
         public BrandModel Brand { get; set; }
 

@@ -15,8 +15,11 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <!-- Admin CSS -->
     <link href="~/css/admin.css" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
 <div class="admin-wrapper">
@@ -143,6 +146,10 @@
 
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.22/dist/sweetalert2.all.min.js"></script>
+
+<!-- Flatpickr -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
 
 <script>
     // Auto-init DataTable for #myTable

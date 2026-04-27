@@ -33,10 +33,16 @@ namespace ShoppingCard.Repository
                 .HasIndex(w => new { w.UserId, w.ProductId })
                 .IsUnique();
 
-            // Unique: 1 sản phẩm chỉ liên kết 1 lần với 1 danh mục
             modelBuilder.Entity<ProductCategoryModel>()
                 .HasIndex(pc => new { pc.ProductId, pc.CategoryId })
                 .IsUnique();
+
+            // Cấu hình liên kết giữa Order và OrderDetails qua OrderCode
+            modelBuilder.Entity<OrderModel>()
+                .HasMany(o => o.OrderDetails)
+                .WithOne(od => od.Order)
+                .HasPrincipalKey(o => o.OrderCode)
+                .HasForeignKey(od => od.OrderCode);
         }
     }
 }

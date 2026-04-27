@@ -54,10 +54,10 @@
                                 @item.Product.Price.ToString("#,##0 VNĐ")
                             </div>
 
-                            <div class="product-specs mb-2">
-                                @if (item.Product.Category != null)
+                             <div class="product-specs mb-2">
+                                @if (item.Product.ProductCategories != null && item.Product.ProductCategories.Any())
                                 {
-                                    <span class="spec-item">@item.Product.Category.Name</span>
+                                    <span class="spec-item">@item.Product.ProductCategories.First().Category.Name</span>
                                 }
                                 @if (item.Product.Brand != null)
                                 {

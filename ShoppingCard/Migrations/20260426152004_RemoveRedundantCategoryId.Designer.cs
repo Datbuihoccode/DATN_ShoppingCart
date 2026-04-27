@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShoppingCard.Repository;
 
@@ -11,9 +12,11 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260426152004_RemoveRedundantCategoryId")]
+    partial class RemoveRedundantCategoryId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -389,7 +392,7 @@ namespace ShoppingCard.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("OrderCode")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
@@ -404,8 +407,6 @@ namespace ShoppingCard.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OrderCode");
 
                     b.HasIndex("ProductId");
 
@@ -430,8 +431,7 @@ namespace ShoppingCard.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("OrderCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymentMethod")
                         .HasColumnType("nvarchar(max)");
@@ -749,18 +749,11 @@ namespace ShoppingCard.Migrations
 
             modelBuilder.Entity("ShoppingCard.Models.OrderDetailsModel", b =>
                 {
-                    b.HasOne("ShoppingCard.Models.OrderModel", "Order")
-                        .WithMany("OrderDetails")
-                        .HasForeignKey("OrderCode")
-                        .HasPrincipalKey("OrderCode");
-
                     b.HasOne("ShoppingCard.Models.ProductModel", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Order");
 
                     b.Navigation("Product");
                 });
@@ -820,11 +813,6 @@ namespace ShoppingCard.Migrations
             modelBuilder.Entity("ShoppingCard.Models.CategoryModel", b =>
                 {
                     b.Navigation("ProductCategories");
-                });
-
-            modelBuilder.Entity("ShoppingCard.Models.OrderModel", b =>
-                {
-                    b.Navigation("OrderDetails");
                 });
 
             modelBuilder.Entity("ShoppingCard.Models.ProductModel", b =>

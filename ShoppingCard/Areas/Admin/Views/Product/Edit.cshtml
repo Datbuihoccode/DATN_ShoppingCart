@@ -137,7 +137,7 @@
         $(".typing-price").on("input", function () {
             var val = $(this).val().replace(/[^\d]/g, "");
             var target = "#price-convert";
-            $(target).text(val ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(val) : "");
+            $(target).text(val ? new Intl.NumberFormat("vi-VN").format(val) + " đ" : "");
         });
 
         $(function() {

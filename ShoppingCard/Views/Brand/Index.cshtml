@@ -15,13 +15,14 @@
                                 <div class="laptopcenter-card-img">
                                     @{
                                         string labelClass = "label-default";
-                                        string catName = item.Category?.Name?.ToLower() ?? "";
+                                        var mainCategory = item.ProductCategories?.FirstOrDefault()?.Category;
+                                        string catName = mainCategory?.Name?.ToLower() ?? "";
                                         if(catName.Contains("gaming")) labelClass = "label-gaming";
                                         else if(catName.Contains("văn phòng") || catName.Contains("học tập")) labelClass = "label-office";
                                         else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
                                         else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
                                     }
-                                    <div class="laptopcenter-card-label @labelClass">@item.Category?.Name</div>
+                                    <div class="laptopcenter-card-label @labelClass">@(mainCategory?.Name ?? "Laptop")</div>
                                     <img src="@item.Image" alt="@item.Name" />
                                 </div>
                             </a>

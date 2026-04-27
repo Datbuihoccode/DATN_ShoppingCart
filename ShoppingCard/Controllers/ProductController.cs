@@ -21,8 +21,9 @@ namespace ShoppingCard.Controllers
                 return View(new List<ProductModel>());
 
             var products = await _dataContext.Products
-                .Include(p => p.Category)
                 .Include(p => p.Brand)
+                .Include(p => p.ProductCategories)
+                    .ThenInclude(pc => pc.Category)
                 .Where(p => p.Name.Contains(searchTearm) || p.Description.Contains(searchTearm))
                 .ToListAsync();
 
@@ -39,15 +40,19 @@ namespace ShoppingCard.Controllers
 
             var productsBySlug = await _dataContext.Products
                 .Include(p => p.Ratings)
-                .Include(p => p.Category)
+                .Include(p => p.ProductCategories)
                 .Include(p => p.Brand)
                 .FirstOrDefaultAsync(p => p.Slug == Slug);
 
             if (productsBySlug == null)
                 return RedirectToAction("Index");
 
+            // Lấy danh sách ID danh mục của sản phẩm hiện tại
+            var categoryIds = productsBySlug.ProductCategories.Select(pc => pc.CategoryId).ToList();
+
             var relatedProducts = await _dataContext.Products
-                .Where(p => p.CategoryId == productsBySlug.CategoryId && p.Id != productsBySlug.Id)
+                .Include(p => p.ProductCategories)
+                .Where(p => p.ProductCategories.Any(pc => categoryIds.Contains(pc.CategoryId)) && p.Id != productsBySlug.Id)
                 .OrderBy(x => Guid.NewGuid())
                 .Take(10)
                 .ToListAsync();

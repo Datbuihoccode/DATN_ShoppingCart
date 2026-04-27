@@ -19,7 +19,11 @@ namespace ShoppingCard.Controllers
             if (brand == null)
                 return RedirectToAction("Index", "Home");
             var productsByBrand = _dataContext.Products.Where(p => p.BrandId == brand.Id);
-            return View(await productsByBrand.OrderByDescending(p => p.Id).Include(p => p.Category).Include(p => p.Brand).ToListAsync());
+            return View(await productsByBrand.OrderByDescending(p => p.Id)
+                .Include(p => p.Brand)
+                .Include(p => p.ProductCategories)
+                    .ThenInclude(pc => pc.Category)
+                .ToListAsync());
         }
     }
 }

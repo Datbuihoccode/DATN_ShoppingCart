@@ -1320,3 +1320,145 @@ a:hover { color: #b80015; text-decoration: none; }
 .slider-prev { left: -5px; }
 .slider-next { right: -5px; }
 
+/* ===== CATEGORY SECTION ===== */
+.category-block {
+    margin-bottom: 3rem;
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid var(--border);
+}
+
+.category-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+}
+
+.category-header .section-title {
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.category-header .section-title::after {
+    display: none; /* Remove underline for homepage category headers */
+}
+
+.category-filters {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+@media (max-width: 767px) {
+    .category-filters {
+        margin-top: 1rem;
+    }
+}
+
+.filter-pill {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 50rem;
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.filter-pill:hover {
+    background-color: #6c757d;
+    color: #fff;
+    text-decoration: none;
+}
+
+.btn-view-all {
+    display: inline-block;
+    background-color: var(--secondary-color);
+    color: #fff !important;
+    font-weight: 700;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.btn-view-all:hover {
+    background-color: #b80015;
+    box-shadow: 0 4px 12px rgba(227, 0, 27, 0.2);
+    transform: translateY(-2px);
+}
+
+/* ===== MISC UI ===== */
+.social-icon { transition: transform 0.2s; }
+.social-icon:hover { transform: translateY(-3px); opacity: 0.8; }
+.social-icon.fb { color: #1877f2; }
+.social-icon.yt { color: #ff0000; }
+.social-icon.ig { color: #c32aa3; }
+.social-icon.tw { color: #1da1f2; }
+
+.payment-item.cod {
+    color: #1a1a2e;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+/* ===== MAIN SLIDER OVERRIDES ===== */
+#slider-carousel .carousel-inner {
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+#slider-carousel .carousel-item img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+}
+
+.control-carousel {
+    position: absolute;
+    background: rgba(0,0,0,0.4);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    transition: all 0.3s ease;
+    color: #fff !important;
+    z-index: 5;
+}
+
+.control-carousel:hover {
+    background: var(--secondary-color);
+    color: #fff;
+}
+
+.carousel-caption-custom {
+    background: rgba(0,0,0,0.5);
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.carousel-caption-custom.light {
+    background: rgba(0,0,0,0.2);
+    left: 10%;
+    right: auto;
+}
+
+.carousel-caption-custom h2 { color: #fff; }
+.carousel-caption-custom p { color: #eee; }
+
+.carousel-caption-custom.light h2 { color: #1a1a2e; }
+.carousel-caption-custom.light p { color: #333; }

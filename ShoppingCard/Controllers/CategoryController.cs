@@ -73,7 +73,7 @@ namespace ShoppingCard.Controllers
             int totalProducts = await products.CountAsync();
             int totalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
 
-            var data = await products.Include(p => p.Category).Include(p => p.Brand)
+            var data = await products.Include(p => p.Brand)
                                      .Skip((pg - 1) * pageSize).Take(pageSize).ToListAsync();
 
             ViewBag.CurrentPage = pg;

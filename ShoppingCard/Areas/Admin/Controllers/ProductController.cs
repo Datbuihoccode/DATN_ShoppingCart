@@ -25,7 +25,6 @@ namespace ShoppingCard.Areas.Controllers
         {
             return View(await _dataContext.Products
                 .OrderByDescending(p => p.Id)
-                .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductCategories)
                     .ThenInclude(pc => pc.Category)
@@ -35,7 +34,6 @@ namespace ShoppingCard.Areas.Controllers
         public async Task<IActionResult> Index(int pg = 1)
         {
             List<ProductModel> product = await _dataContext.Products
-                .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductCategories)
                     .ThenInclude(pc => pc.Category)
@@ -70,8 +68,6 @@ namespace ShoppingCard.Areas.Controllers
             ViewBag.Categories = _dataContext.Categories.ToList();
             ViewBag.Brands = new SelectList(_dataContext.Brands, "Id", "Name", product.BrandId);
 
-            // Bỏ validate CategoryId (dùng SelectedCategoryIds thay thế)
-            ModelState.Remove("CategoryId");
 
             if (SelectedCategoryIds == null || SelectedCategoryIds.Count == 0)
             {
@@ -108,8 +104,6 @@ namespace ShoppingCard.Areas.Controllers
                 }
                 product.Image = imageName;
 
-                // Gán CategoryId chính = danh mục đầu tiên được chọn
-                product.CategoryId = SelectedCategoryIds.First();
 
                 _dataContext.Products.Add(product);
                 await _dataContext.SaveChangesAsync();
@@ -162,7 +156,6 @@ namespace ShoppingCard.Areas.Controllers
             ViewBag.Categories = _dataContext.Categories.ToList();
             ViewBag.Brands = new SelectList(_dataContext.Brands, "Id", "Name", product.BrandId);
 
-            ModelState.Remove("CategoryId");
             ModelState.Remove("Image");
             ModelState.Remove("ImageUpload");
 
@@ -224,7 +217,6 @@ namespace ShoppingCard.Areas.Controllers
                 existingProduct.Price = product.Price;
                 existingProduct.BrandId = product.BrandId;
                 existingProduct.Condition = product.Condition;
-                existingProduct.CategoryId = SelectedCategoryIds.First(); // CategoryId chính
 
                 // Cập nhật danh mục: Xóa cũ → Thêm mới
                 _dataContext.ProductCategories.RemoveRange(existingProduct.ProductCategories);
