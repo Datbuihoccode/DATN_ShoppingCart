@@ -89,24 +89,66 @@ namespace ShoppingCard.Services
                     Price = cart.Product?.Price ?? 0,
                     Quantity = cart.Quantity
                 };
+                _dataContext.Add(orderDetails);
 
-                if (cart.Product != null)
+                // Chỉ trừ tồn kho ngay lập tức nếu là COD
+                if (method == PaymentMethod.COD && cart.Product != null)
                 {
                     cart.Product.Quantity -= cart.Quantity;
                     cart.Product.Sold += cart.Quantity;
                     _dataContext.Update(cart.Product);
                 }
-
-                _dataContext.Add(orderDetails);
             }
 
+            // --- Xóa giỏ hàng ngay lập tức cho TẤT CẢ phương thức thanh toán ---
             _dataContext.Carts.RemoveRange(dbCarts);
+            
             await _dataContext.SaveChangesAsync();
 
-            // Send Email in background (optional/best effort)
-            _ = SendEmailSafe(userEmail, orderCode);
+            // Nếu là COD thì gửi mail luôn
+            if (method == PaymentMethod.COD)
+            {
+                _ = SendEmailSafe(userEmail, orderCode);
+            }
 
             return order;
+        }
+
+        public async Task<bool> CompleteOrderAsync(string orderCode)
+        {
+            var order = await _dataContext.Orders
+                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+
+            if (order == null || order.PaymentStatus == PaymentStatus.Paid)
+            {
+                return false; // Đã xử lý hoặc không tìm thấy
+            }
+
+            // 1. Cập nhật trạng thái
+            order.PaymentStatus = PaymentStatus.Paid;
+            order.Status = OrderStatus.Confirmed;
+
+            // 2. Trừ tồn kho và tăng lượt bán
+            var details = await _dataContext.OrderDetails.Where(d => d.OrderCode == orderCode).ToListAsync();
+            foreach (var detail in details)
+            {
+                var product = await _dataContext.Products.FindAsync(detail.ProductId);
+                if (product != null)
+                {
+                    product.Quantity -= detail.Quantity;
+                    product.Sold += detail.Quantity;
+                    _dataContext.Update(product);
+                }
+            }
+
+            // (Không cần xóa giỏ hàng ở đây nữa vì đã xóa ở CreateOrderAsync)
+
+            await _dataContext.SaveChangesAsync();
+
+            // 3. Gửi mail xác nhận thanh toán thành công
+            _ = SendEmailSafe(order.UserName, orderCode);
+
+            return true;
         }
 
         private async Task SendEmailSafe(string receiver, string orderCode)

@@ -70,6 +70,7 @@ namespace ShoppingCard.Controllers
 
             if (resultCode == "0")
             {
+                await _orderService.CompleteOrderAsync(orderId);
                 TempData["success"] = "Thanh toán MoMo thành công!";
             }
             else
@@ -81,13 +82,14 @@ namespace ShoppingCard.Controllers
         }
 
         [HttpGet]
-        public IActionResult PaymentCallBackVnPay()
+        public async Task<IActionResult> PaymentCallBackVnPay()
         {
             // VnPay Return URL logic
             var response = _vnPayService.PaymentExecute(HttpContext.Request.Query);
 
             if (response != null && response.Success && response.VnPayResponseCode == "00")
             {
+                await _orderService.CompleteOrderAsync(response.OrderId);
                 TempData["success"] = "Thanh toán VNPAY thành công!";
             }
             else

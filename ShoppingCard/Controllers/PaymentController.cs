@@ -206,8 +206,7 @@ namespace ShoppingCard.Controllers
             {
                 if (resultCode == "0")
                 {
-                    order.PaymentStatus = PaymentStatus.Paid;
-                    order.Status = OrderStatus.Confirmed;
+                    await _orderService.CompleteOrderAsync(orderId);
                 }
                 else
                 {
@@ -233,9 +232,7 @@ namespace ShoppingCard.Controllers
             {
                 if (response.VnPayResponseCode == "00")
                 {
-                    order.PaymentStatus = PaymentStatus.Paid;
-                    order.Status = OrderStatus.Confirmed;
-                    order.PaymentMethod = "VnPay " + response.TransactionId;
+                    await _orderService.CompleteOrderAsync(orderId);
                 }
                 else
                 {

@@ -462,6 +462,7 @@ namespace ShoppingCard.Controllers
             try
             {
                 order.Status = OrderStatus.Cancelled;
+                order.PaymentStatus = PaymentStatus.Failed; // Mark payment as failed/cancelled as well
                 _dataContext.Update(order);
                 await _dataContext.SaveChangesAsync();
                 TempData["success"] = "Hủy đơn hàng thành công.";

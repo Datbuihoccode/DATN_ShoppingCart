@@ -39,6 +39,32 @@
                     <p class="mb-1"><strong>Ngày đặt:</strong> @order?.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p class="mb-1"><strong>Phương thức thanh toán:</strong> @order?.PaymentMethod</p>
                     <p class="mb-1"><strong>Coupon:</strong> @(string.IsNullOrWhiteSpace(order?.CouponCode) ? "-" : order.CouponCode)</p>
+                    
+                    @{
+                        var isPending = order?.PaymentStatus == PaymentStatus.Pending;
+                        var isExpired = isPending && (order?.CreateDate.AddHours(1) < DateTime.Now);
+                        var canCancel = (order?.Status == OrderStatus.New || isPending) && !isExpired && order?.Status != OrderStatus.Cancelled;
+                    }
+
+                    @if (canCancel)
+                    {
+                        <div class="mt-3">
+                            @if (isPending)
+                            {
+                                <a asp-action="RetryPayment" asp-controller="Account"
+                                   asp-route-ordercode="@order.OrderCode"
+                                   class="btn btn-warning fw-bold">
+                                    <i class="fas fa-redo me-1"></i> Thanh toán lại
+                                </a>
+                            }
+                            <a asp-action="CancelOrder" asp-controller="Account"
+                               asp-route-ordercode="@order.OrderCode"
+                               class="btn btn-outline-danger ms-1"
+                               onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
+                                Hủy đơn
+                            </a>
+                        </div>
+                    }
                 </div>
                 <div class="col-md-6 text-md-end">
                     <h5 class="fw-bold mb-3">Thông tin khách hàng</h5>
