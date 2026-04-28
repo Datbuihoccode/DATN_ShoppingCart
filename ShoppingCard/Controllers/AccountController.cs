@@ -55,8 +55,6 @@ namespace ShoppingCard.Controllers
                     var result = await _signInManager.PasswordSignInAsync(user.UserName, loginVM.Password, false, false);
                     if (result.Succeeded)
                     {
-                        await MergeSessionCartToDbAsync(user.Id);
-
                         TempData["success"] = "Đăng nhập thành công!";
                         var receiver = "1977datbui@gmail.com";
                         var subject = "Đăng nhập thành công";
@@ -148,25 +146,24 @@ namespace ShoppingCard.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
-                if (!await _roleManager.RoleExistsAsync("User"))
+                if (!await _roleManager.RoleExistsAsync("Customer"))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole("User"));
+                    await _roleManager.CreateAsync(new IdentityRole("Customer"));
                 }
 
-                var roleExist = await _userManager.IsInRoleAsync(newUser, "User");
+                var roleExist = await _userManager.IsInRoleAsync(newUser, "Customer");
                 if (!roleExist)
                 {
-                    var roleAssignResult = await _userManager.AddToRoleAsync(newUser, "User");
+                    var roleAssignResult = await _userManager.AddToRoleAsync(newUser, "Customer");
                     if (!roleAssignResult.Succeeded)
                     {
-                        TempData["error"] = "Không thể gán quyền User. Vui lòng thử lại sau.";
+                        TempData["error"] = "Không thể gán quyền Customer. Vui lòng thử lại sau.";
                         return RedirectToAction("Login", "Account");
                     }
                 }
 
                 await _signInManager.SignInAsync(newUser, isPersistent: false);
                 await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-                await MergeSessionCartToDbAsync(newUser.Id);
 
                 TempData["success"] = "Đăng ký tài khoản thành công.";
                 return RedirectToAction("Index", "Home");
@@ -174,7 +171,6 @@ namespace ShoppingCard.Controllers
 
             await _signInManager.SignInAsync(existingUser, isPersistent: false);
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
-            await MergeSessionCartToDbAsync(existingUser.Id);
 
             if (!string.IsNullOrWhiteSpace(returnUrl))
             {
@@ -204,12 +200,12 @@ namespace ShoppingCard.Controllers
                 var result = await _userManager.CreateAsync(newUser, user.Password);
                 if (result.Succeeded)
                 {
-                    if (!await _roleManager.RoleExistsAsync("User"))
+                    if (!await _roleManager.RoleExistsAsync("Customer"))
                     {
-                        await _roleManager.CreateAsync(new IdentityRole("User"));
+                        await _roleManager.CreateAsync(new IdentityRole("Customer"));
                     }
 
-                    var addRoleResult = await _userManager.AddToRoleAsync(newUser, "User");
+                    var addRoleResult = await _userManager.AddToRoleAsync(newUser, "Customer");
                     if (!addRoleResult.Succeeded)
                     {
                         foreach (var error in addRoleResult.Errors)
@@ -217,7 +213,7 @@ namespace ShoppingCard.Controllers
                             ModelState.AddModelError("", error.Description);
                         }
 
-                        TempData["error"] = "Tài khoản đã tạo nhưng chưa gán được quyền User.";
+                        TempData["error"] = "Tài khoản đã tạo nhưng chưa gán được quyền Customer.";
                         return View(user);
                     }
 
@@ -613,32 +609,6 @@ namespace ShoppingCard.Controllers
             }
 
             return View();
-        }
-        private async Task MergeSessionCartToDbAsync(string userId)
-        {
-            var sessionCart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
-            if (sessionCart != null && sessionCart.Count > 0)
-            {
-                foreach (var item in sessionCart)
-                {
-                    var dbCart = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == item.ProductId && c.UserId == userId);
-                    if (dbCart != null)
-                    {
-                        dbCart.Quantity += item.Quantity;
-                    }
-                    else
-                    {
-                        _dataContext.Carts.Add(new ShoppingCard.Models.CartModel
-                        {
-                            UserId = userId,
-                            ProductId = item.ProductId,
-                            Quantity = item.Quantity
-                        });
-                    }
-                }
-                await _dataContext.SaveChangesAsync();
-                HttpContext.Session.Remove("Cart");
-            }
         }
     }
 }

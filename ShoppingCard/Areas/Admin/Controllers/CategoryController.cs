@@ -8,7 +8,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin/Category")]
-    [Authorize(Roles = "Admin, Author")]
+    [Authorize(Roles = "Admin,Staff")]
     public class CategoryController : Controller
     {
         private readonly DataContext _dataContext;

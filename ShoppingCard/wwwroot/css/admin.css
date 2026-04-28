@@ -619,3 +619,182 @@ a { text-decoration: none; color: inherit; transition: color 0.2s; }
     .admin-sidebar { transform: translateX(-100%); }
     .admin-content { padding: 14px; }
 }
+
+/* ===== CUSTOM PAGE SPECIFIC STYLES ===== */
+
+/* Product Index Styles */
+.product-name {
+    font-weight: 600;
+    max-width: 450px;
+    font-size: 16px;
+}
+
+.truncate {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.product-img {
+    width: 70px;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.filter-buttons .btn {
+    border-radius: 20px;
+    padding: 6px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.filter-buttons .btn.active {
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+/* Dashboard KPI & Chart Styles */
+.dashboard-kpi-card {
+    border: none;
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+.dashboard-kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+}
+.kpi-icon-wrapper {
+    width: 54px;
+    height: 54px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+.bg-glass-primary { background: rgba(79, 70, 229, 0.1); color: #4f46e5; }
+.bg-glass-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+.bg-glass-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+.bg-glass-info { background: rgba(6, 182, 212, 0.1); color: #06b6d4; }
+
+.chart-card {
+    border: none;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    padding: 25px;
+}
+
+.table-card {
+    border: none;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+    overflow: hidden;
+}
+.table-card-header {
+    padding: 20px 25px;
+    background: #fff;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.hover-bg-light:hover {
+    background-color: #f8fafc;
+    cursor: pointer;
+}
+.transition-all {
+    transition: all 0.2s ease;
+}
+
+/* Custom Flatpickr style */
+.flatpickr-calendar {
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border: 1px solid #f1f5f9;
+}
+.flatpickr-day.selected {
+    border-color: #4f46e5;
+}
+
+/* Shared / Utility Styles */
+.vertical-align-middle {
+    vertical-align: middle !important;
+}
+
+.badge-subtle-primary {
+    background-color: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+    border: 1px solid rgba(37, 99, 235, 0.25);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Admin Login Page */
+.login-page-body {
+    background: linear-gradient(135deg, #1e1e2f 0%, #2d2d44 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+}
+.login-card-auth {
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    width: 100%;
+    max-width: 400px;
+    overflow: hidden;
+    animation: fadeInAuth 0.6s ease-out;
+}
+@keyframes fadeInAuth {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.login-header-auth {
+    background: #343a40;
+    color: #fff;
+    padding: 30px;
+    text-align: center;
+}
+.login-header-auth h2 {
+    margin: 0;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+.login-header-auth span {
+    color: #e74c3c;
+}
+.login-body-auth {
+    padding: 40px;
+}
+.btn-login-auth {
+    background: #343a40;
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    width: 100%;
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s;
+}
+.btn-login-auth:hover {
+    background: #23272b;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+.error-msg-auth {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-bottom: 20px;
+    text-align: center;
+}

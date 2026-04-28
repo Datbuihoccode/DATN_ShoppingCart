@@ -7,7 +7,7 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class CouponController : Controller
     {
         private readonly DataContext _dataContext;
@@ -19,7 +19,12 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            ViewBag.Coupons = await _dataContext.Coupons.OrderByDescending(c => c.Id).ToListAsync();
+            return View(await _dataContext.Coupons.OrderByDescending(c => c.Id).ToListAsync());
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
             return View();
         }
 
@@ -38,18 +43,45 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 ModelState.AddModelError(nameof(coupon.Name), "Mã coupon đã tồn tại.");
             }
 
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                TempData["error"] = "Thông tin coupon chưa hợp lệ.";
-                ViewBag.Coupons = await _dataContext.Coupons.OrderByDescending(c => c.Id).ToListAsync();
-                return View("Index", coupon);
+                _dataContext.Coupons.Add(coupon);
+                await _dataContext.SaveChangesAsync();
+                TempData["success"] = "Thêm mã giảm giá thành công.";
+                return RedirectToAction(nameof(Index));
             }
 
-            _dataContext.Coupons.Add(coupon);
-            await _dataContext.SaveChangesAsync();
+            TempData["error"] = "Có lỗi xảy ra, vui lòng kiểm tra lại.";
+            return View(coupon);
+        }
 
-            TempData["success"] = "Thêm coupon thành công";
-            return RedirectToAction(nameof(Index));
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var coupon = await _dataContext.Coupons.FindAsync(id);
+            if (coupon == null) return NotFound();
+            return View(coupon);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(CouponModel coupon)
+        {
+            if (coupon.DateExpired.Date < coupon.DateStart.Date)
+            {
+                ModelState.AddModelError(nameof(coupon.DateExpired), "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                _dataContext.Update(coupon);
+                await _dataContext.SaveChangesAsync();
+                TempData["success"] = "Cập nhật mã giảm giá thành công.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["error"] = "Có lỗi xảy ra, vui lòng kiểm tra lại.";
+            return View(coupon);
         }
 
         public async Task<IActionResult> Delete(int id)
@@ -59,7 +91,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
             {
                 _dataContext.Coupons.Remove(coupon);
                 await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Đã xóa coupon thành công.";
+                TempData["success"] = "Đã xóa mã giảm giá thành công.";
             }
             return RedirectToAction(nameof(Index));
         }
@@ -72,7 +104,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 coupon.Status = coupon.Status == 1 ? 0 : 1;
                 _dataContext.Update(coupon);
                 await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Đã cập nhật trạng thái coupon.";
+                TempData["success"] = "Đã cập nhật trạng thái.";
             }
             return RedirectToAction(nameof(Index));
         }

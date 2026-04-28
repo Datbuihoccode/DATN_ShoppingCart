@@ -20,19 +20,17 @@ builder.Services.AddScoped<IVnPayService, VnPayService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews(options =>
+{
+    options.Filters.Add<PreventAdminAccessClientAttribute>();
+});
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
-builder.Services.AddDistributedMemoryCache();
 
 // Add Email Sender Service
 builder.Services.AddTransient<IEmailSender, EmailSender>();
 
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.IsEssential = true;
-});
+
 
 // Connect to database
 builder.Services.AddDbContext<DataContext>(options =>
@@ -102,7 +100,7 @@ using (var scope = app.Services.CreateScope())
 
 app.UseStatusCodePagesWithRedirects("/Home/Error?statuscode={0}");
 
-app.UseSession();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

@@ -7,10 +7,46 @@
     <h2 class="admin-page-title">Danh sách đơn hàng</h2>
 </div>
 
+<!-- Filter -->
+<div class="row mb-4 align-items-end bg-light p-3 rounded-3 shadow-sm">
+    <div class="col-md-2 mb-2 mb-md-0">
+        <label class="form-label text-muted small fw-bold mb-1">Từ ngày</label>
+        <input type="date" id="filterDateFrom" class="form-control border-0 shadow-sm" />
+    </div>
+    <div class="col-md-2 mb-2 mb-md-0">
+        <label class="form-label text-muted small fw-bold mb-1">Đến ngày</label>
+        <input type="date" id="filterDateTo" class="form-control border-0 shadow-sm" />
+    </div>
+    <div class="col-md-2 mb-2 mb-md-0">
+        <label class="form-label text-muted small fw-bold mb-1">Trạng thái đơn</label>
+        <select id="filterOrderStatus" class="form-select border-0 shadow-sm" asp-items="Html.GetEnumSelectList<OrderStatus>()">
+            <option value="">Tất cả</option>
+        </select>
+    </div>
+    <div class="col-md-2 mb-2 mb-md-0">
+        <label class="form-label text-muted small fw-bold mb-1">Thanh toán</label>
+        <select id="filterPaymentStatus" class="form-select border-0 shadow-sm" asp-items="Html.GetEnumSelectList<PaymentStatus>()">
+            <option value="">Tất cả</option>
+        </select>
+    </div>
+    <div class="col-md-2 mb-2 mb-md-0">
+        <label class="form-label text-muted small fw-bold mb-1">Phương thức</label>
+        <select id="filterPaymentMethod" class="form-select border-0 shadow-sm">
+            <option value="">Tất cả</option>
+            <option value="COD">Tiền mặt (COD)</option>
+            <option value="VnPay">VNPAY</option>
+            <option value="MOMO">MOMO</option>
+        </select>
+    </div>
+    <div class="col-md-2 mt-3 mt-md-0">
+         <button id="resetFilters" class="btn btn-secondary shadow-sm w-100"><i class="fas fa-undo"></i> Đặt lại</button>
+    </div>
+</div>
+
 <div class="admin-card">
     <div class="admin-card-body">
         <div class="table-responsive">
-            <table class="admin-table" id="myTable">
+            <table class="admin-table" id="myTable" data-order='[[ 1, "desc" ]]'>
                 <thead>
                     <tr>
                         <th>Mã đơn</th>
@@ -25,7 +61,14 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        <tr>
+                        var methodRaw = string.IsNullOrWhiteSpace(item.PaymentMethod) || item.PaymentMethod == "COD" ? "COD" : item.PaymentMethod.Split(" ")[0];
+                        if (methodRaw.Equals("vnpay", StringComparison.OrdinalIgnoreCase)) methodRaw = "VnPay";
+                        if (methodRaw.Equals("momo", StringComparison.OrdinalIgnoreCase)) methodRaw = "MOMO";
+
+                        <tr data-date="@item.CreateDate.ToString("yyyy-MM-dd")" 
+                            data-orderstatus="@((int)item.Status)" 
+                            data-paymentstatus="@((int)item.PaymentStatus)" 
+                            data-paymentmethod="@methodRaw">
                             <td><span class="fw-bold text-dark">@item.OrderCode</span></td>
                             <td>@item.CreateDate.ToString("dd/MM/yyyy")</td>
                             <td>
@@ -114,3 +157,53 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var table = $('#myTable').DataTable();
+            
+            // Custom filtering function for DataTables
+            $.fn.dataTable.ext.search.push(
+                function(settings, data, dataIndex) {
+                    var filterDateFrom = $('#filterDateFrom').val();
+                    var filterDateTo = $('#filterDateTo').val();
+                    var filterOrderStatus = $('#filterOrderStatus').val();
+                    var filterPaymentStatus = $('#filterPaymentStatus').val();
+                    var filterPaymentMethod = $('#filterPaymentMethod').val();
+
+                    var tr = $(table.row(dataIndex).node());
+                    var date = tr.data('date') ? tr.data('date').toString() : "";
+                    var orderStatus = tr.data('orderstatus') ? tr.data('orderstatus').toString() : "";
+                    var paymentStatus = tr.data('paymentstatus') ? tr.data('paymentstatus').toString() : "";
+                    var paymentMethod = tr.data('paymentmethod') ? tr.data('paymentmethod').toString() : "";
+
+                    // Date filter (string comparison works for yyyy-MM-dd format)
+                    if (filterDateFrom && date < filterDateFrom) return false;
+                    if (filterDateTo && date > filterDateTo) return false;
+
+                    if (filterOrderStatus && filterOrderStatus !== orderStatus) return false;
+                    if (filterPaymentStatus && filterPaymentStatus !== paymentStatus) return false;
+                    if (filterPaymentMethod && filterPaymentMethod !== paymentMethod) return false;
+
+                    return true;
+                }
+            );
+
+            // Trigger filtering when inputs change
+            $('#filterDateFrom, #filterDateTo, #filterOrderStatus, #filterPaymentStatus, #filterPaymentMethod').on('change', function() {
+                table.draw();
+            });
+
+            // Reset filters
+            $('#resetFilters').on('click', function() {
+                $('#filterDateFrom').val('');
+                $('#filterDateTo').val('');
+                $('#filterOrderStatus').val('');
+                $('#filterPaymentStatus').val('');
+                $('#filterPaymentMethod').val('');
+                table.draw();
+            });
+        });
+    </script>
+}

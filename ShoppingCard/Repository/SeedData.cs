@@ -17,7 +17,7 @@ namespace ShoppingCard.Repository
                 var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = serviceProvider.GetRequiredService<UserManager<AppUserModel>>();
 
-                string[] roleNames = { "Admin", "Author", "Publisher", "User" };
+                string[] roleNames = { "Admin", "Staff", "Customer" };
                 foreach (var roleName in roleNames)
                 {
                     if (!await roleManager.RoleExistsAsync(roleName))
@@ -38,7 +38,7 @@ namespace ShoppingCard.Repository
                         EmailConfirmed = true
                     };
 
-                    var createResult = await userManager.CreateAsync(adminUser, "Ta!123");
+                    var createResult = await userManager.CreateAsync(adminUser, "12345a");
                     if (createResult.Succeeded)
                     {
                         await userManager.AddToRoleAsync(adminUser, "Admin");

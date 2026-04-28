@@ -1,90 +1,124 @@
 @model ProductQuantityModel
 @{
-    ViewData["Title"] = "Add Quantity";
+    ViewData["Title"] = "Thêm số lượng";
     var totalQuantities = 0;
     var key = 1;
     var productId = ViewBag.ProductId;
     var quantityHistory = ViewBag.ProductByQuantity as List<ProductQuantityModel> ?? new List<ProductQuantityModel>();
 }
-<div class="container-fluid px-0">
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <h4 class="mb-3">Add Quantity</h4>
-            <form asp-action="StoreProductQuantity" asp-controller="Product" enctype="multipart/form-data" class="row g-3 align-items-end">
-                <input type="hidden" asp-for="ProductId" value="@productId" />
-                <div asp-validation-summary="ModelOnly" class="text-danger col-12"></div>
-                <div class="col-md-5">
-                    <label class="form-label fw-semibold">Quantity</label>
-                    <input min="1" value="1" max="10000" asp-for="Quantity" class="form-control" />
-                    <span asp-validation-for="Quantity" class="text-danger"></span>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary w-100">Add</button>
-                </div>
-            </form>
+
+<!-- Page Header -->
+<div class="admin-page-header">
+    <div class="admin-page-title">
+        <i class="fa fa-cubes me-2 text-danger"></i> Quản lý Kho sản phẩm
+    </div>
+    <div class="admin-breadcrumb">
+        <a asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+        <span class="sep">/</span>
+        <a asp-controller="Product" asp-action="Index">Sản phẩm</a>
+        <span class="sep">/</span>
+        <span class="current">Thêm số lượng</span>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Add Quantity Form -->
+    <div class="col-lg-4 mb-4">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <div class="admin-card-title"><i class="fa fa-plus-circle me-2"></i>Nhập thêm hàng</div>
+            </div>
+            <div class="admin-card-body">
+                <form asp-action="StoreProductQuantity" asp-controller="Product" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="ProductId" value="@productId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="form-group mb-4">
+                        <label class="form-label">Số lượng cần thêm</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa fa-sort-numeric-asc text-muted"></i></span>
+                            <input min="1" value="1" max="10000" asp-for="Quantity" class="form-control border-start-0 ps-0" style="background:transparent;" />
+                        </div>
+                        <span asp-validation-for="Quantity" class="text-danger small mt-1 d-block"></span>
+                    </div>
+
+                    <button type="submit" class="btn-admin-primary w-100 justify-content-center py-2 mb-4" style="font-size: 15px;">
+                        <i class="fa fa-save"></i> Lưu số lượng
+                    </button>
+                    
+                    <div class="pt-3 border-top text-center">
+                        <a asp-controller="Product" asp-action="Index" class="btn-admin-view">
+                            <i class="fa fa-arrow-left"></i> Quay lại danh sách
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Product By Quantity</h5>
-            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Product ID: @productId</span>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 90px;">Key</th>
-                        <th style="width: 180px;">Quantity</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (quantityHistory.Count == 0)
-                    {
+    <!-- Quantity History Table -->
+    <div class="col-lg-8 mb-4">
+        <div class="admin-card h-100">
+            <div class="admin-card-header">
+                <div class="admin-card-title"><i class="fa fa-history me-2"></i>Lịch sử nhập kho</div>
+                <span class="status-badge badge-subtle-primary px-3 py-1 rounded-pill">
+                    ID: @productId
+                </span>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
                         <tr>
-                            <td colspan="3" class="text-center text-muted py-4">No quantity history yet.</td>
+                            <th style="width: 80px;">STT</th>
+                            <th>Ngày thêm</th>
+                            <th class="text-end">Số lượng thêm</th>
                         </tr>
-                    }
-                    else
-                    {
-                        @foreach (var productQuantity in quantityHistory.OrderByDescending(x => x.CreatedDate))
+                    </thead>
+                    <tbody>
+                        @if (quantityHistory.Count == 0)
                         {
-                            totalQuantities += productQuantity.Quantity;
                             <tr>
-                                <td class="fw-semibold text-secondary">#@key</td>
-                                <td class="fw-semibold">@productQuantity.Quantity</td>
-                                <td>@productQuantity.CreatedDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td colspan="3" class="text-center text-muted py-5">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <i class="fa fa-inbox fa-3x mb-3 text-light"></i>
+                                        <p class="mb-0">Chưa có lịch sử nhập kho nào.</p>
+                                    </div>
+                                </td>
                             </tr>
-                            key++;
                         }
-                    }
-                </tbody>
-                <tfoot class="table-group-divider">
-                    <tr>
-                        <th colspan="2" class="text-end">Total Quantity</th>
-                        <th class="text-success fw-bold">@totalQuantities</th>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-        <div class="card-footer bg-white">
-            <a asp-controller="Product" asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to List Product</a>
+                        else
+                        {
+                            @foreach (var productQuantity in quantityHistory.OrderByDescending(x => x.CreatedDate))
+                            {
+                                totalQuantities += productQuantity.Quantity;
+                                <tr>
+                                    <td class="fw-bold text-muted">#@key</td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="fa fa-calendar-check-o text-success opacity-75"></i>
+                                            @productQuantity.CreatedDate.ToString("dd MMM, yyyy - HH:mm")
+                                        </div>
+                                    </td>
+                                    <td class="text-end fw-bold text-primary">
+                                        +@productQuantity.Quantity
+                                    </td>
+                                </tr>
+                                key++;
+                            }
+                        }
+                    </tbody>
+                    <tfoot class="admin-table-footer">
+                        <tr>
+                            <th colspan="2" class="text-end text-uppercase" style="font-size: 13px;">Tổng số lượng đã nhập:</th>
+                            <th class="text-end fs-5 text-success fw-bold">@totalQuantities</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
-<style>
-    .table th,
-    .table td {
-        vertical-align: middle;
-    }
-
-    .badge.bg-primary-subtle {
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-</style>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

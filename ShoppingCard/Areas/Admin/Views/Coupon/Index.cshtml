@@ -1,203 +1,95 @@
-@model CouponModel
+@model IEnumerable<CouponModel>
 @{
-    ViewData["title"] = "Quản lý Mã giảm giá";
+    ViewData["title"] = "Danh sách Mã giảm giá";
 }
 
 <div class="admin-page-header">
-    <h2 class="admin-page-title">Mã giảm giá (Coupon)</h2>
+    <div class="d-flex justify-content-between align-items-center w-100">
+        <h2 class="admin-page-title">Mã giảm giá (Coupon)</h2>
+        <a asp-action="Create" class="btn btn-danger rounded-3 px-4 shadow-sm fw-bold">
+            <i class="fas fa-plus-circle me-1"></i> Thêm mã mới
+        </a>
+    </div>
 </div>
 
-<div class="row g-4">
-    <!-- Form Create Coupon -->
-    <div class="col-lg-4">
-        <div class="admin-card">
-            <div class="admin-card-header">
-                <span class="admin-card-title"><i class="fas fa-plus-circle me-1"></i> Tạo mã mới</span>
-            </div>
-            <div class="admin-card-body">
-                <form asp-action="Create" autocomplete="off" asp-controller="Coupon" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Tên mã (Code) *</label>
-                        <input asp-for="Name" class="form-control" placeholder="VD: GIAMGIA10" />
-                        <span asp-validation-for="Name" class="text-danger small"></span>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Mô tả</label>
-                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="Thông tin về mã..."></textarea>
-                        <span asp-validation-for="Description" class="text-danger small"></span>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Loại giảm *</label>
-                                <select asp-for="Type" class="form-select" id="couponType">
-                                    <option value="0">Số tiền cố định</option>
-                                    <option value="1">Theo phần trăm (%)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Giá trị giảm *</label>
-                                <input asp-for="DiscountValue" class="form-control" placeholder="0" />
-                                <span asp-validation-for="DiscountValue" class="text-danger small"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row" id="maxDiscountRow" style="display: none;">
-                        <div class="col-12">
-                            <div class="form-group">
-                                <label class="form-label">Giảm tối đa (đ)</label>
-                                <input asp-for="MaxDiscountAmount" class="form-control" placeholder="Để trống nếu không giới hạn" />
-                                <span asp-validation-for="MaxDiscountAmount" class="text-danger small"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Đơn tối thiểu</label>
-                                <input asp-for="MinAmount" class="form-control" placeholder="0" />
-                                <span asp-validation-for="MinAmount" class="text-danger small"></span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Số lượng</label>
-                                <input asp-for="Quantity" type="number" min="1" class="form-control" value="1" />
-                                <span asp-validation-for="Quantity" class="text-danger small"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Ngày bắt đầu</label>
-                                <input asp-for="DateStart" type="text" class="form-control datepicker" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
-                                <span asp-validation-for="DateStart" class="text-danger small"></span>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="form-group">
-                                <label class="form-label">Ngày hết hạn</label>
-                                <input asp-for="DateExpired" type="text" class="form-control datepicker" value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
-                                <span asp-validation-for="DateExpired" class="text-danger small"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Trạng thái</label>
-                        <select asp-for="Status" class="form-select">
-                            <option value="1">Kích hoạt</option>
-                            <option value="0">Tạm ẩn</option>
-                        </select>
-                        <span asp-validation-for="Status" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mt-4">
-                        <button type="submit" class="btn-admin-primary w-100 justify-content-center">
-                            <i class="fas fa-save"></i> Tạo Voucher
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
+<div class="admin-card">
+    <div class="admin-card-header">
+        <span class="admin-card-title"><i class="fas fa-list me-1"></i> Danh sách mã hiện có</span>
     </div>
-
-    <!-- List Coupons -->
-    <div class="col-lg-8">
-        <div class="admin-card">
-            <div class="admin-card-header">
-                <span class="admin-card-title"><i class="fas fa-list me-1"></i> Danh sách mã</span>
-            </div>
-            <div class="admin-card-body">
-                <div class="table-responsive">
-                    <table class="admin-table" id="myTable">
-                        <thead>
-                            <tr>
-                                <th>Mã</th>
-                                <th>Giảm giá</th>
-                                <th>Giới hạn</th>
-                                <th>Thời hạn</th>
-                                <th>SL</th>
-                                <th>Quản lý</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var coupon in ViewBag.Coupons)
-                            {
-                                <tr>
-                                    <td>
-                                        <div class="fw-bold text-primary">@coupon.Name</div>
-                                        <div class="small text-muted" style="max-width: 150px;">@coupon.Description</div>
-                                    </td>
-                                    <td class="fw-bold">
-                                        @if (coupon.Type == 1) {
-                                            <span class="text-success">@coupon.DiscountValue.ToString("0")%</span>
-                                            @if(coupon.MaxDiscountAmount > 0) {
-                                                <div class="small text-muted fw-normal">(Tối đa @coupon.MaxDiscountAmount.ToString("#,##0") đ)</div>
-                                            }
-                                        } else {
-                                            <span class="text-danger">-@coupon.DiscountValue.ToString("#,##0") đ</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <div class="small">Đơn ≥ @coupon.MinAmount.ToString("#,##0") đ</div>
-                                    </td>
-                                    <td>
-                                        <div class="small">@coupon.DateStart.ToString("dd/MM/yyyy")</div>
-                                        <div class="small">- @coupon.DateExpired.ToString("dd/MM/yyyy")</div>
-                                    </td>
-                                    <td>@coupon.Quantity</td>
-                                    <td>
-                                        <div class="actions-group">
-                                            <a asp-action="ToggleStatus" asp-route-id="@coupon.Id" class="btn btn-sm btn-light border p-1" title="Bật/Tắt">
-                                                @if(coupon.Status == 1) { <i class="fas fa-toggle-on text-success"></i> }
-                                                else { <i class="fas fa-toggle-off text-muted"></i> }
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@coupon.Id" class="btn-admin-delete" onclick="return confirm('Xác nhận xóa coupon này?');" style="padding: 4px 8px;">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="admin-card-body">
+        <div class="table-responsive">
+            <table class="admin-table" id="myTable" data-order='[[ 0, "desc" ]]'>
+                <thead>
+                    <tr>
+                        <th>Mã (Code)</th>
+                        <th>Loại giảm giá</th>
+                        <th>Đơn tối thiểu</th>
+                        <th>Số lượng</th>
+                        <th>Thời hạn</th>
+                        <th>Trạng thái</th>
+                        <th>Quản lý</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var coupon in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-primary" style="font-size: 15px;">@coupon.Name</div>
+                                <div class="small text-muted text-truncate" style="max-width: 180px;" title="@coupon.Description">
+                                    @coupon.Description
+                                </div>
+                            </td>
+                            <td>
+                                @if (coupon.Type == 1) {
+                                    <div class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 fw-bold">
+                                        @coupon.DiscountValue.ToString("0")% OFF
+                                    </div>
+                                    @if(coupon.MaxDiscountAmount > 0) {
+                                        <div class="small text-muted mt-1">(Tối đa @coupon.MaxDiscountAmount.ToString("#,##0") đ)</div>
+                                    }
+                                } else {
+                                    <div class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3 py-1 fw-bold">
+                                        -@coupon.DiscountValue.ToString("#,##0") đ
+                                    </div>
+                                }
+                            </td>
+                            <td class="fw-medium">@coupon.MinAmount.ToString("#,##0") đ</td>
+                            <td class="text-center fw-bold">@coupon.Quantity</td>
+                            <td>
+                                <div class="small text-dark">Bắt đầu: @coupon.DateStart.ToString("dd/MM/yyyy")</div>
+                                <div class="small text-danger">Hết hạn: @coupon.DateExpired.ToString("dd/MM/yyyy")</div>
+                            </td>
+                            <td>
+                                <a asp-action="ToggleStatus" asp-route-id="@coupon.Id" class="text-decoration-none">
+                                    @if(coupon.Status == 1) {
+                                        <span class="badge bg-success rounded-pill px-2">Đang bật</span>
+                                    } else {
+                                        <span class="badge bg-secondary rounded-pill px-2">Đang tắt</span>
+                                    }
+                                </a>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a asp-action="Edit" asp-route-id="@coupon.Id" class="btn btn-sm btn-outline-primary rounded-2" title="Chỉnh sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@coupon.Id" class="btn btn-sm btn-outline-danger rounded-2" 
+                                       onclick="return confirm('Xác nhận xóa mã này?');" title="Xóa">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
     <script>
-        $(function() {
-            // Initialize Flatpickr
-            flatpickr(".datepicker", {
-                altInput: true,
-                altFormat: "d/m/Y",
-                dateFormat: "Y-m-d",
-                locale: "vn",
-                allowInput: true
-            });
-
-            $('#couponType').change(function() {
-                if ($(this).val() == "1") {
-                    $('#maxDiscountRow').slideDown();
-                } else {
-                    $('#maxDiscountRow').slideUp();
-                }
-            }).trigger('change');
-        });
+        // DataTables is initialized globally in _Layout.cshtml
     </script>
 }

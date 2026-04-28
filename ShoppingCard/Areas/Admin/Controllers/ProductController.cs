@@ -8,7 +8,7 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Areas.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class ProductController : Controller
     {
         private readonly DataContext _dataContext;
@@ -23,6 +23,9 @@ namespace ShoppingCard.Areas.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
+            ViewBag.Brands = await _dataContext.Brands.ToListAsync();
+            ViewBag.Categories = await _dataContext.Categories.ToListAsync();
+
             return View(await _dataContext.Products
                 .OrderByDescending(p => p.Id)
                 .Include(p => p.Brand)
@@ -33,6 +36,9 @@ namespace ShoppingCard.Areas.Controllers
 
         public async Task<IActionResult> Index(int pg = 1)
         {
+            ViewBag.Brands = await _dataContext.Brands.ToListAsync();
+            ViewBag.Categories = await _dataContext.Categories.ToListAsync();
+
             List<ProductModel> product = await _dataContext.Products
                 .Include(p => p.Brand)
                 .Include(p => p.ProductCategories)

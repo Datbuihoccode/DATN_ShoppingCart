@@ -4,9 +4,11 @@ using ShoppingCard.Models;
 using ShoppingCard.Models.ViewsModels;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ShoppingCard.Controllers
 {
+    [Authorize]
     public class CartController : Controller
     {
         private readonly DataContext _dataContext;
@@ -24,28 +26,19 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = GetUserId();
-            List<CartItemModel> cartItems = new List<CartItemModel>();
+            var dbCarts = await _dataContext.Carts
+                .Include(c => c.Product)
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
 
-            if (userId != null)
+            List<CartItemModel> cartItems = dbCarts.Select(c => new CartItemModel
             {
-                var dbCarts = await _dataContext.Carts
-                    .Include(c => c.Product)
-                    .Where(c => c.UserId == userId)
-                    .ToListAsync();
-                    
-                cartItems = dbCarts.Select(c => new CartItemModel
-                {
-                    ProductId = c.ProductId,
-                    ProductName = c.Product?.Name,
-                    Price = c.Product?.Price ?? 0,
-                    Quantity = c.Quantity,
-                    Image = c.Product?.Image
-                }).ToList();
-            }
-            else
-            {
-                cartItems = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-            }
+                ProductId = c.ProductId,
+                ProductName = c.Product?.Name,
+                Price = c.Product?.Price ?? 0,
+                Quantity = c.Quantity,
+                Image = c.Product?.Image
+            }).ToList();
 
             decimal discount = 0;
             string couponMessage = "";
@@ -64,7 +57,6 @@ namespace ShoppingCard.Controllers
                         if (validCoupon.Type == 1) // Percentage
                         {
                             discount = (grandTotal * validCoupon.DiscountValue) / 100;
-                            // Apply Max Discount Case
                             if (validCoupon.MaxDiscountAmount > 0 && discount > validCoupon.MaxDiscountAmount)
                             {
                                 discount = validCoupon.MaxDiscountAmount;
@@ -109,41 +101,23 @@ namespace ShoppingCard.Controllers
             if (product == null) return NotFound();
 
             var userId = GetUserId();
-
-            if (userId != null)
+            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+            
+            if (cartItem == null)
             {
-                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-                if (cartItem == null)
+                _dataContext.Carts.Add(new CartModel
                 {
-                    _dataContext.Carts.Add(new CartModel
-                    {
-                        UserId = userId,
-                        ProductId = Id,
-                        Quantity = quantity
-                    });
-                }
-                else
-                {
-                    cartItem.Quantity += quantity;
-                }
-                await _dataContext.SaveChangesAsync();
+                    UserId = userId,
+                    ProductId = Id,
+                    Quantity = quantity
+                });
             }
             else
             {
-                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart") ?? new List<CartItemModel>();
-                CartItemModel cartItemSession = cart.FirstOrDefault(c => c.ProductId == Id);
-                if (cartItemSession == null)
-                {
-                    var newItem = new CartItemModel(product);
-                    newItem.Quantity = quantity;
-                    cart.Add(newItem);
-                }
-                else
-                {
-                    cartItemSession.Quantity += quantity;
-                }
-                HttpContext.Session.SetJson("Cart", cart);
+                cartItem.Quantity += quantity;
             }
+            
+            await _dataContext.SaveChangesAsync();
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -157,48 +131,20 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Decrease(long Id)
         {
             var userId = GetUserId();
-
-            if (userId != null)
+            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+            
+            if (cartItem != null)
             {
-                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-                if (cartItem != null)
+                if (cartItem.Quantity > 1)
                 {
-                    if (cartItem.Quantity > 1)
-                    {
-                        cartItem.Quantity -= 1;
-                    }
-                    else
-                    {
-                        _dataContext.Carts.Remove(cartItem);
-                    }
-                    await _dataContext.SaveChangesAsync();
+                    cartItem.Quantity -= 1;
                 }
-            }
-            else
-            {
-                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
-                if (cart != null)
+                else
                 {
-                    CartItemModel cartItem = cart.FirstOrDefault(c => c.ProductId == Id);
-                    if (cartItem != null)
-                    {
-                        if (cartItem.Quantity > 1)
-                        {
-                            --cartItem.Quantity;
-                        }
-                        else
-                        {
-                            cart.RemoveAll(p => p.ProductId == Id);
-                        }
-                        
-                        if (cart.Count == 0)
-                            HttpContext.Session.Remove("Cart");
-                        else
-                            HttpContext.Session.SetJson("Cart", cart);
-                    }
+                    _dataContext.Carts.Remove(cartItem);
                 }
+                await _dataContext.SaveChangesAsync();
             }
-
 
             return RedirectToAction("Index");
         }
@@ -209,50 +155,20 @@ namespace ShoppingCard.Controllers
             if (product == null) return NotFound();
 
             var userId = GetUserId();
-
-            if (userId != null)
+            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+            
+            if (cartItem != null)
             {
-                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-                if (cartItem != null)
+                if (product.Quantity > cartItem.Quantity)
                 {
-                    if (product.Quantity > cartItem.Quantity)
-                    {
-                        cartItem.Quantity += 1;
-
-                    }
-                    else
-                    {
-                        cartItem.Quantity = product.Quantity;
-                        TempData["error"] = "Đã đạt số lượng tối đa trong kho!";
-                    }
-                    await _dataContext.SaveChangesAsync();
+                    cartItem.Quantity += 1;
                 }
-            }
-            else
-            {
-                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
-                if (cart != null)
+                else
                 {
-                    CartItemModel cartItem = cart.FirstOrDefault(c => c.ProductId == Id);
-                    if (cartItem != null)
-                    {
-                        if (product.Quantity > cartItem.Quantity)
-                        {
-                            ++cartItem.Quantity;
-
-                        }
-                        else
-                        {
-                            cartItem.Quantity = product.Quantity;
-                            TempData["error"] = "Đã đạt số lượng tối đa trong kho!";
-                        }
-
-                        if (cart.Count == 0)
-                            HttpContext.Session.Remove("Cart");
-                        else
-                            HttpContext.Session.SetJson("Cart", cart);
-                    }
+                    cartItem.Quantity = product.Quantity;
+                    TempData["error"] = "Đã đạt số lượng tối đa trong kho!";
                 }
+                await _dataContext.SaveChangesAsync();
             }
             return RedirectToAction("Index");
         }
@@ -260,27 +176,12 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Remove(long Id)
         {
             var userId = GetUserId();
-
-            if (userId != null)
+            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
+            
+            if (cartItem != null)
             {
-                var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-                if (cartItem != null)
-                {
-                    _dataContext.Carts.Remove(cartItem);
-                    await _dataContext.SaveChangesAsync();
-                }
-            }
-            else
-            {
-                List<CartItemModel> cart = HttpContext.Session.GetJson<List<CartItemModel>>("Cart");
-                if (cart != null)
-                {
-                    cart.RemoveAll(p => p.ProductId == Id);
-                    if (cart.Count == 0)
-                        HttpContext.Session.Remove("Cart");
-                    else
-                        HttpContext.Session.SetJson("Cart", cart);
-                }
+                _dataContext.Carts.Remove(cartItem);
+                await _dataContext.SaveChangesAsync();
             }
 
             TempData["success"] = "Đã xóa sản phẩm khỏi giỏ hàng!";
@@ -290,31 +191,23 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Clear()
         {
             var userId = GetUserId();
-
-            if (userId != null)
+            var userCarts = await _dataContext.Carts.Where(c => c.UserId == userId).ToListAsync();
+            
+            if (userCarts.Any())
             {
-                var userCarts = await _dataContext.Carts.Where(c => c.UserId == userId).ToListAsync();
-                if (userCarts.Any())
-                {
-                    _dataContext.Carts.RemoveRange(userCarts);
-                    await _dataContext.SaveChangesAsync();
-                }
+                _dataContext.Carts.RemoveRange(userCarts);
+                await _dataContext.SaveChangesAsync();
             }
             
-            HttpContext.Session.Remove("Cart");
             Response.Cookies.Delete("CouponTitle");
-
             TempData["success"] = "Đã làm trống giỏ hàng!";
             return RedirectToAction("Index");
         }
-
-
 
         [HttpPost]
         [Route("Cart/GetCoupon")]
         public async Task<IActionResult> GetCoupon(string coupon_value)
         {
-            // Check if coupon already applied
             var existingCoupon = Request.Cookies["CouponTitle"];
             if (!string.IsNullOrEmpty(existingCoupon))
             {

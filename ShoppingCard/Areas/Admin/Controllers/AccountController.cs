@@ -43,28 +43,25 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     var result = await _signInManager.PasswordSignInAsync(user.UserName, loginVM.Password, false, false);
                     if (result.Succeeded)
                     {
-                        if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        if (await _userManager.IsInRoleAsync(user, "Admin") || await _userManager.IsInRoleAsync(user, "Staff"))
                         {
-                            TempData["success"] = "Chào mừng Admin quay trở lại!";
+                            TempData["success"] = "Chào mừng " + (await _userManager.IsInRoleAsync(user, "Admin") ? "Admin" : "Nhân viên") + " quay trở lại!";
                             return Redirect(loginVM.ReturnUrl ?? "/admin");
                         }
                         else
                         {
                             await _signInManager.SignOutAsync();
                             ModelState.AddModelError("", "Bạn không có quyền truy cập khu vực quản trị.");
-                            TempData["error"] = "Tài khoản không có quyền Admin.";
                         }
                     }
                     else
                     {
                         ModelState.AddModelError("", "Mật khẩu hoặc tên đăng nhập không chính xác.");
-                        TempData["error"] = "Đăng nhập thất bại.";
                     }
                 }
                 else
                 {
                     ModelState.AddModelError("", "Tài khoản không tồn tại.");
-                    TempData["error"] = "Tài khoản không tồn tại.";
                 }
             }
             return View(loginVM);
@@ -79,7 +76,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         // ===================== PROFILE =====================
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -97,7 +94,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Staff")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(AdminProfileViewModel vm)
         {
@@ -144,6 +141,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 foreach (var e in updateResult.Errors)
                     ModelState.AddModelError("", e.Description);
                 vm.AvatarUrl = user.Avatar;
+                vm.Roles = await _userManager.GetRolesAsync(user);
                 return View(vm);
             }
 
@@ -157,6 +155,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                     foreach (var e in pwResult.Errors)
                         ModelState.AddModelError("", e.Description);
                     vm.AvatarUrl = user.Avatar;
+                    vm.Roles = await _userManager.GetRolesAsync(user);
                     return View(vm);
                 }
                 await _signInManager.RefreshSignInAsync(user);

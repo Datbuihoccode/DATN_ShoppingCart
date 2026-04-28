@@ -6,7 +6,7 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Staff")]
     public class DashboardController : Controller
     {
         private readonly DataContext _dataContext;

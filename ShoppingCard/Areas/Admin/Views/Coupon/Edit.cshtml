@@ -1,0 +1,128 @@
+@model CouponModel
+@{
+    ViewData["title"] = "Chỉnh sửa mã giảm giá";
+}
+
+<div class="admin-page-header">
+    <div class="d-flex align-items-center gap-3">
+        <a asp-action="Index" class="btn btn-light rounded-circle shadow-sm" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h2 class="admin-page-title mb-0">Chỉnh sửa mã: <span class="text-primary">@Model.Name</span></h2>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <span class="admin-card-title"><i class="fas fa-edit me-1"></i> Cập nhật thông tin Voucher</span>
+            </div>
+            <div class="admin-card-body p-4">
+                <form asp-action="Edit" autocomplete="off" method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger small py-2"></div>
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Mã Coupon (Code) <span class="text-danger">*</span></label>
+                            <input asp-for="Name" class="form-control" placeholder="VD: GIAMGIA50" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Số lượng <span class="text-danger">*</span></label>
+                            <input asp-for="Quantity" type="number" min="1" class="form-control" />
+                            <span asp-validation-for="Quantity" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mô tả chương trình</label>
+                        <textarea asp-for="Description" class="form-control" rows="2" placeholder="VD: Giảm 50k cho đơn hàng từ 500k..."></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Loại giảm giá <span class="text-danger">*</span></label>
+                            <select asp-for="Type" class="form-select" id="couponType">
+                                <option value="0">Số tiền cố định (đ)</option>
+                                <option value="1">Phần trăm (%)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Giá trị giảm <span class="text-danger">*</span></label>
+                            <input asp-for="DiscountValue" class="form-control" placeholder="0" />
+                            <span asp-validation-for="DiscountValue" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row" id="maxDiscountRow" style="display: none;">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold text-primary">Giảm tối đa (đ)</label>
+                            <input asp-for="MaxDiscountAmount" class="form-control" />
+                            <span asp-validation-for="MaxDiscountAmount" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Đơn hàng tối thiểu (đ)</label>
+                            <input asp-for="MinAmount" class="form-control" />
+                            <span asp-validation-for="MinAmount" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Ngày bắt đầu</label>
+                            <input asp-for="DateStart" type="text" class="form-control datepicker" />
+                            <span asp-validation-for="DateStart" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Ngày hết hạn</label>
+                            <input asp-for="DateExpired" type="text" class="form-control datepicker" />
+                            <span asp-validation-for="DateExpired" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Trạng thái</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="1">Kích hoạt</option>
+                            <option value="0">Tắt</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a asp-action="Index" class="btn btn-light px-4 rounded-3">Quay lại</a>
+                        <button type="submit" class="btn btn-danger px-4 rounded-3 shadow-sm fw-bold">
+                            <i class="fas fa-save me-1"></i> Lưu thay đổi
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function() {
+            flatpickr(".datepicker", {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                locale: "vn",
+                allowInput: true,
+                defaultDate: "@Model.DateStart.ToString("yyyy-MM-dd")"
+            });
+
+            $('#couponType').change(function() {
+                if ($(this).val() == "1") {
+                    $('#maxDiscountRow').slideDown();
+                } else {
+                    $('#maxDiscountRow').slideUp();
+                }
+            }).trigger('change');
+        });
+    </script>
+}

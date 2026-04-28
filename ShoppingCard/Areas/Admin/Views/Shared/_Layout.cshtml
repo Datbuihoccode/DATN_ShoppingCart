@@ -65,19 +65,30 @@
                 <i class="fas fa-ticket-alt"></i><span>Mã giảm giá</span>
             </a>
 
-            <div class="sidebar-section-title">Hệ thống</div>
-            <a asp-action="Index" asp-controller="User" asp-area="Admin"
-               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
-                <i class="fas fa-users"></i><span>Người dùng</span>
-            </a>
-            <a asp-action="Index" asp-controller="Role" asp-area="Admin"
-               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Role" ? "active" : "")">
-                <i class="fas fa-user-shield"></i><span>Quyền hạn</span>
-            </a>
-            <a asp-action="Profile" asp-controller="Account" asp-area="Admin"
-               class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
-                <i class="fas fa-user-cog"></i><span>Tài khoản của tôi</span>
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="sidebar-section-title">Hệ thống</div>
+                <a asp-action="Index" asp-controller="User" asp-area="Admin"
+                   class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+                    <i class="fas fa-users"></i><span>Người dùng</span>
+                </a>
+                <a asp-action="Index" asp-controller="Role" asp-area="Admin"
+                   class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Role" ? "active" : "")">
+                    <i class="fas fa-user-shield"></i><span>Quyền hạn</span>
+                </a>
+            }
+
+            @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+            {
+                @if (!User.IsInRole("Admin"))
+                {
+                    <div class="sidebar-section-title">Hệ thống</div>
+                }
+                <a asp-action="Profile" asp-controller="Account" asp-area="Admin"
+                   class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
+                    <i class="fas fa-user-cog"></i><span>Tài khoản của tôi</span>
+                </a>
+            }
         </nav>
 
         <div class="sidebar-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.07);">

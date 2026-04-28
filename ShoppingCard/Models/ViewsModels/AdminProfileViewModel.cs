@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ShoppingCard.Models.ViewsModels
 {
@@ -23,11 +23,12 @@ namespace ShoppingCard.Models.ViewsModels
         // Avatar
         public string AvatarUrl { get; set; }
 
-        [BindNever]
+        [ValidateNever]
         [Display(Name = "Ảnh đại diện")]
-        public IFormFile AvatarUpload { get; set; }
+        public IFormFile? AvatarUpload { get; set; }
 
         // Roles (chỉ hiển thị)
+        [ValidateNever]
         public IList<string> Roles { get; set; } = new List<string>();
     }
 }
