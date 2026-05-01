@@ -8,6 +8,7 @@ using ShoppingCard.Models;
 using ShoppingCard.Models.ViewsModels;
 using ShoppingCard.Repository;
 using System.Security.Claims;
+using ShoppingCard.Services;
 
 namespace ShoppingCard.Controllers
 {
@@ -18,19 +19,22 @@ namespace ShoppingCard.Controllers
         private readonly SignInManager<AppUserModel> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly DataContext _dataContext;
+        private readonly IOrderService _orderService;
 
         public AccountController(
             UserManager<AppUserModel> userManager,
             RoleManager<IdentityRole> roleManager,
             SignInManager<AppUserModel> signInManager,
             IEmailSender emailSender,
-            DataContext context)
+            DataContext context,
+            IOrderService orderService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _dataContext = context;
+            _orderService = orderService;
         }
 
         public IActionResult Login(string returnUrl)
@@ -385,10 +389,8 @@ namespace ShoppingCard.Controllers
             {
                 foreach (var expired in expiredPendingOrders)
                 {
-                    expired.Status = OrderStatus.Cancelled;
-                    expired.PaymentStatus = PaymentStatus.Failed;
+                    await _orderService.UpdateStatusAsync(expired.OrderCode, OrderStatus.Cancelled, "Tự động hủy do hết hạn thanh toán (1 giờ).");
                 }
-                await _dataContext.SaveChangesAsync();
             }
 
             var orders = await _dataContext.Orders
@@ -461,16 +463,99 @@ namespace ShoppingCard.Controllers
 
             try
             {
-                order.Status = OrderStatus.Cancelled;
-                order.PaymentStatus = PaymentStatus.Failed; // Mark payment as failed/cancelled as well
-                _dataContext.Update(order);
-                await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Hủy đơn hàng thành công.";
+                var result = await _orderService.UpdateStatusAsync(ordercode, OrderStatus.Cancelled, "Khách hàng hủy đơn.");
+                if (result)
+                {
+                    TempData["success"] = "Hủy đơn hàng thành công.";
+                }
+                else
+                {
+                    TempData["error"] = "Không thể hủy đơn hàng này. Trạng thái hiện tại không cho phép hủy.";
+                }
             }
             catch
             {
                 TempData["error"] = "Đã xảy ra lỗi khi hủy đơn hàng.";
             }
+
+            return RedirectToAction("History", "Account");
+        }
+
+        public async Task<IActionResult> ConfirmReceived(string ordercode)
+        {
+            if (User.Identity?.IsAuthenticated != true)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            if (string.IsNullOrWhiteSpace(ordercode))
+            {
+                TempData["error"] = "Mã đơn hàng không hợp lệ.";
+                return RedirectToAction("History", "Account");
+            }
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+            var order = await _dataContext.Orders
+                .FirstOrDefaultAsync(o => o.OrderCode == ordercode && o.UserName == userEmail);
+
+            if (order == null)
+            {
+                TempData["error"] = "Không tìm thấy đơn hàng.";
+                return RedirectToAction("History", "Account");
+            }
+
+            if (order.Status != OrderStatus.Delivered)
+            {
+                TempData["error"] = "Chỉ có thể xác nhận đơn hàng đang ở trạng thái 'Đã giao hàng'.";
+                return RedirectToAction("History", "Account");
+            }
+
+            try
+            {
+                var result = await _orderService.UpdateStatusAsync(ordercode, OrderStatus.Completed, "Khách hàng xác nhận đã nhận hàng.");
+                if (result)
+                {
+                    TempData["success"] = "Đã xác nhận nhận được hàng thành công.";
+                }
+                else
+                {
+                    TempData["error"] = "Xác nhận thất bại. Vui lòng thử lại.";
+                }
+            }
+            catch
+            {
+                TempData["error"] = "Đã xảy ra lỗi khi xác nhận nhận hàng.";
+            }
+
+            return RedirectToAction("History", "Account");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RequestReturn(string ordercode, string note)
+        {
+            if (User.Identity?.IsAuthenticated != true) return RedirectToAction("Login", "Account");
+
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity?.Name;
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode && o.UserName == userEmail);
+
+            if (order == null) return NotFound();
+
+            if (order.Status != OrderStatus.Completed)
+            {
+                TempData["error"] = "Chỉ có thể yêu cầu trả hàng cho đơn hàng 'Hoàn thành'.";
+                return RedirectToAction("History", "Account");
+            }
+
+            // Giới hạn 7 ngày
+            if (order.CreateDate.AddDays(7) < DateTime.Now)
+            {
+                 TempData["error"] = "Đã quá thời hạn yêu cầu trả hàng (7 ngày).";
+                 return RedirectToAction("History", "Account");
+            }
+
+            var result = await _orderService.UpdateStatusAsync(ordercode, OrderStatus.ReturnRequested, note ?? "Khách hàng yêu cầu trả hàng.");
+            if (result) TempData["success"] = "Đã gửi yêu cầu trả hàng thành công.";
+            else TempData["error"] = "Gửi yêu cầu thất bại.";
 
             return RedirectToAction("History", "Account");
         }

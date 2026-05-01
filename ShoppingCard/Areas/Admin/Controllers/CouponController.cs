@@ -7,7 +7,7 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class CouponController : Controller
     {
         private readonly DataContext _dataContext;

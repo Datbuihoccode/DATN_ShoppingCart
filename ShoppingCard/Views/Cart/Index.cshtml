@@ -93,9 +93,13 @@
                             </div>
                         }
 
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Phí vận chuyển:</span>
+                            <span class="fw-bold" id="shipping-fee-text">0 VNĐ</span>
+                        </div>
                         <div class="d-flex justify-content-between mb-4 pt-3 border-top">
                             <span class="h5 fw-bold" style="color: var(--text-main);">Tổng cộng:</span>
-                            <span class="h4 text-danger fw-bold">@((Model.GrandTotal - Model.DiscountAmount).ToString("#,##0")) VNĐ</span>
+                            <span class="h4 text-danger fw-bold" id="final-total-text">@((Model.GrandTotal - Model.DiscountAmount).ToString("#,##0")) VNĐ</span>
                         </div>
 
                         @if (User.Identity?.IsAuthenticated ?? false)
@@ -113,6 +117,24 @@
                                     Vui lòng nhập số điện thoại hợp lệ (10 số, bắt đầu bằng 0).
                                 </div>
                             </div>
+                            <div class="mb-2">
+                                <label for="shipping-address" class="text-muted small mb-1 d-block">Dia chi giao hang: <span class="text-danger">*</span></label>
+                                <input type="text" id="shipping-address" class="form-control" maxlength="300" placeholder="So nha, duong..." />
+                            </div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-12">
+                                    <select id="shipping-province" class="form-select">
+                                        <option value="">Chon tinh/thanh</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <select id="shipping-ward-code" class="form-select">
+                                        <option value="">Chon phuong/xa</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-dark btn-sm w-100 mb-3" id="btn-quote-shipping">TINH PHI VAN CHUYEN</button>
+                            <div id="shipping-error" class="text-danger small mb-2" style="display:none;"></div>
 
                             <div class="d-grid gap-2">
                                 <button type="button" class="btn btn-brand btn-lg mb-2" id="btn-cod-checkout">
@@ -120,7 +142,15 @@
                                 </button>
                                 <form id="form-cod" asp-controller="Checkout" asp-action="Checkout" method="post" style="display:none;">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="shippingPhone" id="cod-phone" />
+                                    <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                    <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
+                                    <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
+                                    <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
+                                    <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
+                                    <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
+                                    <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
+                                    <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
+                                    <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
                                 </form>
                                 
                                 <p class="text-muted small text-center mb-2">Hoặc thanh toán online an toàn:</p>
@@ -129,7 +159,15 @@
                                     <form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" class="mb-2 online-pay-form">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="Amount" value="@Model.GrandTotal" />
-                                        <input type="hidden" name="shippingPhone" class="phone-input-hidden" />
+                                        <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                        <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
+                                        <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
+                                        <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
+                                        <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
+                                        <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
+                                        <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
+                                        <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
+                                        <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
                                         <button type="submit" class="payment-btn w-100">
                                             <img src="~/media/payments/vnpay.png" alt="VNPAY">
                                         </button>
@@ -138,7 +176,15 @@
                                     <form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" class="online-pay-form">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="Amount" value="@Model.GrandTotal" />
-                                        <input type="hidden" name="shippingPhone" class="phone-input-hidden" />
+                                        <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                        <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
+                                        <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
+                                        <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
+                                        <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
+                                        <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
+                                        <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
+                                        <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
+                                        <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
                                         <button type="submit" name="RequestType" value="captureWallet" class="payment-btn w-100">
                                             <img src="~/media/payments/momo.png" alt="MOMO">
                                         </button>
@@ -173,12 +219,11 @@
 
 @section Scripts {
     <script>
-        // Coupon
         $('.btn-apply-coupon').click(function () {
-            var coupon_value = $(".coupon-value").val();
+            var coupon_value = $('.coupon-value').val();
             $.ajax({
-                type: "POST",
-                url: "@Url.Action("GetCoupon", "Cart")",
+                type: 'POST',
+                url: '@Url.Action("GetCoupon", "Cart")',
                 data: { coupon_value: coupon_value },
                 success: function (result) {
                     if (result.success) {
@@ -190,38 +235,140 @@
             });
         });
 
-        // Phone validation helper
-        function validatePhone() {
+        function getShippingInput() {
             var phone = $('#shipping-phone').val().trim();
-            var regex = /^(0|\+84)[3-9]\d{8}$/;
-            if (!regex.test(phone)) {
+            var address = $('#shipping-address').val().trim();
+            var provinceId = parseInt($('#shipping-province').val(), 10);
+            var wardIdV2 = parseInt($('#shipping-ward-code').val(), 10);
+            // Lấy text (tên) từ option đang chọn — cần cho API tạo đơn GHN mới
+            var provinceName = $('#shipping-province option:selected').text().trim();
+            var wardName = $('#shipping-ward-code option:selected').text().trim();
+            var phoneRegex = /^(0|\+84)[3-9]\d{8}$/;
+
+            if (!phoneRegex.test(phone)) {
                 $('#phone-error').show();
                 $('#shipping-phone').addClass('is-invalid');
                 return null;
             }
+
             $('#phone-error').hide();
             $('#shipping-phone').removeClass('is-invalid');
-            return phone;
+
+            if (!address || !provinceId || !wardIdV2) {
+                $('#shipping-error').text('Vui long nhap day du dia chi giao hang.').show();
+                return null;
+            }
+
+            $('#shipping-error').hide();
+            return {
+                phone: phone,
+                address: address,
+                provinceId: provinceId,
+                wardIdV2: wardIdV2,
+                provinceName: provinceName,
+                wardName: wardName,
+                districtId: provinceId, // backward compatibility
+                wardCode: String(wardIdV2)
+            };
         }
 
-        // COD button
+        function loadProvinces() {
+            $.get('@Url.Action("ShippingProvinces", "Checkout")')
+                .done(function (items) {
+                    var options = '<option value="">Chon tinh/thanh</option>';
+                    items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
+                    $('#shipping-province').html(options);
+                })
+                .fail(function () {
+                    $('#shipping-error').text('Khong tai duoc danh sach tinh/thanh tu GHN.').show();
+                });
+        }
+
+        $('#shipping-province').on('change', function () {
+            var provinceCode = $(this).val();
+            $('#shipping-ward-code').html('<option value="">Chon phuong/xa</option>');
+            if (!provinceCode) return;
+            $.get('@Url.Action("ShippingWards", "Checkout")', { provinceCode: provinceCode })
+                .done(function (items) {
+                    var options = '<option value="">Chon phuong/xa</option>';
+                    items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
+                    $('#shipping-ward-code').html(options);
+                })
+                .fail(function () {
+                    $('#shipping-error').text('Khong tai duoc danh sach phuong/xa tu GHN.').show();
+                });
+        });
+
+        function syncShippingHiddenInputs(input) {
+            $('.shipping-phone-hidden').val(input.phone);
+            $('.shipping-address-hidden').val(input.address);
+            $('.shipping-district-hidden').val(input.districtId);
+            $('.shipping-ward-hidden').val(input.wardCode);
+            $('.shipping-province-hidden').val(input.provinceId);
+            $('.shipping-ward-idv2-hidden').val(input.wardIdV2);
+            // Tên tỉnh/phường — cần thiết cho API tạo đơn GHN (to_province_name, to_ward_name)
+            $('.shipping-province-name-hidden').val(input.provinceName);
+            $('.shipping-ward-name-hidden').val(input.wardName);
+        }
+
+        function refreshFinalTotal(shippingFee) {
+            var baseTotal = @((Model.GrandTotal - Model.DiscountAmount).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var finalTotal = baseTotal + shippingFee;
+            $('#shipping-fee-text').text(shippingFee.toLocaleString('vi-VN') + ' VN�');
+            $('#final-total-text').text(finalTotal.toLocaleString('vi-VN') + ' VN�');
+            $('.shipping-fee-hidden').val(shippingFee);
+        }
+
+        $('#btn-quote-shipping').click(function () {
+            var input = getShippingInput();
+            if (!input) return;
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("QuoteShipping", "Checkout")',
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val() },
+                data: {
+                    ToDistrictId: input.districtId,
+                    ToWardCode: input.wardCode,
+                    ToProvinceId: input.provinceId,
+                    ToWardIdV2: input.wardIdV2,
+                    ToAddressV2: input.address
+                },
+                success: function (result) {
+                    if (result.success) {
+                        syncShippingHiddenInputs(input);
+                        refreshFinalTotal(parseFloat(result.shippingFee || 0));
+                    } else {
+                        $('#shipping-error').text(result.message || 'Khong tinh duoc phi ship.').show();
+                    }
+                },
+                error: function (xhr) {
+                    var message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : 'Khong tinh duoc phi ship.';
+                    $('#shipping-error').text(message).show();
+                }
+            });
+        });
+
         $('#btn-cod-checkout').click(function () {
-            var phone = validatePhone();
-            if (!phone) return;
-            if (!confirm('Xác nhận đặt hàng COD?')) return;
-            $('#cod-phone').val(phone);
+            var input = getShippingInput();
+            if (!input) return;
+            if (!confirm('Xac nhan dat hang COD?')) return;
+            syncShippingHiddenInputs(input);
             $('#form-cod').submit();
         });
 
-        // Online payment forms (VnPay, MoMo)
         $('.online-pay-form').on('submit', function (e) {
-            var phone = validatePhone();
-            if (!phone) {
+            var input = getShippingInput();
+            if (!input) {
                 e.preventDefault();
                 return false;
             }
-            $(this).find('.phone-input-hidden').val(phone);
+            syncShippingHiddenInputs(input);
         });
+
+        loadProvinces();
     </script>
 }
 

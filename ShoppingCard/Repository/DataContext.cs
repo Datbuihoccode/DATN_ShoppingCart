@@ -24,6 +24,7 @@ namespace ShoppingCard.Repository
         public DbSet<CouponModel> Coupons { get; set; }
         public DbSet<StatisticalModel> Statisticals { get; set; }
         public DbSet<CartModel> Carts { get; set; }
+        public DbSet<OrderHistoryModel> OrderHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +64,13 @@ namespace ShoppingCard.Repository
                 .WithOne(v => v.Order)
                 .HasPrincipalKey<OrderModel>(o => o.OrderCode)
                 .HasForeignKey<VnpayModel>(v => v.PaymentId);
+
+            // Cấu hình liên kết OrderHistory qua OrderCode
+            modelBuilder.Entity<OrderHistoryModel>()
+                .HasOne(oh => oh.Order)
+                .WithMany(o => o.OrderHistories)
+                .HasPrincipalKey(o => o.OrderCode)
+                .HasForeignKey(oh => oh.OrderCode);
         }
     }
 }

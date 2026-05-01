@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShoppingCard.Repository;
 
@@ -11,9 +12,11 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260428182510_AddShippingIntegration")]
+    partial class AddShippingIntegration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -419,33 +422,6 @@ namespace ShoppingCard.Migrations
                     b.ToTable("OrderDetails");
                 });
 
-            modelBuilder.Entity("ShoppingCard.Models.OrderHistoryModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OrderCode")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderCode");
-
-                    b.ToTable("OrderHistories");
-                });
-
             modelBuilder.Entity("ShoppingCard.Models.OrderModel", b =>
                 {
                     b.Property<int>("Id")
@@ -488,19 +464,7 @@ namespace ShoppingCard.Migrations
                     b.Property<string>("ShippingProvider")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ShippingProvinceName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShippingStatus")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShippingTrackingCode")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ShippingWardCode")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ShippingWardName")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
@@ -845,16 +809,6 @@ namespace ShoppingCard.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("ShoppingCard.Models.OrderHistoryModel", b =>
-                {
-                    b.HasOne("ShoppingCard.Models.OrderModel", "Order")
-                        .WithMany("OrderHistories")
-                        .HasForeignKey("OrderCode")
-                        .HasPrincipalKey("OrderCode");
-
-                    b.Navigation("Order");
-                });
-
             modelBuilder.Entity("ShoppingCard.Models.ProductCategoryModel", b =>
                 {
                     b.HasOne("ShoppingCard.Models.CategoryModel", "Category")
@@ -938,8 +892,6 @@ namespace ShoppingCard.Migrations
                     b.Navigation("MomoInfo");
 
                     b.Navigation("OrderDetails");
-
-                    b.Navigation("OrderHistories");
 
                     b.Navigation("VnpayInfo");
                 });

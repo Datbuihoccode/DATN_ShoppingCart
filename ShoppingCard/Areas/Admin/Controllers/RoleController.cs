@@ -10,7 +10,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin/Role")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin", AuthenticationSchemes = "AdminScheme")]
     public class RoleController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;

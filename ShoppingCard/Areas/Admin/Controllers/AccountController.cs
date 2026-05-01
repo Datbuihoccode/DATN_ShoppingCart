@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ShoppingCard.Models;
 using ShoppingCard.Models.ViewsModels;
+using System.Security.Claims;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -40,17 +42,40 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
                 if (user != null)
                 {
-                    var result = await _signInManager.PasswordSignInAsync(user.UserName, loginVM.Password, false, false);
-                    if (result.Succeeded)
+                    // Kiểm tra mật khẩu thủ công thay vì dùng SignInManager (để có thể chỉ định scheme riêng)
+                    if (await _userManager.CheckPasswordAsync(user, loginVM.Password))
                     {
-                        if (await _userManager.IsInRoleAsync(user, "Admin") || await _userManager.IsInRoleAsync(user, "Staff"))
+                        var roles = await _userManager.GetRolesAsync(user);
+                        if (roles.Contains("Admin") || roles.Contains("Staff"))
                         {
-                            TempData["success"] = "Chào mừng " + (await _userManager.IsInRoleAsync(user, "Admin") ? "Admin" : "Nhân viên") + " quay trở lại!";
+                            // Tạo các claim cho người dùng
+                            var claims = new List<Claim>
+                            {
+                                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                                new Claim(ClaimTypes.Name, user.UserName),
+                                new Claim(ClaimTypes.Email, user.Email ?? ""),
+                            };
+
+                            // Thêm các role vào claims
+                            foreach (var role in roles)
+                            {
+                                claims.Add(new Claim(ClaimTypes.Role, role));
+                            }
+
+                            var claimsIdentity = new ClaimsIdentity(claims, "AdminScheme");
+                            var authProperties = new AuthenticationProperties
+                            {
+                                IsPersistent = false // Có thể mở rộng để dùng Remember Me nếu muốn
+                            };
+
+                            // Đăng nhập vào scheme AdminScheme (không ảnh hưởng đến scheme mặc định của Client)
+                            await HttpContext.SignInAsync("AdminScheme", new ClaimsPrincipal(claimsIdentity), authProperties);
+
+                            TempData["success"] = "Chào mừng " + (roles.Contains("Admin") ? "Admin" : "Nhân viên") + " quay trở lại!";
                             return Redirect(loginVM.ReturnUrl ?? "/admin");
                         }
                         else
                         {
-                            await _signInManager.SignOutAsync();
                             ModelState.AddModelError("", "Bạn không có quyền truy cập khu vực quản trị.");
                         }
                     }
@@ -69,14 +94,15 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
         public async Task<IActionResult> Logout(string returnUrl = "/Admin/Account/Login")
         {
-            await _signInManager.SignOutAsync();
+            // Đăng xuất khỏi scheme AdminScheme
+            await HttpContext.SignOutAsync("AdminScheme");
             return Redirect(returnUrl);
         }
 
         // ===================== PROFILE =====================
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -94,7 +120,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Staff")]
+        [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(AdminProfileViewModel vm)
         {

@@ -121,6 +121,28 @@
                             }
                         </span>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Mã vận đơn (GHN):</span>
+                        <span class="ms-2">
+                            @if (!string.IsNullOrWhiteSpace(order?.ShippingTrackingCode))
+                            {
+                                <span class="badge bg-primary">@order.ShippingTrackingCode</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted fst-italic me-2" style="font-size: 12px;">Chưa có</span>
+                                @if (order?.Status != OrderStatus.Cancelled)
+                                {
+                                    <form asp-action="RetryCreateShipment" method="post" class="d-inline">
+                                        <input type="hidden" name="ordercode" value="@orderCode" />
+                                        <button type="submit" class="btn btn-sm btn-primary py-0 px-2" style="font-size: 11px; height: 22px; line-height: 20px;">
+                                            Thử tạo lại (GHN)
+                                        </button>
+                                    </form>
+                                }
+                            }
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -179,10 +201,17 @@
                         <select id="order-status" class="form-select form-select-sm select-update-order">
                             <option value="0" selected="@(order.Status == OrderStatus.New ? "selected" : null)">Đơn hàng mới</option>
                             <option value="1" selected="@(order.Status == OrderStatus.Confirmed ? "selected" : null)">Đã xác nhận</option>
-                            <option value="2" selected="@(order.Status == OrderStatus.Processing ? "selected" : null)">Đang đóng gói</option>
+                            <option value="2" selected="@(order.Status == OrderStatus.Processing ? "selected" : null)">Đang xử lý (Đóng gói)</option>
                             <option value="3" selected="@(order.Status == OrderStatus.Shipping ? "selected" : null)">Đang giao hàng</option>
-                            <option value="4" selected="@(order.Status == OrderStatus.Completed ? "selected" : null)">Hoàn thành</option>
-                            <option value="5" selected="@(order.Status == OrderStatus.Cancelled ? "selected" : null)">Hủy đơn</option>
+                            <option value="12" selected="@(order.Status == OrderStatus.DeliveryFailed ? "selected" : null)">Giao hàng thất bại (Bom hàng)</option>
+                            <option value="4" selected="@(order.Status == OrderStatus.Delivered ? "selected" : null)">Đã giao hàng</option>
+                            <option value="5" selected="@(order.Status == OrderStatus.Completed ? "selected" : null)">Hoàn thành</option>
+                            <option value="6" selected="@(order.Status == OrderStatus.Cancelled ? "selected" : null)">Hủy đơn</option>
+                            <option value="8" selected="@(order.Status == OrderStatus.ReturnRequested ? "selected" : null)">Yêu cầu trả hàng</option>
+                            <option value="11" selected="@(order.Status == OrderStatus.ReturnRejected ? "selected" : null)">Từ chối trả hàng</option>
+                            <option value="9" selected="@(order.Status == OrderStatus.Approved ? "selected" : null)">Duyệt trả hàng</option>
+                            <option value="10" selected="@(order.Status == OrderStatus.Returning ? "selected" : null)">Hàng đang về kho</option>
+                            <option value="7" selected="@(order.Status == OrderStatus.Returned ? "selected" : null)">Đã nhận lại hàng</option>
                         </select>
                     </div>
                 }
@@ -195,9 +224,61 @@
                         <p class="text-muted mb-0 mt-1" style="font-size: 11px;">Không thể cập nhật thêm.</p>
                     </div>
                 }
+        @* Order History Card *@
+        <div class="admin-card mb-3">
+            <div class="admin-card-header py-3">
+                <span class="admin-card-title" style="font-size: 16px; font-weight: 700;">
+                    <i class="fas fa-history me-2 text-primary"></i>LỊCH SỬ CHI TIẾT
+                </span>
+            </div>
+            <div class="admin-card-body p-0">
+                <div class="timeline-container" style="max-height: 450px; overflow-y: auto; padding: 20px;">
+                    @if (order?.OrderHistories != null && order.OrderHistories.Any())
+                    {
+                        var historyList = order.OrderHistories.OrderByDescending(h => h.CreatedDate).ToList();
+                        for (int i = 0; i < historyList.Count; i++)
+                        {
+                            var history = historyList[i];
+                            <div class="timeline-item d-flex mb-4" style="position: relative;">
+                                @* Line connector *@
+                                @if (i < historyList.Count - 1)
+                                {
+                                    <div style="position: absolute; left: 11px; top: 25px; bottom: -25px; width: 2px; background: #e9ecef;"></div>
+                                }
+                                
+                                @* Icon dot *@
+                                <div class="timeline-icon" style="width: 24px; height: 24px; border-radius: 50%; background: @(i == 0 ? "var(--admin-accent)" : "#dee2e6"); border: 4px solid #fff; box-shadow: 0 0 0 1px #dee2e6; z-index: 1; flex-shrink: 0;"></div>
+                                
+                                @* Content *@
+                                <div class="timeline-content ms-3 flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="fw-bold text-dark" style="font-size: 14px;">@history.DisplayStatus</span>
+                                        <span class="text-muted small" style="font-size: 11px;">@history.CreatedDate.ToString("dd/MM/yyyy HH:mm:ss")</span>
+                                    </div>
+                                    <div class="p-2 bg-light rounded border-start border-3 @(i == 0 ? "border-primary" : "border-secondary")" style="font-size: 13px; color: #444; line-height: 1.4;">
+                                        @if (!string.IsNullOrWhiteSpace(history.Note))
+                                        {
+                                            @history.Note
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted fst-italic">Không có ghi chú.</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-ghost d-block mb-2" style="font-size: 30px; opacity: 0.2;"></i>
+                            <span class="fst-italic">Chưa có dữ liệu lịch sử cho đơn hàng này.</span>
+                        </div>
+                    }
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 

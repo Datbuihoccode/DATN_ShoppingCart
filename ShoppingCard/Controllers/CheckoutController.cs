@@ -1,13 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
+using ShoppingCard.Areas.Admin.Repository;
 using ShoppingCard.Services.Momo;
 using ShoppingCard.Services.Vnpay;
 using System.Globalization;
 using System.Security.Claims;
 using ShoppingCard.Services;
+using ShoppingCard.Models.Shipping;
+using System.Text.Json;
 
 namespace ShoppingCard.Controllers
 {
@@ -19,6 +21,7 @@ namespace ShoppingCard.Controllers
         private readonly IMomoService _momoService;
         private readonly IVnPayService _vnPayService;
         private readonly IOrderService _orderService;
+        private readonly IShippingService _shippingService;
 
         public CheckoutController(
             DataContext dataContext,
@@ -26,7 +29,8 @@ namespace ShoppingCard.Controllers
             ILogger<CheckoutController> logger,
             IMomoService momoService,
             IVnPayService vnPayService,
-            IOrderService orderService)
+            IOrderService orderService,
+            IShippingService shippingService)
         {
             _dataContext = dataContext;
             _emailSender = emailSender;
@@ -34,9 +38,12 @@ namespace ShoppingCard.Controllers
             _momoService = momoService;
             _vnPayService = vnPayService;
             _orderService = orderService;
+            _shippingService = shippingService;
         }
 
-        public async Task<IActionResult> Checkout(string shippingPhone)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Checkout(CheckoutShippingInput shippingInput)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var userEmail = User.FindFirstValue(ClaimTypes.Email);
@@ -49,7 +56,7 @@ namespace ShoppingCard.Controllers
             try
             {
                 var couponCode = Request.Cookies["CouponTitle"];
-                var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.COD, couponCode, shippingPhone);
+                var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.COD, couponCode, shippingInput);
 
                 TempData["success"] = "Đặt hàng thành công, vui lòng chờ duyệt đơn hàng.";
                 return RedirectToAction("History", "Account");
@@ -61,12 +68,88 @@ namespace ShoppingCard.Controllers
             }
         }
 
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> QuoteShipping(ShippingQuoteRequest request)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return Unauthorized(new { success = false, message = "Vui lòng đăng nhập." });
+            }
+
+            var quote = await _shippingService.GetShippingQuoteAsync(userId, request);
+            if (!quote.IsSuccess)
+            {
+                return BadRequest(new { success = false, message = quote.Message });
+            }
+
+            return Ok(new { success = true, shippingFee = quote.Fee, message = quote.Message });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ShippingProvinces()
+        {
+            var items = await _shippingService.GetProvincesAsync();
+            if (items.Count == 0)
+            {
+                return BadRequest(new { success = false, message = "Không thể lấy danh sách tỉnh thành từ GHN." });
+            }
+            return Ok(items);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ShippingWards(string provinceCode)
+        {
+            if (string.IsNullOrWhiteSpace(provinceCode)) return BadRequest(new List<ShippingLocationModel>());
+            var items = await _shippingService.GetWardsAsync(provinceCode);
+            return Ok(items);
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> ShippingWebhook([FromBody] JsonElement payload)
+        {
+            string trackingCode = "";
+            string status = "";
+
+            if (payload.ValueKind == JsonValueKind.Object)
+            {
+                if (payload.TryGetProperty("OrderCode", out var oc)) trackingCode = oc.GetString() ?? "";
+                if (payload.TryGetProperty("Status", out var st)) status = st.GetString() ?? "";
+            }
+
+            if (string.IsNullOrWhiteSpace(trackingCode))
+            {
+                return BadRequest(new { success = false, message = "Missing tracking code." });
+            }
+
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.ShippingTrackingCode == trackingCode);
+            if (order == null) 
+            {
+                return NotFound(new { success = false, message = $"Không tìm thấy đơn hàng với mã vận đơn: {trackingCode}" });
+            }
+
+            order.ShippingStatus = status;
+            
+            if (_shippingService.TryMapWebhookStatus(status, out var mappedStatus))
+            {
+                // Sử dụng UpdateStatusAsync để xử lý tập trung logic mapping, history, stock, revenue
+                await _orderService.UpdateStatusAsync(order.OrderCode, mappedStatus, $"GHN Webhook: {status}");
+            }
+            else
+            {
+                await _dataContext.SaveChangesAsync();
+            }
+
+            return Ok(new { success = true, message = $"Đã cập nhật trạng thái đơn hàng {trackingCode} thành {status}" });
+        }
+
         [AcceptVerbs("GET", "POST")]
         public async Task<IActionResult> PaymentCallBack()
         {
-            // Momo Return URL logic
             var resultCode = Request.Query["resultCode"].ToString();
-            var orderId = Request.Query["orderId"].ToString(); // This is the OrderCode from our DB
+            var orderId = Request.Query["orderId"].ToString();
 
             if (resultCode == "0")
             {
@@ -84,7 +167,6 @@ namespace ShoppingCard.Controllers
         [HttpGet]
         public async Task<IActionResult> PaymentCallBackVnPay()
         {
-            // VnPay Return URL logic
             var response = _vnPayService.PaymentExecute(HttpContext.Request.Query);
 
             if (response != null && response.Success && response.VnPayResponseCode == "00")
@@ -98,21 +180,6 @@ namespace ShoppingCard.Controllers
             }
 
             return RedirectToAction("History", "Account");
-        }
-
-        private static decimal ParseAmount(string amountText)
-        {
-            if (decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.InvariantCulture, out var amountByInvariant))
-            {
-                return amountByInvariant;
-            }
-
-            if (decimal.TryParse(amountText, NumberStyles.Number, CultureInfo.CurrentCulture, out var amountByCurrent))
-            {
-                return amountByCurrent;
-            }
-
-            return 0m;
         }
     }
 }

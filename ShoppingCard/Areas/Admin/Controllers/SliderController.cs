@@ -8,7 +8,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
     [Route("Admin/Slider")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class SliderController : Controller
     {
         private readonly DataContext _dataContext;

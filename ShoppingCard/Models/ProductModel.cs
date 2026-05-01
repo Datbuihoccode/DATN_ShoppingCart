@@ -39,6 +39,7 @@ namespace ShoppingCard.Models
         public int Quantity { get; set; }
 
         public int Sold { get; set; }
+        public int? WeightGram { get; set; }
         public ICollection<RatingModel> Ratings { get; set; }
         public virtual ICollection<ProductQuantityModel> ProductQuantities { get; set; }
 

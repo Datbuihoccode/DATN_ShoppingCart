@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using ShoppingCard.Models;
+using ShoppingCard.Models.Shipping;
 using ShoppingCard.Models.VNP;
 using ShoppingCard.Services.Momo;
 using ShoppingCard.Services.Vnpay;
@@ -27,27 +28,27 @@ namespace ShoppingCard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePaymentMomo(OrderInfo model, string shippingPhone)
+        public async Task<IActionResult> CreatePaymentMomo(OrderInfo model, CheckoutShippingInput shippingInput)
         {
-            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userEmail = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
-
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
 
             try
             {
                 var couponCode = Request.Cookies["CouponTitle"];
-                var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.Momo, couponCode, shippingPhone);
+                var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.Momo, couponCode, shippingInput);
 
                 model.OrderId = order.OrderCode;
-                model.OrderInformation = "Thanh toán đơn hàng #" + order.OrderCode;
+                model.OrderInformation = "Thanh toan don hang #" + order.OrderCode;
+                model.Amount = await GetOrderFinalTotalAsync(order.OrderCode);
                 model.ReturnUrl = Url.Action("PaymentCallBack", "Checkout", null, Request.Scheme);
                 model.NotifyUrl = Url.Action("MomoNotify", "Payment", null, Request.Scheme);
 
                 var response = await _momoService.CreatePaymentAsync(model);
                 if (response == null || response.ErrorCode != 0 || string.IsNullOrWhiteSpace(response.PayUrl))
                 {
-                    TempData["error"] = "Lỗi kết nối MoMo.";
+                    TempData["error"] = "Loi ket noi MoMo.";
                     return RedirectToAction("Index", "Cart");
                 }
 
@@ -62,21 +63,21 @@ namespace ShoppingCard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePaymentUrlVnPay(PaymentInformationModel model, string shippingPhone)
+        public async Task<IActionResult> CreatePaymentUrlVnPay(PaymentInformationModel model, CheckoutShippingInput shippingInput)
         {
-            var userId = User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
-            var userEmail = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
-
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
 
             try
             {
                 var couponCode = Request.Cookies["CouponTitle"];
-                var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.VnPay, couponCode, shippingPhone);
+                var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.VnPay, couponCode, shippingInput);
 
                 model.OrderId = order.OrderCode;
-                model.OrderDescription = "Thanh toán đơn hàng #" + order.OrderCode;
+                model.OrderDescription = "Thanh toan don hang #" + order.OrderCode;
                 model.Name = userEmail;
+                model.Amount = await GetOrderFinalTotalAsync(order.OrderCode);
 
                 var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, model);
                 return Redirect(paymentUrl);
@@ -100,15 +101,12 @@ namespace ShoppingCard.Controllers
             return Redirect($"/Checkout/PaymentCallBackVnPay{Request.QueryString}");
         }
 
-        /// <summary>
-        /// Retry VnPay for an existing Pending order - does NOT create a new order.
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RetryPaymentVnPay(string orderCode, decimal amount)
         {
             var userEmail = User.FindFirstValue(ClaimTypes.NameIdentifier) != null
-                ? User.FindFirstValue(System.Security.Claims.ClaimTypes.Email)
+                ? User.FindFirstValue(ClaimTypes.Email)
                 : null;
 
             if (string.IsNullOrEmpty(userEmail))
@@ -120,7 +118,7 @@ namespace ShoppingCard.Controllers
 
             if (order == null || DateTime.Now > order.CreateDate.AddHours(1))
             {
-                TempData["error"] = "Đơn hàng không hợp lệ hoặc đã hết hạn thanh toán.";
+                TempData["error"] = "Don hang khong hop le hoac da het han thanh toan.";
                 return RedirectToAction("History", "Account");
             }
 
@@ -128,7 +126,7 @@ namespace ShoppingCard.Controllers
             {
                 OrderId = order.OrderCode,
                 Amount = amount,
-                OrderDescription = "Thanh toán lại đơn hàng #" + order.OrderCode,
+                OrderDescription = "Thanh toan lai don hang #" + order.OrderCode,
                 Name = userEmail,
                 OrderType = "other",
                 CreatedDate = DateTime.Now
@@ -141,20 +139,16 @@ namespace ShoppingCard.Controllers
             }
             catch (Exception ex)
             {
-                TempData["error"] = "Lỗi tạo link VNPay: " + ex.Message;
+                TempData["error"] = "Loi tao link VNPay: " + ex.Message;
                 return RedirectToAction("RetryPayment", "Account", new { ordercode = orderCode });
             }
         }
 
-        /// <summary>
-        /// Retry MoMo for an existing Pending order - does NOT create a new order.
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RetryPaymentMomo(string orderCode, decimal amount)
         {
-            var userEmail = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
-
+            var userEmail = User.FindFirstValue(ClaimTypes.Email);
             if (string.IsNullOrEmpty(userEmail))
                 return RedirectToAction("Login", "Account");
 
@@ -164,7 +158,7 @@ namespace ShoppingCard.Controllers
 
             if (order == null || DateTime.Now > order.CreateDate.AddHours(1))
             {
-                TempData["error"] = "Đơn hàng không hợp lệ hoặc đã hết hạn thanh toán.";
+                TempData["error"] = "Don hang khong hop le hoac da het han thanh toan.";
                 return RedirectToAction("History", "Account");
             }
 
@@ -172,7 +166,7 @@ namespace ShoppingCard.Controllers
             {
                 OrderId = order.OrderCode,
                 Amount = amount,
-                OrderInformation = "Thanh toán lại đơn hàng #" + order.OrderCode,
+                OrderInformation = "Thanh toan lai don hang #" + order.OrderCode,
                 ReturnUrl = Url.Action("PaymentCallBack", "Checkout", null, Request.Scheme),
                 NotifyUrl = Url.Action("MomoNotify", "Payment", null, Request.Scheme)
             };
@@ -182,14 +176,14 @@ namespace ShoppingCard.Controllers
                 var response = await _momoService.CreatePaymentAsync(model);
                 if (response == null || response.ErrorCode != 0 || string.IsNullOrWhiteSpace(response.PayUrl))
                 {
-                    TempData["error"] = "Lỗi kết nối MoMo. Vui lòng thử lại.";
+                    TempData["error"] = "Loi ket noi MoMo. Vui long thu lai.";
                     return RedirectToAction("RetryPayment", "Account", new { ordercode = orderCode });
                 }
                 return Redirect(response.PayUrl);
             }
             catch (Exception ex)
             {
-                TempData["error"] = "Lỗi tạo link MoMo: " + ex.Message;
+                TempData["error"] = "Loi tao link MoMo: " + ex.Message;
                 return RedirectToAction("RetryPayment", "Account", new { ordercode = orderCode });
             }
         }
@@ -197,7 +191,6 @@ namespace ShoppingCard.Controllers
         [HttpPost]
         public async Task<IActionResult> MomoNotify()
         {
-            // IPN logic for MoMo
             var orderId = Request.Form["orderId"];
             var resultCode = Request.Form["resultCode"];
 
@@ -210,7 +203,6 @@ namespace ShoppingCard.Controllers
                 }
                 else
                 {
-                    // Payment explicitly rejected by MoMo → cancel the order
                     order.PaymentStatus = PaymentStatus.Failed;
                     order.Status = OrderStatus.Cancelled;
                 }
@@ -223,7 +215,6 @@ namespace ShoppingCard.Controllers
         [HttpGet]
         public async Task<IActionResult> VnPayIPN()
         {
-            // IPN logic for VnPay
             var response = _vnPayService.PaymentExecute(HttpContext.Request.Query);
             var orderId = response.OrderId;
 
@@ -236,7 +227,6 @@ namespace ShoppingCard.Controllers
                 }
                 else
                 {
-                    // Payment explicitly rejected by VnPay → cancel the order
                     order.PaymentStatus = PaymentStatus.Failed;
                     order.Status = OrderStatus.Cancelled;
                 }
@@ -244,6 +234,19 @@ namespace ShoppingCard.Controllers
             }
 
             return Ok(new { RspCode = "00", Message = "Confirm Success" });
+        }
+
+        private async Task<decimal> GetOrderFinalTotalAsync(string orderCode)
+        {
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+            if (order == null) return 0m;
+
+            var subtotal = await _dataContext.OrderDetails
+                .Where(od => od.OrderCode == orderCode)
+                .SumAsync(od => od.Price * od.Quantity);
+
+            var total = subtotal - order.DiscountAmount + order.ShippingFee;
+            return total < 0 ? 0 : total;
         }
     }
 }

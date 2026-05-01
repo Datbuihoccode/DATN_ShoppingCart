@@ -12,7 +12,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
     [Area("Admin")]
     [Route("Admin/User")]
    
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin", AuthenticationSchemes = "AdminScheme")]
     public class UserController : Controller
     {
         private readonly UserManager<AppUserModel> _userManager;

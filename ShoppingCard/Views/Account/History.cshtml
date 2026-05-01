@@ -55,6 +55,7 @@
                                             {
                                                 OrderStatus.New => "badge-new",
                                                 OrderStatus.Cancelled => "badge-cancel",
+                                                OrderStatus.Delivered => "badge-info",
                                                 OrderStatus.Completed => "badge-received",
                                                 _ => "badge-done"
                                             };
@@ -94,6 +95,53 @@
                                                onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
                                                 Hủy đơn
                                             </a>
+                                        }
+
+
+                                        @* Confirm Received button: only for Delivered *@
+                                        @if (item.Status == OrderStatus.Delivered)
+                                        {
+                                            <a asp-action="ConfirmReceived" asp-controller="Account"
+                                               asp-route-ordercode="@item.OrderCode"
+                                               class="btn btn-success btn-sm ms-1"
+                                               onclick="return confirm('Bạn xác nhận đã nhận được hàng và hài lòng với sản phẩm?');">
+                                                <i class="fas fa-check me-1"></i> Đã nhận hàng
+                                            </a>
+                                        }
+
+                                        @* Return button: only for Completed *@
+                                        @if (item.Status == OrderStatus.Completed)
+                                        {
+                                            <button type="button" class="btn btn-outline-warning btn-sm ms-1" 
+                                                    data-bs-toggle="modal" data-bs-target="#returnModal-@item.OrderCode">
+                                                <i class="fas fa-undo me-1"></i> Trả hàng
+                                            </button>
+
+                                            <!-- Return Modal -->
+                                            <div class="modal fade" id="returnModal-@item.OrderCode" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <form asp-action="RequestReturn" asp-controller="Account" method="post">
+                                                        <input type="hidden" name="ordercode" value="@item.OrderCode" />
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Yêu cầu trả hàng #@item.OrderCode</h5>
+                                                                <button type="button" class="btn-close" data-bs-target="#returnModal-@item.OrderCode" data-bs-toggle="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body text-start">
+                                                                <div class="mb-3">
+                                                                    <label class="form-label">Lý do trả hàng:</label>
+                                                                    <textarea name="note" class="form-control" rows="3" required placeholder="Vui lòng nhập lý do cụ thể..."></textarea>
+                                                                </div>
+                                                                <p class="small text-muted">Lưu ý: Yêu cầu trả hàng sẽ được nhân viên xem xét và phản hồi sớm nhất.</p>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                                <button type="submit" class="btn btn-warning">Gửi yêu cầu</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
                                         }
 
                                         <a asp-action="ViewOrder" asp-controller="Account"

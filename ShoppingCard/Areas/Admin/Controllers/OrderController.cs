@@ -4,24 +4,30 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
 using ShoppingCard.Repository;
+using ShoppingCard.Services;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class OrderController : Controller
     {
         private readonly DataContext _dataContext;
         private readonly UserManager<AppUserModel> _userManager;
+        private readonly IOrderService _orderService;
+        private readonly IShippingService _shippingService;
 
-        public OrderController(DataContext context, UserManager<AppUserModel> userManager)
+        public OrderController(DataContext context, UserManager<AppUserModel> userManager, IOrderService orderService, IShippingService shippingService)
         {
             _dataContext = context;
             _userManager = userManager;
+            _orderService = orderService;
+            _shippingService = shippingService;
         }
 
         public async Task<IActionResult> Index()
         {
+            await _orderService.ProcessAutoCompletedOrdersAsync();
             return View(await _dataContext.Orders.OrderByDescending(p => p.Id).ToListAsync());
         }
 
@@ -32,7 +38,10 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var order = await _dataContext.Orders.AsNoTracking().FirstOrDefaultAsync(o => o.OrderCode == odercode);
+            var order = await _dataContext.Orders
+                .Include(o => o.OrderHistories)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.OrderCode == odercode);
             if (order == null)
             {
                 return NotFound();
@@ -92,90 +101,17 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
         [HttpPost]
         [Route("UpdateOrder")]
-        public async Task<IActionResult> UpdateOrder(string ordercode, int status)
+        public async Task<IActionResult> UpdateOrder(string ordercode, int status, string note = null)
         {
-            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode);
-            if (order == null)
+            var result = await _orderService.UpdateStatusAsync(ordercode, (OrderStatus)status, note);
+            
+            if (result)
             {
-                return NotFound();
-            }
-
-            if (order.Status == OrderStatus.Cancelled)
-            {
-                return BadRequest(new { success = false, message = "Đơn hàng đã bị hủy và không thể cập nhật." });
-            }
-
-            var newStatus = (OrderStatus)status;
-            var isMovingToCompleted = order.Status != OrderStatus.Completed && newStatus == OrderStatus.Completed;
-
-            order.Status = newStatus;
-
-            // Optional: If Completed, set PaymentStatus to Paid if it was COD
-            if (newStatus == OrderStatus.Completed && order.PaymentStatus == PaymentStatus.Unpaid)
-            {
-                order.PaymentStatus = PaymentStatus.Paid;
-            }
-
-            _dataContext.Update(order);
-
-            if (isMovingToCompleted)
-            {
-                var detailsOrder = await _dataContext.OrderDetails
-                    .Include(od => od.Product)
-                    .Where(od => od.OrderCode == order.OrderCode)
-                    .Select(od => new
-                    {
-                        od.Quantity,
-                        od.Price
-                    })
-                    .ToListAsync();
-
-                var statisticalModel = await _dataContext.Statisticals
-                    .FirstOrDefaultAsync(s => s.DateCreated.Date == order.CreateDate.Date);
-
-                if (statisticalModel != null)
-                {
-                    foreach (var orderDetail in detailsOrder)
-                    {
-                        statisticalModel.Quantity += 1;
-                        statisticalModel.Sold += orderDetail.Quantity;
-                        statisticalModel.Revenue += orderDetail.Quantity * orderDetail.Price;
-                    }
-
-                    _dataContext.Update(statisticalModel);
-                }
-                else
-                {
-                    var newQuantity = 0;
-                    var newSold = 0;
-                    decimal newRevenue = 0m;
-                    foreach (var orderDetail in detailsOrder)
-                    {
-                        newQuantity += 1;
-                        newSold += orderDetail.Quantity;
-                        newRevenue += orderDetail.Quantity * orderDetail.Price;
-                    }
-
-                    statisticalModel = new StatisticalModel
-                    {
-                        DateCreated = order.CreateDate.Date,
-                        Quantity = newQuantity,
-                        Sold = newSold,
-                        Revenue = newRevenue
-                    };
-
-                    _dataContext.Add(statisticalModel);
-                }
-            }
-
-            try
-            {
-                await _dataContext.SaveChangesAsync();
                 return Ok(new { success = true, message = "Cập nhật trạng thái đơn hàng thành công" });
             }
-            catch (Exception)
+            else
             {
-                return StatusCode(500, "Đã xảy ra lỗi khi cập nhật trạng thái đơn hàng.");
+                return BadRequest(new { success = false, message = "Cập nhật trạng thái thất bại. Vui lòng kiểm tra lại luồng trạng thái." });
             }
         }
 
@@ -220,6 +156,39 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RetryCreateShipment(string ordercode)
+        {
+            if (string.IsNullOrWhiteSpace(ordercode))
+            {
+                TempData["error"] = "Mã đơn không hợp lệ.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode);
+            if (order != null && string.IsNullOrWhiteSpace(order.ShippingTrackingCode))
+            {
+                var shipment = await _shippingService.CreateShipmentAsync(ordercode);
+                if (shipment.IsSuccess)
+                {
+                    order.ShippingTrackingCode = shipment.TrackingCode;
+                    _dataContext.Update(order);
+                    await _dataContext.SaveChangesAsync();
+                    TempData["success"] = "Tạo vận đơn GHN thành công: " + shipment.TrackingCode;
+                }
+                else
+                {
+                    TempData["error"] = "Lỗi GHN: " + shipment.Message;
+                }
+            }
+            else
+            {
+                TempData["info"] = "Đơn hàng đã có mã vận đơn hoặc không hợp lệ.";
+            }
+
+            return RedirectToAction(nameof(ViewOrder), new { ordercode = ordercode });
+        }
     }
 }
-

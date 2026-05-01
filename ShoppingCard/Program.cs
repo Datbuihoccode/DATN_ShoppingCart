@@ -10,14 +10,21 @@ using ShoppingCard.Services.Momo;
 using ShoppingCard.Services.Vnpay;
 using ShoppingCard.Services;
 using ShoppingCard.Library;
+using ShoppingCard.Models.Shipping;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Connect MoMo API
 builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoApi"));
+builder.Services.Configure<ShippingOptionModel>(builder.Configuration.GetSection("ShippingApi"));
 builder.Services.AddScoped<IMomoService, MomoService>();
 builder.Services.AddScoped<IVnPayService, VnPayService>();
+builder.Services.AddScoped<IShippingService, ShippingService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddHttpClient("ghn", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews(options =>
@@ -47,11 +54,18 @@ builder.Services.AddIdentity<AppUserModel, IdentityRole>()
 builder.Services
     .AddAuthentication(options =>
     {
-        // options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        // options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        // options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        // Scheme mặc định cho Client (Customer)
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
     })
-    .AddCookie()
+    .AddCookie("AdminScheme", options =>
+    {
+        // Scheme riêng cho Admin/Staff
+        options.Cookie.Name = ".ShoppingCard.Admin";
+        options.LoginPath = "/Admin/Account/Login";
+        options.AccessDeniedPath = "/Admin/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    })
+    .AddCookie() // Giữ lại mặc định nếu cần cho các middleware khác
     .AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
     {
         options.ClientId = builder.Configuration.GetSection("GoogleKeys:ClientId").Value;
@@ -60,9 +74,12 @@ builder.Services
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    // Đổi tên cookie mặc định cho Client để tránh trùng lặp
+    options.Cookie.Name = ".ShoppingCard.Client";
     options.LoginPath = "/Account/Login";
     options.Events.OnRedirectToLogin = context =>
     {
+        // Nếu request vào /Admin mà chưa login scheme Admin thì redirect (logic này sẽ được xử lý chủ yếu qua [Authorize(AuthenticationSchemes = "AdminScheme")])
         if (context.Request.Path.StartsWithSegments("/Admin"))
         {
             context.Response.Redirect("/Admin/Account/Login?ReturnUrl=" + context.Request.Path);

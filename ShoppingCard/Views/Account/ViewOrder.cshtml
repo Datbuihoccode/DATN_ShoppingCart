@@ -7,9 +7,10 @@
     var details = Model?.ToList() ?? new List<OrderDetailsModel>();
     decimal subtotalAmount = details.Sum(x => x.Price * x.Quantity);
     decimal discountAmount = order?.DiscountAmount ?? 0m;
+    decimal shippingFee = order?.ShippingFee ?? 0m;
     if (discountAmount < 0m) { discountAmount = 0m; }
     if (discountAmount > subtotalAmount) { discountAmount = subtotalAmount; }
-    decimal totalAmount = subtotalAmount - discountAmount;
+    decimal totalAmount = subtotalAmount - discountAmount + shippingFee;
 }
 
 <div class="container lc-account-container">
@@ -38,6 +39,7 @@
                     </p>
                     <p class="mb-1"><strong>Ngày đặt:</strong> @order?.CreateDate.ToString("dd/MM/yyyy HH:mm")</p>
                     <p class="mb-1"><strong>Phương thức thanh toán:</strong> @order?.PaymentMethod</p>
+                    <p class="mb-1"><strong>Dia chi giao hang:</strong> @(string.IsNullOrWhiteSpace(order?.ShippingAddress) ? "-" : order.ShippingAddress)</p>
                     <p class="mb-1"><strong>Coupon:</strong> @(string.IsNullOrWhiteSpace(order?.CouponCode) ? "-" : order.CouponCode)</p>
                     
                     @{
@@ -63,6 +65,54 @@
                                onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này?');">
                                 Hủy đơn
                             </a>
+                        </div>
+                    }
+
+                    @if (order?.Status == OrderStatus.Delivered)
+                    {
+                        <div class="mt-3">
+                            <a asp-action="ConfirmReceived" asp-controller="Account"
+                               asp-route-ordercode="@order.OrderCode"
+                               class="btn btn-success fw-bold"
+                               onclick="return confirm('Bạn xác nhận đã nhận được hàng và hài lòng với sản phẩm?');">
+                                <i class="fas fa-check me-1"></i> Đã nhận hàng (Xác nhận hoàn tất)
+                            </a>
+                        </div>
+                    }
+
+                    @if (order?.Status == OrderStatus.Completed)
+                    {
+                        <div class="mt-3">
+                            <button type="button" class="btn btn-outline-warning fw-bold" 
+                                    data-bs-toggle="modal" data-bs-target="#returnModal-@order.OrderCode">
+                                <i class="fas fa-undo me-1"></i> Yêu cầu trả hàng
+                            </button>
+                        </div>
+
+                        <!-- Return Modal -->
+                        <div class="modal fade" id="returnModal-@order.OrderCode" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <form asp-action="RequestReturn" asp-controller="Account" method="post">
+                                    <input type="hidden" name="ordercode" value="@order.OrderCode" />
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Yêu cầu trả hàng #@order.OrderCode</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body text-start">
+                                            <div class="mb-3">
+                                                <label class="form-label">Lý do trả hàng:</label>
+                                                <textarea name="note" class="form-control" rows="3" required placeholder="Vui lòng nhập lý do cụ thể..."></textarea>
+                                            </div>
+                                            <p class="small text-muted">Lưu ý: Yêu cầu trả hàng sẽ được nhân viên xem xét và phản hồi sớm nhất.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                            <button type="submit" class="btn btn-warning">Gửi yêu cầu</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     }
                 </div>
@@ -108,6 +158,10 @@
                             <td class="text-end py-2 text-success">-@discountAmount.ToString("#,##0 VND")</td>
                         </tr>
                         <tr>
+                            <td colspan="3" class="text-end py-2">Phi van chuyen:</td>
+                            <td class="text-end py-2">@shippingFee.ToString("#,##0 VND")</td>
+                        </tr>
+                        <tr>
                             <td colspan="3" class="text-end py-3 fw-bold fs-5">TỔNG THANH TOÁN:</td>
                             <td class="text-end py-3 fw-bold fs-5 text-brand">@totalAmount.ToString("#,##0 VND")</td>
                         </tr>
@@ -117,3 +171,5 @@
         </div>
     </div>
 </div>
+
+

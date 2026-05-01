@@ -12,6 +12,10 @@ namespace ShoppingCard.Library
                 return;
             }
 
+            // Bỏ qua AJAX requests - không redirect, trả về JSON bình thường
+            var isAjax = context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+            if (isAjax) return;
+
             if (context.HttpContext.User.Identity.IsAuthenticated)
             {
                 if (context.HttpContext.User.IsInRole("Admin") || context.HttpContext.User.IsInRole("Staff"))

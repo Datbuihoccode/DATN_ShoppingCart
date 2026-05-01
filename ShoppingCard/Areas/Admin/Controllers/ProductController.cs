@@ -8,7 +8,7 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Areas.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin,Staff")]
+    [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class ProductController : Controller
     {
         private readonly DataContext _dataContext;
