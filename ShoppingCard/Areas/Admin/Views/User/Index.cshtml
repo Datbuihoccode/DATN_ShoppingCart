@@ -16,8 +16,10 @@
                 <thead>
                     <tr>
                         <th>Tên đăng nhập</th>
+                        <th>Họ tên</th>
                         <th>Email</th>
                         <th>Số điện thoại</th>
+                        <th>Địa chỉ</th>
                         <th>Vai trò</th>
                         <th width="180">Hành động</th>
                     </tr>
@@ -27,8 +29,10 @@
                     {
                         <tr>
                             <td><div class="fw-bold">@userWithRoles.User.UserName</div></td>
+                            <td>@(userWithRoles.User.FullName ?? "-")</td>
                             <td>@userWithRoles.User.Email</td>
                             <td>@(userWithRoles.User.PhoneNumber ?? "-")</td>
+                            <td>@(userWithRoles.User.Address ?? "-")</td>
                             <td>
                                 @if(userWithRoles.RoleName == "Admin") {
                                     <span class="badge bg-danger">Admin</span>

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ShoppingCard.Repository;
 
@@ -11,9 +12,11 @@ using ShoppingCard.Repository;
 namespace ShoppingCard.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260501160421_AddFullName_Address")]
+    partial class AddFullName_Address
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -209,9 +212,6 @@ namespace ShoppingCard.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("ProvinceId")
-                        .HasColumnType("int");
-
                     b.Property<string>("RoleId")
                         .HasColumnType("nvarchar(max)");
 
@@ -227,9 +227,6 @@ namespace ShoppingCard.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<int?>("WardId")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

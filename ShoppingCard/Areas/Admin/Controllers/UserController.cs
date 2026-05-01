@@ -152,7 +152,9 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 // Cập nhật các thuộc tính của user
                 existingUser.UserName = user.UserName;
                 existingUser.Email = user.Email;
+                existingUser.FullName = user.FullName;
                 existingUser.PhoneNumber = user.PhoneNumber;
+                existingUser.Address = user.Address;
                 existingUser.RoleId = user.RoleId;
 
                 var updateResult = await _userManager.UpdateAsync(existingUser);
@@ -204,19 +206,58 @@ namespace ShoppingCard.Areas.Admin.Controllers
             {
                 return NotFound();
             }
+
             var user = await _userManager.FindByIdAsync(id);
             if (user == null)
             {
                 return NotFound();
             }
 
-            var deleteResult = await _userManager.DeleteAsync(user);
-
-            if (!deleteResult.Succeeded) {
-                return View("Error");
+            // 1. Không cho phép tự xóa chính mình
+            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (id == loggedInUserID)
+            {
+                TempData["error"] = "Bạn không thể tự xóa tài khoản của chính mình.";
+                return RedirectToAction("Index");
             }
 
-            TempData["success"] = "User đã được xóa.";
+            // 2. Kiểm tra nếu User có đơn hàng (Optional but recommended)
+            // Trong project này OrderModel liên kết qua UserName (Email), 
+            // nhưng ta vẫn nên kiểm tra để tránh mất dữ liệu lịch sử quan trọng.
+            var hasOrders = await _dataContext.Orders.AnyAsync(o => o.UserName == user.Email);
+            if (hasOrders)
+            {
+                TempData["error"] = "Không thể xóa người dùng này vì họ đã có lịch sử đơn hàng. Hãy vô hiệu hóa tài khoản thay vì xóa.";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                // 3. Xóa các dữ liệu liên quan trong các bảng phụ (Carts, Wishlists)
+                var userCarts = _dataContext.Carts.Where(c => c.UserId == id);
+                _dataContext.Carts.RemoveRange(userCarts);
+
+                var userWishlists = _dataContext.Wishlists.Where(w => w.UserId == id);
+                _dataContext.Wishlists.RemoveRange(userWishlists);
+
+                await _dataContext.SaveChangesAsync();
+
+                // 4. Xóa User thông qua UserManager (Sẽ tự động xóa UserRoles)
+                var deleteResult = await _userManager.DeleteAsync(user);
+
+                if (!deleteResult.Succeeded)
+                {
+                    TempData["error"] = "Lỗi khi xóa User: " + string.Join(", ", deleteResult.Errors.Select(e => e.Description));
+                    return RedirectToAction("Index");
+                }
+
+                TempData["success"] = "Người dùng đã được xóa thành công.";
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Đã xảy ra lỗi khi xóa: " + ex.Message;
+            }
+
             return RedirectToAction("Index");
         }
 

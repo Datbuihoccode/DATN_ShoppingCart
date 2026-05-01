@@ -198,7 +198,9 @@ namespace ShoppingCard.Controllers
                 var newUser = new AppUserModel
                 {
                     UserName = user.UserName,
-                    Email = user.Email
+                    Email = user.Email,
+                    Address = user.Address,
+                    FullName = user.FullName
                 };
 
                 var result = await _userManager.CreateAsync(newUser, user.Password);
@@ -314,6 +316,8 @@ namespace ShoppingCard.Controllers
             }
 
             userId.PhoneNumber = user.PhoneNumber;
+            userId.Address = user.Address;
+            userId.FullName = user.FullName;
 
             if (string.IsNullOrWhiteSpace(user.PasswordHash))
             {

@@ -23,6 +23,15 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                         <input type="hidden" asp-for="Id" />
 
+                        <div class="lc-form-group">
+                            <label class="lc-form-label">Họ và tên</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-user-tag text-muted"></i></span>
+                                <input asp-for="FullName" class="lc-form-control" placeholder="Nhập họ tên đầy đủ của bạn..." />
+                            </div>
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="lc-form-group">
@@ -46,6 +55,15 @@
                                 <input asp-for="PhoneNumber" class="lc-form-control" placeholder="Nhập số điện thoại..." />
                             </div>
                             <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+
+                        <div class="lc-form-group">
+                            <label class="lc-form-label">Địa chỉ nhận hàng mặc định</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fa fa-map-marker-alt text-muted"></i></span>
+                                <textarea asp-for="Address" class="lc-form-control" rows="2" placeholder="Nhập địa chỉ đầy đủ của bạn..."></textarea>
+                            </div>
+                            <span asp-validation-for="Address" class="text-danger small"></span>
                         </div>
 
                         <div class="lc-form-group">

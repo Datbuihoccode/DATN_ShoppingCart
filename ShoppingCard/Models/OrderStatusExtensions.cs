@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 namespace ShoppingCard.Models
 {
     public static class OrderStatusExtensions
@@ -8,7 +9,7 @@ namespace ShoppingCard.Models
             {
                 OrderStatus.New => "Đơn hàng mới",
                 OrderStatus.Confirmed => "Đã xác nhận",
-                OrderStatus.Processing => "Đang xử lý (Đóng gói)",
+                OrderStatus.Processing => "Chuẩn bị đơn hàng",
                 OrderStatus.Shipping => "Đang giao hàng",
                 OrderStatus.Delivered => "Đã giao hàng",
                 OrderStatus.Completed => "Hoàn thành",
@@ -18,7 +19,7 @@ namespace ShoppingCard.Models
                 OrderStatus.Approved => "Duyệt trả hàng",
                 OrderStatus.Returning => "Hàng đang về kho",
                 OrderStatus.ReturnRejected => "Từ chối trả hàng",
-                OrderStatus.DeliveryFailed => "Giao hàng thất bại (Bom hàng)",
+                OrderStatus.DeliveryFailed => "Giao hàng thất bại",
                 _ => "Không xác định"
             };
         }
@@ -31,8 +32,8 @@ namespace ShoppingCard.Models
             return status switch
             {
                 OrderStatus.New => "Chờ xác nhận",
-                OrderStatus.Confirmed => "Đã xác nhận (Đang chuẩn bị)",
-                OrderStatus.Processing => "Đang đóng gói",
+                OrderStatus.Confirmed => "Đã xác nhận",
+                OrderStatus.Processing => "Đang chuẩn bị hàng",
                 OrderStatus.Shipping => "Đang giao hàng",
                 OrderStatus.Delivered => "Đã giao hàng (Chờ xác nhận)",
                 OrderStatus.Completed => "Hoàn tất",

@@ -62,6 +62,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
             var customer = await _userManager.FindByEmailAsync(order.UserName) 
                         ?? await _userManager.FindByNameAsync(order.UserName);
             ViewBag.CustomerName = customer?.UserName ?? order.UserName;
+            ViewBag.CustomerAddress = customer?.Address;
 
             return View(detailsOrder);
         }
@@ -135,15 +136,26 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             try
             {
+                // 1. Xóa lịch sử đơn hàng
+                var histories = await _dataContext.OrderHistories
+                    .Where(oh => oh.OrderCode == ordercode)
+                    .ToListAsync();
+                if (histories.Any()) _dataContext.OrderHistories.RemoveRange(histories);
+
+                // 2. Xóa thông tin thanh toán (Momo, Vnpay)
+                var momo = await _dataContext.MomoInfos.FirstOrDefaultAsync(m => m.OrderId == ordercode);
+                if (momo != null) _dataContext.MomoInfos.Remove(momo);
+
+                var vnpay = await _dataContext.VnpayInfos.FirstOrDefaultAsync(v => v.PaymentId == ordercode);
+                if (vnpay != null) _dataContext.VnpayInfos.Remove(vnpay);
+
+                // 3. Xóa chi tiết đơn hàng
                 var orderDetails = await _dataContext.OrderDetails
                     .Where(od => od.OrderCode == ordercode)
                     .ToListAsync();
+                if (orderDetails.Any()) _dataContext.OrderDetails.RemoveRange(orderDetails);
 
-                if (orderDetails.Any())
-                {
-                    _dataContext.OrderDetails.RemoveRange(orderDetails);
-                }
-
+                // 4. Cuối cùng mới xóa đơn hàng
                 _dataContext.Orders.Remove(order);
                 await _dataContext.SaveChangesAsync();
 

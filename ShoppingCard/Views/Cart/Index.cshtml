@@ -105,6 +105,15 @@
                         @if (User.Identity?.IsAuthenticated ?? false)
                         {
                             <div class="mb-3">
+                                <label for="shipping-fullname" class="text-muted small mb-1 d-block">
+                                    <i class="fas fa-user me-1"></i>Họ tên người nhận: <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="shipping-fullname" class="form-control" 
+                                       placeholder="VD: Nguyễn Văn A"
+                                       value="@ViewBag.UserFullName"
+                                       required />
+                            </div>
+                            <div class="mb-3">
                                 <label for="shipping-phone" class="text-muted small mb-1 d-block">
                                     <i class="fas fa-phone me-1"></i>Số điện thoại nhận hàng: <span class="text-danger">*</span>
                                 </label>
@@ -112,16 +121,19 @@
                                        placeholder="VD: 0901234567"
                                        pattern="^(0|\+84)[3-9]\d{8}$"
                                        maxlength="12"
+                                       value="@ViewBag.UserPhone"
                                        required />
                                 <div id="phone-error" class="text-danger small mt-1" style="display:none;">
                                     Vui lòng nhập số điện thoại hợp lệ (10 số, bắt đầu bằng 0).
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label for="shipping-address" class="text-muted small mb-1 d-block">Dia chi giao hang: <span class="text-danger">*</span></label>
-                                <input type="text" id="shipping-address" class="form-control" maxlength="300" placeholder="So nha, duong..." />
+                                <label for="shipping-address" class="text-muted small mb-1 d-block">Địa chỉ giao hàng: <span class="text-danger">*</span></label>
+                                <input type="text" id="shipping-address" class="form-control" maxlength="300" placeholder="Số nhà, đường..." value="@ViewBag.UserAddress" />
                             </div>
-                            <div class="row g-2 mb-2">
+                            <div class="row g-2 mb-2" id="shipping-dropdowns" 
+                                 data-user-province="@ViewBag.UserProvinceId" 
+                                 data-user-ward="@ViewBag.UserWardId">
                                 <div class="col-12">
                                     <select id="shipping-province" class="form-select">
                                         <option value="">Chon tinh/thanh</option>
@@ -143,6 +155,7 @@
                                 <form id="form-cod" asp-controller="Checkout" asp-action="Checkout" method="post" style="display:none;">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                    <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
                                     <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
                                     <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
                                     <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
@@ -160,6 +173,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="Amount" value="@Model.GrandTotal" />
                                         <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                        <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
                                         <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
                                         <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
                                         <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
@@ -177,6 +191,7 @@
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="Amount" value="@Model.GrandTotal" />
                                         <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                        <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
                                         <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
                                         <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
                                         <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
@@ -237,6 +252,7 @@
 
         function getShippingInput() {
             var phone = $('#shipping-phone').val().trim();
+            var fullname = $('#shipping-fullname').val().trim();
             var address = $('#shipping-address').val().trim();
             var provinceId = parseInt($('#shipping-province').val(), 10);
             var wardIdV2 = parseInt($('#shipping-ward-code').val(), 10);
@@ -253,15 +269,18 @@
 
             $('#phone-error').hide();
             $('#shipping-phone').removeClass('is-invalid');
+            $('#shipping-fullname').removeClass('is-invalid');
 
-            if (!address || !provinceId || !wardIdV2) {
-                $('#shipping-error').text('Vui long nhap day du dia chi giao hang.').show();
+            if (!address || !provinceId || !wardIdV2 || !fullname) {
+                $('#shipping-error').text('Vui lòng nhập đầy đủ thông tin nhận hàng (Họ tên, SĐT, Địa chỉ).').show();
+                if(!fullname) $('#shipping-fullname').addClass('is-invalid');
                 return null;
             }
 
             $('#shipping-error').hide();
             return {
                 phone: phone,
+                fullname: fullname,
                 address: address,
                 provinceId: provinceId,
                 wardIdV2: wardIdV2,
@@ -278,6 +297,12 @@
                     var options = '<option value="">Chon tinh/thanh</option>';
                     items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
                     $('#shipping-province').html(options);
+
+                    // Tự động chọn tỉnh nếu đã lưu
+                    var savedProvince = $('#shipping-dropdowns').data('user-province');
+                    if (savedProvince) {
+                        $('#shipping-province').val(savedProvince).trigger('change');
+                    }
                 })
                 .fail(function () {
                     $('#shipping-error').text('Khong tai duoc danh sach tinh/thanh tu GHN.').show();
@@ -293,6 +318,14 @@
                     var options = '<option value="">Chon phuong/xa</option>';
                     items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
                     $('#shipping-ward-code').html(options);
+
+                    // Tự động chọn xã nếu đã lưu
+                    var savedWard = $('#shipping-dropdowns').data('user-ward');
+                    if (savedWard) {
+                        $('#shipping-ward-code').val(savedWard);
+                        // Xóa data để không bị auto-select lại nếu người dùng đổi tỉnh
+                        $('#shipping-dropdowns').data('user-ward', '');
+                    }
                 })
                 .fail(function () {
                     $('#shipping-error').text('Khong tai duoc danh sach phuong/xa tu GHN.').show();
@@ -301,6 +334,7 @@
 
         function syncShippingHiddenInputs(input) {
             $('.shipping-phone-hidden').val(input.phone);
+            $('.shipping-fullname-hidden').val(input.fullname);
             $('.shipping-address-hidden').val(input.address);
             $('.shipping-district-hidden').val(input.districtId);
             $('.shipping-ward-hidden').val(input.wardCode);

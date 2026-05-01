@@ -15,5 +15,8 @@ namespace ShoppingCard.Models
 
         [DataType(DataType.Password), Required(ErrorMessage ="Mật khẩu không được để trống.")] 
         public string Password { get; set; }
+
+        public string Address { get; set; }
+        public string FullName { get; set; }
     }
 }

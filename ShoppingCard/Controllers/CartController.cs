@@ -5,6 +5,7 @@ using ShoppingCard.Models.ViewsModels;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace ShoppingCard.Controllers
 {
@@ -12,10 +13,12 @@ namespace ShoppingCard.Controllers
     public class CartController : Controller
     {
         private readonly DataContext _dataContext;
+        private readonly UserManager<AppUserModel> _userManager;
 
-        public CartController(DataContext context)
+        public CartController(DataContext context, UserManager<AppUserModel> userManager)
         {
             _dataContext = context;
+            _userManager = userManager;
         }
 
         private string GetUserId()
@@ -84,6 +87,18 @@ namespace ShoppingCard.Controllers
                 DiscountAmount = discount,
                 CouponMessage = couponMessage
             };
+
+            // Fetch user info for checkout pre-fill
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                ViewBag.UserPhone = user.PhoneNumber;
+                ViewBag.UserAddress = user.Address;
+                ViewBag.UserFullName = user.FullName;
+                ViewBag.UserProvinceId = user.ProvinceId;
+                ViewBag.UserWardId = user.WardId;
+            }
+
             return View(cartVM);
         }
 

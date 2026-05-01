@@ -12,17 +12,20 @@ namespace ShoppingCard.Services
         private readonly IEmailSender _emailSender;
         private readonly ILogger<OrderService> _logger;
         private readonly IShippingService _shippingService;
+        private readonly Microsoft.AspNetCore.Identity.UserManager<AppUserModel> _userManager;
 
         public OrderService(
             DataContext dataContext,
             IEmailSender emailSender,
             ILogger<OrderService> logger,
-            IShippingService shippingService)
+            IShippingService shippingService,
+            Microsoft.AspNetCore.Identity.UserManager<AppUserModel> userManager)
         {
             _dataContext = dataContext;
             _emailSender = emailSender;
             _logger = logger;
             _shippingService = shippingService;
+            _userManager = userManager;
         }
 
         public async Task<OrderModel> CreateOrderAsync(
@@ -154,13 +157,53 @@ namespace ShoppingCard.Services
                 OrderCode = orderCode,
                 Status = OrderStatus.New,
                 CreatedDate = DateTime.Now,
-                Note = "Đơn hàng được tạo."
+                Note = "Đơn hàng mới, chờ xác nhận."
             });
 
             // --- Xóa giỏ hàng ngay lập tức cho TẤT CẢ phương thức thanh toán ---
             _dataContext.Carts.RemoveRange(dbCarts);
             
             await _dataContext.SaveChangesAsync();
+
+            // Update user profile with shipping info (TH1 & TH2)
+            if (shippingInput != null)
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user != null)
+                {
+                    bool isModified = false;
+                    if (string.IsNullOrWhiteSpace(user.FullName) || user.FullName != shippingInput.ShippingFullName)
+                    {
+                        user.FullName = shippingInput.ShippingFullName;
+                        isModified = true;
+                    }
+                    if (string.IsNullOrWhiteSpace(user.PhoneNumber) || user.PhoneNumber != shippingInput.ShippingPhone)
+                    {
+                        user.PhoneNumber = shippingInput.ShippingPhone;
+                        isModified = true;
+                    }
+                    if (string.IsNullOrWhiteSpace(user.Address) || user.Address != shippingInput.ShippingAddress)
+                    {
+                        user.Address = shippingInput.ShippingAddress;
+                        isModified = true;
+                    }
+                    if (shippingInput.ShippingProvinceId > 0 && user.ProvinceId != shippingInput.ShippingProvinceId)
+                    {
+                        user.ProvinceId = shippingInput.ShippingProvinceId;
+                        isModified = true;
+                    }
+                    if (shippingInput.ShippingWardIdV2 > 0 && user.WardId != shippingInput.ShippingWardIdV2)
+                    {
+                        user.WardId = shippingInput.ShippingWardIdV2;
+                        isModified = true;
+                    }
+
+                    if (isModified)
+                    {
+                        await _userManager.UpdateAsync(user);
+                    }
+                }
+            }
 
             // Nếu là COD thì gửi mail luôn
             if (method == PaymentMethod.COD)
@@ -182,14 +225,20 @@ namespace ShoppingCard.Services
             }
 
             order.PaymentStatus = PaymentStatus.Paid;
-            // Use UpdateStatusAsync to handle transition, inventory, and history
-            var result = await UpdateStatusAsync(orderCode, OrderStatus.Confirmed, "Thanh toán online thành công.");
             
-            if (result)
+            // Thêm lịch sử thanh toán thành công nhưng không tự động xác nhận đơn hàng (giữ New)
+            _dataContext.OrderHistories.Add(new OrderHistoryModel
             {
-                _ = SendEmailSafe(order.UserName, orderCode);
-            }
-            return result;
+                OrderCode = orderCode,
+                Status = order.Status, // Giữ nguyên status hiện tại (thường là New)
+                CreatedDate = DateTime.Now,
+                Note = "Thanh toán online thành công. Chờ Admin xác nhận đơn."
+            });
+
+            await _dataContext.SaveChangesAsync();
+            
+            _ = SendEmailSafe(order.UserName, orderCode);
+            return true;
         }
 
         public async Task<bool> UpdateStatusAsync(string orderCode, OrderStatus newStatus, string note = null)
@@ -307,7 +356,7 @@ namespace ShoppingCard.Services
                 OrderCode = orderCode,
                 Status = newStatus,
                 CreatedDate = DateTime.Now,
-                Note = note ?? $"Chuyển trạng thái từ {oldStatus} sang {newStatus}"
+                Note = note ?? GetStatusDescription(newStatus)
             });
 
             await _dataContext.SaveChangesAsync();
@@ -338,8 +387,25 @@ namespace ShoppingCard.Services
             order.ShippingTrackingCode = shipment.TrackingCode;
             order.ShippingStatus = string.IsNullOrWhiteSpace(shipment.RawStatus) ? "created" : shipment.RawStatus;
             
-            // Khi đã có mã vận đơn, chuyển sang Processing
-            await UpdateStatusAsync(orderCode, OrderStatus.Processing, "Đã tạo đơn giao hàng GHN.");
+            await _dataContext.SaveChangesAsync();
+
+            // Nếu chưa phải Processing thì mới update status (để tránh lặp history)
+            if (order.Status < OrderStatus.Processing)
+            {
+                await UpdateStatusAsync(orderCode, OrderStatus.Processing, "Đã tạo đơn giao hàng GHN.");
+            }
+            else
+            {
+                // Nếu đã là Processing rồi thì chỉ thêm history ghi nhận mã vận đơn
+                _dataContext.OrderHistories.Add(new OrderHistoryModel
+                {
+                    OrderCode = orderCode,
+                    Status = order.Status,
+                    CreatedDate = DateTime.Now,
+                    Note = $"Đã tạo đơn giao hàng GHN. Mã vận đơn: {shipment.TrackingCode}"
+                });
+                await _dataContext.SaveChangesAsync();
+            }
         }
 
         public async Task RestockOrderItemsAsync(string orderCode)
@@ -350,8 +416,8 @@ namespace ShoppingCard.Services
 
         public async Task ProcessAutoCompletedOrdersAsync()
         {
-            // Lấy các đơn hàng đã giao (Delivered) quá 7 ngày mà chưa chuyển sang Completed
-            var deadline = DateTime.Now.AddDays(-7);
+            // Lấy các đơn hàng đã giao (Delivered) quá 1 ngày mà chưa chuyển sang Completed
+            var deadline = DateTime.Now.AddDays(-1);
             var orders = await _dataContext.Orders
                 .Where(o => o.Status == OrderStatus.Delivered && o.CreateDate < deadline)
                 .ToListAsync();
@@ -366,7 +432,7 @@ namespace ShoppingCard.Services
 
                 if (deliveredHistory != null && deliveredHistory.CreatedDate < deadline)
                 {
-                    await UpdateStatusAsync(order.OrderCode, OrderStatus.Completed, "Hệ thống tự động hoàn thành sau 7 ngày giao hàng.");
+                    await UpdateStatusAsync(order.OrderCode, OrderStatus.Completed, "Hệ thống tự động hoàn thành sau 1 ngày giao hàng.");
                 }
                 else if (deliveredHistory == null && order.CreateDate < deadline)
                 {
@@ -388,6 +454,27 @@ namespace ShoppingCard.Services
             {
                 _logger.LogWarning(ex, "Failed to send order confirmation email to {Receiver}", receiver);
             }
+        }
+
+        private string GetStatusDescription(OrderStatus status)
+        {
+            return status switch
+            {
+                OrderStatus.New => "Đơn hàng mới, chờ xác nhận.",
+                OrderStatus.Confirmed => "Đã xác nhận đơn hàng thành công.",
+                OrderStatus.Processing => "Đang chuẩn bị hàng.",
+                OrderStatus.Shipping => "Đơn hàng đang được giao.",
+                OrderStatus.Delivered => "Giao hàng thành công.",
+                OrderStatus.Completed => "Đơn hàng đã hoàn tất.",
+                OrderStatus.Cancelled => "Đơn hàng đã bị hủy.",
+                OrderStatus.Returned => "Đơn hàng đã được hoàn trả về kho/ cửa hàng.",
+                OrderStatus.ReturnRequested => "Yêu cầu trả hàng đang được xử lý.",
+                OrderStatus.Approved => "Yêu cầu trả hàng đã được duyệt.",
+                OrderStatus.Returning => "Hàng đang được chuyển về kho.",
+                OrderStatus.ReturnRejected => "Yêu cầu trả hàng bị từ chối.",
+                OrderStatus.DeliveryFailed => "Giao hàng thất bại. Khách không nhận hàng.",
+                _ => "Trạng thái đơn hàng đã được cập nhật."
+            };
         }
     }
 }
