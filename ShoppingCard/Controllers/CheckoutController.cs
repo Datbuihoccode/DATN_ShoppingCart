@@ -45,12 +45,13 @@ namespace ShoppingCard.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(CheckoutShippingInput shippingInput)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userEmail = User.FindFirstValue(ClaimTypes.Email);
+            var userId = ShoppingCard.Library.CartHelper.GetUserId(HttpContext);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? shippingInput.ShippingEmail;
 
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(userEmail))
             {
-                return RedirectToAction("Login", "Account");
+                TempData["error"] = "Vui lòng cung cấp email để đặt hàng.";
+                return RedirectToAction("Index", "Cart");
             }
 
             try
@@ -59,7 +60,7 @@ namespace ShoppingCard.Controllers
                 var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.COD, couponCode, shippingInput);
 
                 TempData["success"] = "Đặt hàng thành công, vui lòng chờ duyệt đơn hàng.";
-                return RedirectToAction("History", "Account");
+                return RedirectToAction("Success", new { orderCode = order.OrderCode });
             }
             catch (Exception ex)
             {
@@ -72,11 +73,7 @@ namespace ShoppingCard.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> QuoteShipping(ShippingQuoteRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                return Unauthorized(new { success = false, message = "Vui lòng đăng nhập." });
-            }
+            var userId = ShoppingCard.Library.CartHelper.GetUserId(HttpContext);
 
             var quote = await _shippingService.GetShippingQuoteAsync(userId, request);
             if (!quote.IsSuccess)
@@ -155,13 +152,13 @@ namespace ShoppingCard.Controllers
             {
                 await _orderService.CompleteOrderAsync(orderId);
                 TempData["success"] = "Thanh toán MoMo thành công!";
+                return RedirectToAction("Success", new { orderCode = orderId });
             }
             else
             {
                 TempData["error"] = "Thanh toán MoMo thất bại hoặc đã bị hủy.";
+                return RedirectToAction("Index", "Cart");
             }
-
-            return RedirectToAction("History", "Account");
         }
 
         [HttpGet]
@@ -173,13 +170,24 @@ namespace ShoppingCard.Controllers
             {
                 await _orderService.CompleteOrderAsync(response.OrderId);
                 TempData["success"] = "Thanh toán VNPAY thành công!";
+                return RedirectToAction("Success", new { orderCode = response.OrderId });
             }
             else
             {
                 TempData["error"] = "Thanh toán VNPAY thất bại.";
+                return RedirectToAction("Index", "Cart");
             }
+        }
 
-            return RedirectToAction("History", "Account");
+        [HttpGet]
+        public async Task<IActionResult> Success(string orderCode)
+        {
+            if (string.IsNullOrWhiteSpace(orderCode)) return RedirectToAction("Index", "Home");
+            
+            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+            if (order == null) return NotFound();
+
+            return View(order);
         }
     }
 }

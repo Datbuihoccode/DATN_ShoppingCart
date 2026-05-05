@@ -11,7 +11,8 @@
     decimal discountAmount = order?.DiscountAmount ?? 0m;
     if (discountAmount < 0m) { discountAmount = 0m; }
     if (discountAmount > subtotalAmount) { discountAmount = subtotalAmount; }
-    decimal totalAmount = subtotalAmount - discountAmount;
+    decimal shippingFee = order?.ShippingFee ?? 0m;
+    decimal totalAmount = subtotalAmount - discountAmount + shippingFee;
 }
 
 <div class="admin-page-header">
@@ -76,6 +77,10 @@
                             <tr>
                                 <th colspan="4" style="text-align: right; color: #16a34a;">Mã giảm giá (@couponCode)</th>
                                 <th style="text-align: right; color: #16a34a;">-@discountAmount.ToString("#,##0") đ</th>
+                            </tr>
+                            <tr>
+                                <th colspan="4" style="text-align: right;">Phí vận chuyển</th>
+                                <th style="text-align: right;">+@shippingFee.ToString("#,##0") đ</th>
                             </tr>
                             <tr style="border-top: 1px solid #ddd;">
                                 <th colspan="4" style="text-align: right; font-size: 16px;">TỔNG THANH TOÁN</th>

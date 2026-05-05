@@ -32,8 +32,8 @@
 
 			<!-- Search Bar -->
 			<div class="laptopcenter-search d-none d-md-block">
-				<form asp-controller="Product" asp-action="Search" method="post">
-					<input type="text" name="searchTearm" placeholder="Tìm kiếm Laptop Gaming, MacBook, Văn phòng..." required />
+				<form asp-controller="Product" asp-action="Search" method="get">
+					<input type="text" name="searchTerm" placeholder="Tìm kiếm Laptop Gaming, MacBook, Văn phòng..." required />
 					<button type="submit"><i class="fa fa-search"></i> Tìm kiếm</button>
 				</form>
 			</div>
@@ -41,9 +41,16 @@
 			<!-- User Actions -->
 			<div class="laptopcenter-actions">
 
-				<a asp-controller="Home" asp-action="Wishlist" class="action-item d-none d-md-block">
-					<i class="fa fa-heart"></i>
-					<span>Yêu thích</span>
+				<a asp-controller="Order" asp-action="Track" class="action-item d-none d-md-block">
+					<i class="fa fa-truck-fast"></i>
+					<span>Tra cứu đơn</span>
+				</a>
+
+				<a asp-controller="Cart" asp-action="Index" class="action-item" style="position: relative;">
+					<i class="fa fa-shopping-cart"></i>
+					<span>Giỏ hàng</span>
+					<!-- badge có thể được dynamic render bằng viewcomponent -->
+					<!-- <span class="cart-badge">0</span> -->
 				</a>
 
                 <!-- Account Dropdown Using BS3 structure -->
@@ -57,6 +64,7 @@
 						{
                             <li class="dropdown-header-custom">Xin chào, @User.Identity.Name!</li>
 							<li><a asp-controller="Account" asp-action="History"><i class="fa-solid fa-list-check"></i> Đơn hàng</a></li>
+							<li><a asp-controller="Home" asp-action="Wishlist"><i class="fa-solid fa-heart"></i> Yêu thích</a></li>
 							<li><a asp-controller="Account" asp-action="UpdateAccount"><i class="fa-solid fa-id-card"></i> Hồ sơ</a></li>
 							<li><hr class="dropdown-divider"></li>
 							<li><a asp-controller="Account" asp-action="Logout" class="logout-item"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</a></li>
@@ -68,13 +76,6 @@
 						}
 					</ul>
 				</div>
-
-				<a asp-controller="Cart" asp-action="Index" class="action-item" style="position: relative;">
-					<i class="fa fa-shopping-cart"></i>
-					<span>Giỏ hàng</span>
-					<!-- badge có thể được dynamic render bằng viewcomponent -->
-					<!-- <span class="cart-badge">0</span> -->
-				</a>
 			</div>
 		</div>
 	</header>

@@ -1,4 +1,4 @@
-@model IEnumerable<ProductModel>
+@model ShoppingCard.Models.ViewsModels.HomeIndexViewModel
 @{
 	ViewData["Title"] = "Trang chủ";
 	Layout = "~/Views/Shared/_Layout.cshtml";
@@ -12,91 +12,57 @@
 		</div>
 	</div>
 
-	@{
-		var allCategories = Model
-			.SelectMany(p => p.ProductCategories?.Select(pc => pc.Category) ?? Enumerable.Empty<CategoryModel>())
-			.Where(c => c != null)
-			.GroupBy(c => c.Id)
-			.Select(g => g.First())
-			.ToList();
-
-		if (!allCategories.Any())
-		{
-			allCategories = Model
-				.SelectMany(p => p.ProductCategories?.Select(pc => pc.Category) ?? Enumerable.Empty<CategoryModel>())
-				.Where(c => c != null)
-				.GroupBy(c => c.Id)
-				.Select(g => g.First())
-				.ToList();
-		}
-	}
-
-	@foreach (var category in allCategories)
+	@foreach (var categorySection in Model.Sections)
 	{
-		var categoryProducts = Model
-			.Where(p => p.ProductCategories != null && p.ProductCategories.Any(pc => pc.CategoryId == category.Id))
-			.OrderBy(x => Guid.NewGuid())
-			.Take(15)
-			.ToList();
-			
-		if (!categoryProducts.Any()) continue;
-		
-		string catLower = category.Name.ToLower();
+		var categoryProducts = categorySection.Products;
 
 		<div class="category-block">
 			<div class="category-header">
 				<h2 class="section-title">
-					@category.Name.ToUpper()
+					@categorySection.CategoryName.ToUpper()
 				</h2>
 				
 				<div class="category-filters">
 					<span class="text-muted fw-bold me-2">Mức giá:</span>
-					<a href="/Category?slug=@category.Slug&startprice=0&endprice=10000000" class="filter-pill">Dưới 10 triệu</a>
-					<a href="/Category?slug=@category.Slug&startprice=10000000&endprice=20000000" class="filter-pill">10 - 20 triệu</a>
-					<a href="/Category?slug=@category.Slug&startprice=20000000&endprice=30000000" class="filter-pill">20 - 30 triệu</a>
-					<a href="/Category?slug=@category.Slug&startprice=30000000&endprice=40000000" class="filter-pill">30 - 40 triệu</a>
-					<a href="/Category?slug=@category.Slug&startprice=40000000&endprice=999000000" class="filter-pill">Trên 40 triệu</a>
+					<a href="/Category/@categorySection.CategorySlug?startprice=0&endprice=10000000" class="filter-pill">Dưới 10 triệu</a>
+					<a href="/Category/@categorySection.CategorySlug?startprice=10000000&endprice=20000000" class="filter-pill">10 - 20 triệu</a>
+					<a href="/Category/@categorySection.CategorySlug?startprice=20000000&endprice=30000000" class="filter-pill">20 - 30 triệu</a>
+					<a href="/Category/@categorySection.CategorySlug?startprice=30000000&endprice=40000000" class="filter-pill">30 - 40 triệu</a>
+					<a href="/Category/@categorySection.CategorySlug?startprice=40000000&endprice=999000000" class="filter-pill">Trên 40 triệu</a>
 				</div>
 			</div>
 
 			<!-- Carousel Slider -->
 			<div class="position-relative">
-				<div id="slider-@category.Id" class="product-slider-container pb-3 px-2">
+				<div id="slider-@categorySection.CategoryId" class="product-slider-container pb-3 px-2">
 					@foreach (var item in categoryProducts)
 					{
 						<div class="product-slider-item">
 							<div class="laptopcenter-card h-100">
-								<!-- Nút yêu thích -->
 								<a href="javascript:void(0)" class="laptopcenter-card-wishlist add-to-wishlist" data-product_id="@item.Id" title="Thêm vào yêu thích">
 									<i class="fa fa-heart"></i>
 								</a>
 
-								<!-- Hình ảnh -->
 								<a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug">
 									<div class="laptopcenter-card-img">
-										<!-- Nhãn hạt đậu đã được gỡ bỏ theo yêu cầu -->
 										<img src="@item.Image" alt="@item.Name" />
 									</div>
 								</a>
 
 								<div class="laptopcenter-card-body">
-									<!-- Tiêu đề -->
 									<a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
 										@item.Name
 									</a>
 
-									<!-- Giá -->
 									<div class="laptopcenter-card-price">
-										@item.Price.ToString("#,##0 VNĐ")
+										@item.Price.ToString("#,##0 đ")
 									</div>
 
-									<!-- Thông số -->
 									<div class="laptopcenter-card-specs">
 										<span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand?.Name</span>
 										<span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(item.Condition) ? "Mới 100%" : item.Condition)</span>
 									</div>
 
-									<!-- Action -->
 									<div class="laptopcenter-card-actions mt-auto">
 										@if(item.Quantity > 0)
 										{
@@ -118,17 +84,17 @@
 				</div>
 
 				@if(categoryProducts.Count > 5) {
-					<button class="slider-nav-btn slider-prev" type="button" onclick="document.getElementById('slider-@category.Id').scrollBy({left: -250, behavior: 'smooth'})">
+					<button class="slider-nav-btn slider-prev" type="button" onclick="document.getElementById('slider-@categorySection.CategoryId').scrollBy({left: -250, behavior: 'smooth'})">
 						<i class="fa fa-chevron-left"></i>
 					</button>
-					<button class="slider-nav-btn slider-next" type="button" onclick="document.getElementById('slider-@category.Id').scrollBy({left: 250, behavior: 'smooth'})">
+					<button class="slider-nav-btn slider-next" type="button" onclick="document.getElementById('slider-@categorySection.CategoryId').scrollBy({left: 250, behavior: 'smooth'})">
 						<i class="fa fa-chevron-right"></i>
 					</button>
 				}
 			</div>
 			<div class="mt-4 text-center">
-				<a asp-controller="Category" asp-action="Index" asp-route-slug="@category.Slug" class="btn-view-all">
-					Xem thêm @category.Name.ToUpper() <i class="fa fa-arrow-right ms-2"></i>
+				<a asp-controller="Category" asp-action="Index" asp-route-slug="@categorySection.CategorySlug" class="btn-view-all">
+					Xem thêm @categorySection.CategoryName.ToUpper() <i class="fa fa-arrow-right ms-2"></i>
 				</a>
 			</div>
 		</div>

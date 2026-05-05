@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Tra cứu đơn hàng";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="tech-card p-4">
+                <h3 class="fw-bold mb-4 text-center" style="color: var(--text-main);">
+                    <i class="fas fa-search-location me-2"></i>TRA CỨU ĐƠN HÀNG
+                </h3>
+                <p class="text-muted text-center small mb-4">Nhập mã đơn hàng của bạn để xem trạng thái giao hàng mới nhất.</p>
+
+                <form asp-action="Track" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold">Mã đơn hàng:</label>
+                        <input type="text" name="orderCode" class="form-control" placeholder="VD: 2f8a..." value="@ViewBag.OrderCode" required />
+                    </div>
+                    <button type="submit" class="btn btn-brand w-100 py-2">
+                        XÁC NHẬN TRA CỨU
+                    </button>
+                </form>
+
+                <div id="recent-orders-section" class="mt-4 pt-3 border-top" style="display: none;">
+                    <p class="small text-muted mb-2">Đơn hàng vừa đặt trên trình duyệt này:</p>
+                    <div id="recent-orders-list" class="d-flex flex-wrap gap-2">
+                        <!-- Sẽ được điền bởi JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            var recentOrders = JSON.parse(localStorage.getItem('recentOrders') || '[]');
+            if (recentOrders.length > 0) {
+                $('#recent-orders-section').show();
+                recentOrders.forEach(function(code) {
+                    $('#recent-orders-list').append(
+                        `<a href="/Order/Track?orderCode=${code}" class="badge bg-light text-dark border p-2 text-decoration-none">${code.substring(0, 8)}...</a>`
+                    );
+                });
+            }
+        });
+    </script>
+}

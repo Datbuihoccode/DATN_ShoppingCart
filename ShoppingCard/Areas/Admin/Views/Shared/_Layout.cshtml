@@ -1,3 +1,6 @@
+@using Microsoft.AspNetCore.Identity
+@using ShoppingCard.Models
+@inject UserManager<AppUserModel> UserManager
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -78,32 +81,47 @@
                 </a>
             }
 
-            @if (User.IsInRole("Admin") || User.IsInRole("Staff"))
-            {
-                @if (!User.IsInRole("Admin"))
-                {
-                    <div class="sidebar-section-title">Hệ thống</div>
-                }
-                <a asp-action="Profile" asp-controller="Account" asp-area="Admin"
-                   class="sidebar-nav-item @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" && ViewContext.RouteData.Values["action"]?.ToString() == "Profile" ? "active" : "")">
-                    <i class="fas fa-user-cog"></i><span>Tài khoản của tôi</span>
-                </a>
-            }
         </nav>
-
-        <div class="sidebar-footer" style="padding: 12px 16px; border-top: 1px solid rgba(255,255,255,0.07);">
-            <a asp-action="Logout" asp-controller="Account" asp-area="Admin"
-               class="d-flex align-items-center gap-2 px-3 py-2 rounded-3 text-danger fw-semibold"
-               style="font-size: 13px; background: rgba(220,53,69,0.08); text-decoration: none; transition: background 0.2s;"
-               onmouseover="this.style.background='rgba(220,53,69,0.16)'" onmouseout="this.style.background='rgba(220,53,69,0.08)'">
-                <i class="fas fa-sign-out-alt"></i> Đăng xuất
-            </a>
-        </div>
     </aside>
 
     <!-- ===== MAIN ===== -->
     <div class="admin-main">
-
+        <!-- HEADER -->
+        <header class="admin-header d-flex justify-content-between align-items-center px-4 py-3 bg-white border-bottom sticky-top" style="z-index: 1000;">
+            <div class="header-left">
+                <h5 class="m-0 fw-bold" style="color: #0f172a;">@(ViewData["HeaderTitle"] ?? "Hệ thống Quản lý LaptopCenter")</h5>
+            </div>
+            <div class="header-right d-flex align-items-center gap-4">
+                <style>
+                    .hover-dropdown:hover .dropdown-menu { display: block; margin-top: 0; }
+                </style>
+                <div class="dropdown hover-dropdown">
+                    <div class="d-flex align-items-center gap-2" style="cursor: pointer; padding: 5px 10px; border-radius: 8px; transition: background 0.2s;" onmouseover="this.style.background='#f8f9fa'" onmouseout="this.style.background='transparent'">
+                        @{ 
+                            var appUser = await UserManager.GetUserAsync(User);
+                            var displayEmail = User.Identity?.Name ?? "A"; 
+                            var displayName = displayEmail.Split('@')[0]; 
+                            var avatarUrl = "";
+                            if (appUser != null && !string.IsNullOrEmpty(appUser.Avatar) && appUser.Avatar != "noimage.jpg") {
+                                avatarUrl = $"/media/avatars/{appUser.Avatar}";
+                            } else {
+                                avatarUrl = $"https://ui-avatars.com/api/?name={displayName}&background=0f172a&color=fff&rounded=true";
+                            }
+                        }
+                        <img src="@avatarUrl" alt="Avatar" width="36" height="36" class="shadow-sm rounded-circle" style="object-fit: cover;">
+                        <div class="d-flex flex-column">
+                            <span class="fw-bold" style="font-size: 14px; color: #0f172a; line-height: 1.2; text-transform: capitalize;">@displayName</span>
+                            <span class="text-muted" style="font-size: 12px; line-height: 1.2;">@(User.IsInRole("Admin") ? "Quản trị viên" : "Nhân viên")</span>
+                        </div>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width: 200px;">
+                        <li><a class="dropdown-item py-2" asp-action="Profile" asp-controller="Account" asp-area="Admin"><i class="fas fa-user-cog me-2 text-muted"></i>Hồ sơ cá nhân</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" asp-action="Logout" asp-controller="Account" asp-area="Admin"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
 
         <!-- PAGE CONTENT -->
         <main class="admin-content">

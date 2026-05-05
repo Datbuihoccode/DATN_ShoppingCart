@@ -30,7 +30,7 @@
                                 <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
                                     @item.Name
                                 </a>
-                                <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
+                                <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 đ")</div>
                                 <div class="laptopcenter-card-specs">
                                     <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand?.Name</span>
                                     <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(item.Condition) ? "Mới 100%" : item.Condition)</span>

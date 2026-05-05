@@ -8,6 +8,8 @@ namespace ShoppingCard.Models.Shipping
         [RegularExpression(@"^(0|\+84)[3-9]\d{8}$")]
         public string ShippingPhone { get; set; }
         public string ShippingFullName { get; set; }
+        [EmailAddress]
+        public string? ShippingEmail { get; set; }
 
         [Required]
         [MaxLength(300)]

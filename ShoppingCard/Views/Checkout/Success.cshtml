@@ -1,0 +1,68 @@
+@model OrderModel
+@{
+    ViewData["Title"] = "Đặt hàng thành công";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="tech-card p-5">
+                <div class="mb-4">
+                    <i class="fas fa-check-circle text-success" style="font-size: 80px;"></i>
+                </div>
+                <h2 class="fw-bold mb-3" style="color: var(--text-main);">ĐẶT HÀNG THÀNH CÔNG!</h2>
+                <p class="text-muted mb-4">Cảm ơn bạn đã tin tưởng và lựa chọn sản phẩm của chúng tôi.</p>
+                
+                <div class="order-info-box p-4 mb-4" style="background: rgba(var(--brand-rgb), 0.05); border-radius: 12px; border: 1px dashed var(--brand-primary);">
+                    <p class="mb-2 text-muted">Mã đơn hàng của bạn:</p>
+                    <h3 class="fw-bold text-brand-primary mb-3" id="order-code-display">@Model.OrderCode</h3>
+                    <button class="btn btn-sm btn-outline-primary" onclick="copyOrderCode()">
+                        <i class="far fa-copy me-1"></i> Sao chép mã đơn
+                    </button>
+                </div>
+
+                <div class="alert alert-info small mb-4">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Vui lòng lưu lại mã đơn hàng này để tra cứu trạng thái đơn hàng của bạn.
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-center gap-3">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-dark px-4">
+                        <i class="fas fa-shopping-bag me-2"></i>Tiếp tục mua sắm
+                    </a>
+                    <a asp-controller="Order" asp-action="Track" asp-route-orderCode="@Model.OrderCode" class="btn btn-brand px-4">
+                        <i class="fas fa-search-location me-2"></i>Tra cứu đơn hàng
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function copyOrderCode() {
+            var code = "@Model.OrderCode";
+            navigator.clipboard.writeText(code).then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã sao chép!',
+                    text: 'Mã đơn hàng đã được lưu vào bộ nhớ tạm.',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            });
+        }
+
+        // Lưu vào LocalStorage để khách vãng lai dễ tra cứu lại
+        $(document).ready(function() {
+            var recentOrders = JSON.parse(localStorage.getItem('recentOrders') || '[]');
+            if (!recentOrders.includes("@Model.OrderCode")) {
+                recentOrders.unshift("@Model.OrderCode");
+                // Chỉ giữ lại 5 đơn gần nhất
+                if (recentOrders.length > 5) recentOrders.pop();
+                localStorage.setItem('recentOrders', JSON.stringify(recentOrders));
+            }
+        });
+    </script>
+}

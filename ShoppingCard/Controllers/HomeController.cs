@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ShoppingCard.Models;
+using ShoppingCard.Models.ViewsModels;
 using ShoppingCard.Repository;
 
 namespace ShoppingCard.Controllers
@@ -24,16 +25,53 @@ namespace ShoppingCard.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var products = _dataContext.Products
-                .Include(p => p.Brand)
-                .Include(p => p.ProductCategories)
-                    .ThenInclude(pc => pc.Category)
-                .ToList();
+            var categories = await _dataContext.Categories
+                .AsNoTracking()
+                .OrderBy(c => c.Name)
+                .Select(c => new
+                {
+                    c.Id,
+                    c.Name,
+                    c.Slug
+                })
+                .ToListAsync();
 
-            ViewBag.Sliders = _dataContext.Sliders.Where(s => s.Status == 1).ToList();
-            return View(products);
+            var sections = new List<HomeCategorySectionViewModel>(categories.Count);
+            foreach (var category in categories)
+            {
+                var products = await _dataContext.Products
+                    .AsNoTracking()
+                    .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == category.Id))
+                    .Include(p => p.Brand)
+                    .OrderByDescending(p => p.Id)
+                    .Take(15)
+                    .ToListAsync();
+
+                if (products.Count == 0)
+                {
+                    continue;
+                }
+
+                sections.Add(new HomeCategorySectionViewModel
+                {
+                    CategoryId = category.Id,
+                    CategoryName = category.Name,
+                    CategorySlug = category.Slug,
+                    Products = products
+                });
+            }
+
+            ViewBag.Sliders = await _dataContext.Sliders
+                .Where(s => s.Status == 1)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(new HomeIndexViewModel
+            {
+                Sections = sections
+            });
         }
 
         public IActionResult Privacy()

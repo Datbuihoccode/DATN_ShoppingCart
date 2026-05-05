@@ -1,6 +1,456 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-<h4>Checkout View</h4>
+@using ShoppingCard.Models.ViewsModels
+@model CartItemViewModel
 @{
+    ViewData["Title"] = "Tiến hành thanh toán";
+}
+
+<div class="container py-5">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-controller="Cart" asp-action="Index" class="btn btn-light rounded-circle shadow-sm me-3" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h2 class="section-title mb-0">Thanh toán đơn hàng</h2>
+    </div>
+
+    @if (Model.CartItems.Count > 0)
+    {
+        <div class="row g-4">
+            <!-- Cột trái: Form thông tin giao hàng & thanh toán -->
+            <div class="col-lg-7">
+                <div class="tech-card p-4 mb-4">
+                    <h4 class="fw-bold mb-4 border-bottom pb-2" style="color: var(--text-main);">
+                        <i class="fas fa-map-marker-alt me-2 text-danger"></i>Thông tin giao hàng
+                    </h4>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="shipping-fullname" class="form-label fw-semibold text-muted small">
+                                Họ tên người nhận <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" id="shipping-fullname" class="form-control bg-light" 
+                                    placeholder="VD: Nguyễn Văn A"
+                                    value="@ViewBag.UserFullName"
+                                    required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="shipping-phone" class="form-label fw-semibold text-muted small">
+                                Số điện thoại <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" id="shipping-phone" class="form-control bg-light" 
+                                    placeholder="VD: 0901234567"
+                                    pattern="^(0|\+84)[3-9]\d{8}$"
+                                    maxlength="12"
+                                    value="@ViewBag.UserPhone"
+                                    required />
+                            <div id="phone-error" class="text-danger small mt-1" style="display:none;">
+                                Số điện thoại không hợp lệ.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="shipping-email" class="form-label fw-semibold text-muted small">
+                            Email nhận thông báo <span class="text-danger">*</span>
+                        </label>
+                        <input type="email" id="shipping-email" class="form-control bg-light" 
+                                placeholder="VD: email@example.com"
+                                value="@(User.Identity?.Name ?? "")"
+                                required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="shipping-address" class="form-label fw-semibold text-muted small">
+                            Địa chỉ chi tiết (Số nhà, đường...) <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="shipping-address" class="form-control bg-light" maxlength="300" placeholder="Nhập địa chỉ nhận hàng" value="@ViewBag.UserAddress" />
+                    </div>
+
+                    <div class="row g-3 mb-4" id="shipping-dropdowns" 
+                            data-user-province="@ViewBag.UserProvinceId" 
+                            data-user-ward="@ViewBag.UserWardId">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted small">Tỉnh / Thành phố <span class="text-danger">*</span></label>
+                            <select id="shipping-province" class="form-select bg-light">
+                                <option value="">Chọn tỉnh/thành</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-muted small">Phường / Xã <span class="text-danger">*</span></label>
+                            <select id="shipping-ward-code" class="form-select bg-light">
+                                <option value="">Chọn phường/xã</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-dark w-100 py-2 fw-bold" id="btn-quote-shipping">
+                        <i class="fas fa-calculator me-2"></i>TÍNH PHÍ VẬN CHUYỂN
+                    </button>
+                    <div id="shipping-error" class="text-danger small mt-2 text-center" style="display:none;"></div>
+                </div>
+
+                <!-- Phương thức thanh toán -->
+                <div class="tech-card p-4">
+                    <h4 class="fw-bold mb-4 border-bottom pb-2" style="color: var(--text-main);">
+                        <i class="fas fa-credit-card me-2 text-primary"></i>Phương thức thanh toán
+                    </h4>
+                    
+                    <div class="d-grid gap-3">
+                        <button type="button" class="btn btn-brand btn-lg" id="btn-cod-checkout" style="height: 55px;">
+                            <i class="fas fa-money-bill-wave me-2"></i> THANH TOÁN KHI NHẬN HÀNG (COD)
+                        </button>
+                        
+                        <div class="d-flex align-items-center my-2">
+                            <hr class="flex-grow-1">
+                            <span class="mx-3 text-muted small">HOẶC THANH TOÁN ONLINE AN TOÀN</span>
+                            <hr class="flex-grow-1">
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" class="online-pay-form h-100">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Amount" value="@Model.GrandTotal" />
+                                    <!-- Hidden inputs will be populated by JS -->
+                                    <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                    <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
+                                    <input type="hidden" name="ShippingEmail" class="shipping-email-hidden" />
+                                    <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
+                                    <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
+                                    <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
+                                    <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
+                                    <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
+                                    <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
+                                    <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
+                                    <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
+                                    
+                                    <button type="submit" class="payment-btn w-100 h-100" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff;">
+                                        <img src="~/media/payments/vnpay.png" alt="VNPAY" style="height: 35px; object-fit: contain;">
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-6">
+                                <form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" class="online-pay-form h-100">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="Amount" value="@Model.GrandTotal" />
+                                    <!-- Hidden inputs will be populated by JS -->
+                                    <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+                                    <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
+                                    <input type="hidden" name="ShippingEmail" class="shipping-email-hidden" />
+                                    <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
+                                    <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
+                                    <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
+                                    <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
+                                    <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
+                                    <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
+                                    <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
+                                    <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
+                                    
+                                    <button type="submit" name="RequestType" value="captureWallet" class="payment-btn w-100 h-100" style="padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff;">
+                                        <img src="~/media/payments/momo.png" alt="MOMO" style="height: 35px; object-fit: contain;">
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center mt-3 mb-0"><small class="text-muted" style="font-size: 11px;"><i class="fas fa-shield-alt me-1"></i>Bảo mật & Mã hóa bởi VNPAY/Momo</small></p>
+                </div>
+            </div>
+
+            <!-- Cột phải: Tóm tắt đơn hàng -->
+            <div class="col-lg-5">
+                <div class="bg-white sticky-top" style="top: 20px; border: 1px solid #e0e0e0; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
+                    <!-- Header -->
+                    <h4 class="fw-bold m-0 p-3" style="color: #0f172a; border-bottom: 1px solid #e0e0e0; font-size: 20px;">Đơn hàng của bạn</h4>
+                    
+                    <div class="p-4">
+                        <!-- Subheader -->
+                        <div class="d-flex justify-content-between mb-3 fw-bold" style="color: #0f172a; font-size: 15px;">
+                            <span>Sản phẩm</span>
+                            <span>Tạm tính</span>
+                        </div>
+
+                        <div class="checkout-items-list mb-3" style="max-height: 400px; overflow-y: auto; padding-right: 5px;">
+                            @foreach (var item in Model.CartItems)
+                            {
+                                <div class="mb-3 pb-3 border-bottom">
+                                    <div class="mb-2" style="color: #6c757d; font-size: 14px;">
+                                        @item.ProductName <strong class="text-dark" style="font-size: 15px;">× @item.Quantity</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <img src="@item.Image" style="width: 60px; height: 60px; object-fit: contain;">
+                                        <span class="text-danger fw-bold" style="font-size: 16px;">@((item.Quantity * item.Price).ToString("#,##0"))đ</span>
+                                    </div>
+                                    <a asp-action="Remove" asp-controller="Cart" asp-route-id="@item.ProductId" class="btn btn-sm mt-2" style="color: #dc3545; background: #fff; border: 1px solid #dc3545; padding: 2px 10px; font-size: 13px; border-radius: 4px;">Xóa</a>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Voucher form -->
+                        <div class="d-flex mb-4">
+                            <input type="text" class="form-control coupon-value" placeholder="Mã ưu đãi" value="@Model.CouponCode" style="border-radius: 4px 0 0 4px; border: 1px solid #e0e0e0;">
+                            <button type="button" class="btn btn-apply-coupon text-white" style="background: #e62e3d; border-radius: 0 4px 4px 0; padding: 0 20px; font-weight: 500;">Áp dụng</button>
+                        </div>
+
+                        <!-- Tạm tính, Phí ship, Tổng -->
+                        <div class="d-flex justify-content-between mb-2" style="font-size: 15px;">
+                            <span class="fw-bold" style="color: #000;">Tạm tính</span>
+                            <span class="text-danger fw-bold">@Model.GrandTotal.ToString("#,##0")đ</span>
+                        </div>
+
+                        @if(!string.IsNullOrEmpty(Model.CouponCode)) {
+                            <div class="d-flex justify-content-between mb-2" style="font-size: 15px;">
+                                <span class="fw-bold">Mã giảm giá <span class="badge bg-success">@Model.CouponCode</span></span>
+                                <span class="text-success fw-bold">-@Model.DiscountAmount.ToString("#,##0")đ</span>
+                            </div>
+                        }
+
+                        <div class="d-flex justify-content-between mb-3" style="font-size: 15px;">
+                            <span class="fw-bold">Phí vận chuyển</span>
+                            <span class="fw-bold text-dark" id="shipping-fee-text">Chưa tính</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <span class="fw-bold" style="color: #0f172a; font-size: 16px;">Tổng cộng</span>
+                            <span class="text-danger fw-bold" style="font-size: 18px;" id="final-total-text">@((Model.GrandTotal - Model.DiscountAmount).ToString("#,##0"))đ</span>
+                        </div>
+                        
+                        <div class="alert alert-warning small py-2 mb-0 mt-3" style="border-radius: 4px;">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Vui lòng tính phí vận chuyển trước khi thanh toán.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hidden form for COD -->
+        <form id="form-cod" asp-controller="Checkout" asp-action="Checkout" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
+            <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
+            <input type="hidden" name="ShippingEmail" class="shipping-email-hidden" />
+            <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
+            <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
+            <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
+            <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
+            <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
+            <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
+            <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
+            <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
+        </form>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <h3 class="text-black">Không có sản phẩm để thanh toán!</h3>
+            <a href="/" class="btn-brand mt-3" style="width: auto; display: inline-block; padding: 12px 35px;">TIẾP TỤC MUA SẮM</a>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $('.btn-apply-coupon').click(function () {
+            var coupon_value = $('.coupon-value').val();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GetCoupon", "Cart")',
+                data: { coupon_value: coupon_value },
+                success: function (result) {
+                    if (result.success) {
+                        Swal.fire(result.message).then(function () { location.reload(); });
+                    } else {
+                        Swal.fire(result.message);
+                    }
+                }
+            });
+        });
+
+        function getShippingInput() {
+            var phone = $('#shipping-phone').val().trim();
+            var fullname = $('#shipping-fullname').val().trim();
+            var email = $('#shipping-email').val().trim();
+            var address = $('#shipping-address').val().trim();
+            var provinceId = parseInt($('#shipping-province').val(), 10);
+            var wardIdV2 = parseInt($('#shipping-ward-code').val(), 10);
+            var provinceName = $('#shipping-province option:selected').text().trim();
+            var wardName = $('#shipping-ward-code option:selected').text().trim();
+            var phoneRegex = /^(0|\+84)[3-9]\d{8}$/;
+
+            if (!phoneRegex.test(phone)) {
+                $('#phone-error').show();
+                $('#shipping-phone').addClass('is-invalid');
+                return null;
+            }
+
+            $('#phone-error').hide();
+            $('#shipping-phone').removeClass('is-invalid');
+            $('#shipping-fullname').removeClass('is-invalid');
+
+            if (!address || !provinceId || !wardIdV2 || !fullname || !email) {
+                $('#shipping-error').text('Vui lòng nhập đầy đủ thông tin nhận hàng (Họ tên, Email, SĐT, Địa chỉ).').show();
+                if(!fullname) $('#shipping-fullname').addClass('is-invalid');
+                if(!email) $('#shipping-email').addClass('is-invalid');
+                return null;
+            }
+
+            $('#shipping-error').hide();
+            return {
+                phone: phone,
+                fullname: fullname,
+                email: email,
+                address: address,
+                provinceId: provinceId,
+                wardIdV2: wardIdV2,
+                provinceName: provinceName,
+                wardName: wardName,
+                districtId: provinceId,
+                wardCode: String(wardIdV2)
+            };
+        }
+
+        function loadProvinces() {
+            $.get('@Url.Action("ShippingProvinces", "Checkout")')
+                .done(function (items) {
+                    var options = '<option value="">Chọn tỉnh/thành</option>';
+                    items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
+                    $('#shipping-province').html(options);
+
+                    var savedProvince = $('#shipping-dropdowns').data('user-province');
+                    if (savedProvince) {
+                        $('#shipping-province').val(savedProvince).trigger('change');
+                    }
+                })
+                .fail(function () {
+                    $('#shipping-error').text('Không tải được danh sách tỉnh/thành từ GHN.').show();
+                });
+        }
+
+        $('#shipping-province').on('change', function () {
+            var provinceCode = $(this).val();
+            $('#shipping-ward-code').html('<option value="">Chọn phường/xã</option>');
+            if (!provinceCode) return;
+            $.get('@Url.Action("ShippingWards", "Checkout")', { provinceCode: provinceCode })
+                .done(function (items) {
+                    var options = '<option value="">Chọn phường/xã</option>';
+                    items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
+                    $('#shipping-ward-code').html(options);
+
+                    var savedWard = $('#shipping-dropdowns').data('user-ward');
+                    if (savedWard) {
+                        $('#shipping-ward-code').val(savedWard);
+                        $('#shipping-dropdowns').data('user-ward', '');
+                    }
+                })
+                .fail(function () {
+                    $('#shipping-error').text('Không tải được danh sách phường/xã từ GHN.').show();
+                });
+        });
+
+        function syncShippingHiddenInputs(input) {
+            $('.shipping-phone-hidden').val(input.phone);
+            $('.shipping-fullname-hidden').val(input.fullname);
+            $('.shipping-email-hidden').val(input.email);
+            $('.shipping-address-hidden').val(input.address);
+            $('.shipping-district-hidden').val(input.districtId);
+            $('.shipping-ward-hidden').val(input.wardCode);
+            $('.shipping-province-hidden').val(input.provinceId);
+            $('.shipping-ward-idv2-hidden').val(input.wardIdV2);
+            $('.shipping-province-name-hidden').val(input.provinceName);
+            $('.shipping-ward-name-hidden').val(input.wardName);
+        }
+
+        function refreshFinalTotal(shippingFee) {
+            var baseTotal = @((Model.GrandTotal - Model.DiscountAmount).ToString(System.Globalization.CultureInfo.InvariantCulture));
+            var finalTotal = baseTotal + shippingFee;
+            $('#shipping-fee-text').text(shippingFee.toLocaleString('vi-VN') + ' đ');
+            $('#final-total-text').text(finalTotal.toLocaleString('vi-VN') + ' đ');
+            $('.shipping-fee-hidden').val(shippingFee);
+            $('#shipping-error').hide();
+        }
+
+        $('#btn-quote-shipping').click(function () {
+            var input = getShippingInput();
+            if (!input) return;
+
+            // Optional loading state
+            var btn = $(this);
+            var originalText = btn.html();
+            btn.html('<i class="fas fa-spinner fa-spin me-2"></i>ĐANG TÍNH...').prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("QuoteShipping", "Checkout")',
+                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val() },
+                data: {
+                    ToDistrictId: input.districtId,
+                    ToWardCode: input.wardCode,
+                    ToProvinceId: input.provinceId,
+                    ToWardIdV2: input.wardIdV2,
+                    ToAddressV2: input.address
+                },
+                success: function (result) {
+                    btn.html(originalText).prop('disabled', false);
+                    if (result.success) {
+                        syncShippingHiddenInputs(input);
+                        refreshFinalTotal(parseFloat(result.shippingFee || 0));
+                    } else {
+                        $('#shipping-error').text(result.message || 'Không tính được phí ship.').show();
+                    }
+                },
+                error: function (xhr) {
+                    btn.html(originalText).prop('disabled', false);
+                    var message = xhr.responseJSON && xhr.responseJSON.message
+                        ? xhr.responseJSON.message
+                        : 'Không tính được phí ship.';
+                    $('#shipping-error').text(message).show();
+                }
+            });
+        });
+
+        function isShippingCalculated() {
+            var fee = $('.shipping-fee-hidden').first().val();
+            return fee && fee !== "0" && fee !== "";
+        }
+
+        $('#btn-cod-checkout').click(function () {
+            var input = getShippingInput();
+            if (!input) return;
+            
+            if (!isShippingCalculated()) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa tính phí vận chuyển',
+                    text: 'Vui lòng nhấn nút "Tính phí vận chuyển" trước khi thanh toán!'
+                });
+                return;
+            }
+
+            if (!confirm('Xác nhận đặt hàng thanh toán khi nhận hàng?')) return;
+            syncShippingHiddenInputs(input);
+            $('#form-cod').submit();
+        });
+
+        $('.online-pay-form').on('submit', function (e) {
+            var input = getShippingInput();
+            if (!input) {
+                e.preventDefault();
+                return false;
+            }
+
+            if (!isShippingCalculated()) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa tính phí vận chuyển',
+                    text: 'Vui lòng nhấn nút "Tính phí vận chuyển" trước khi thanh toán!'
+                });
+                return false;
+            }
+
+            syncShippingHiddenInputs(input);
+        });
+
+        // Initialize
+        loadProvinces();
+    </script>
 }

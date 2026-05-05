@@ -10,7 +10,7 @@
 <!-- TOP FILTER BAR -->
 <div class="row mb-4 align-items-center">
     <div class="col-md-6">
-        <h4 class="fw-bold mb-0">Chào mừng trở lại, Admin 👋</h4>
+        <h4 class="fw-bold mb-0">Thống kê doanh thu</h4>
         <p class="text-muted mb-0">Dưới đây là thống kê mới nhất của LaptopCenter.</p>
     </div>
     <div class="col-md-6 text-md-end mt-3 mt-md-0">
@@ -62,7 +62,7 @@
         <div class="dashboard-kpi-card p-4">
             <div class="d-flex justify-content-between align-items-start">
                 <div>
-                    <p class="text-muted mb-1 fw-medium small">Khách hàng</p>
+                    <p class="text-muted mb-1 fw-medium small">Người dùng</p>
                     <h4 class="fw-bold mb-1">@ViewBag.CountUser.ToString("N0")</h4>
 
                 </div>
@@ -115,7 +115,7 @@
     <div class="col-12">
         <div class="table-card">
             <div class="table-card-header d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0">Đơn hàng mới</h5>
+                <h5 class="fw-bold mb-0">Đơn hàng gần đây</h5>
                 <a asp-action="Index" asp-controller="Order" class="btn btn-sm btn-light rounded-3 text-primary fw-bold px-3">Tất cả</a>
             </div>
             <div class="p-0 table-responsive">
@@ -148,7 +148,9 @@
                                     <td class="text-center fw-bold text-dark">@order.TotalAmount.ToString("#,##0") đ</td>
                                     <td class="pe-4 text-end">
                                         @{
-                                            var statusClass = order.Status switch
+                                            var orderStatusEnum = (ShoppingCard.Models.OrderStatus)order.Status;
+                                            var paymentStatusEnum = (ShoppingCard.Models.PaymentStatus)order.PaymentStatus;
+                                            var statusClass = orderStatusEnum switch
                                             {
                                                 ShoppingCard.Models.OrderStatus.New => "badge-new",
                                                 ShoppingCard.Models.OrderStatus.Confirmed => "badge-processed",
@@ -158,25 +160,10 @@
                                                 ShoppingCard.Models.OrderStatus.Cancelled => "badge-cancelled",
                                                 _ => "badge-cod"
                                             };
-                                            if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Pending) statusClass = "badge-new";
-
-                                            string displayStatus = "";
-                                            if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Pending) displayStatus = "Chờ thanh toán";
-                                            else if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Failed || order.Status == ShoppingCard.Models.OrderStatus.Cancelled) displayStatus = "Đã hủy";
-                                            else if (order.PaymentStatus == ShoppingCard.Models.PaymentStatus.Refunded) displayStatus = "Đã hoàn tiền";
-                                            else {
-                                                displayStatus = order.Status switch {
-                                                    ShoppingCard.Models.OrderStatus.New => "Đơn hàng mới",
-                                                    ShoppingCard.Models.OrderStatus.Confirmed => "Đã xác nhận",
-                                                    ShoppingCard.Models.OrderStatus.Processing => "Đang xử lý",
-                                                    ShoppingCard.Models.OrderStatus.Shipping => "Đang giao hàng",
-                                                    ShoppingCard.Models.OrderStatus.Completed => "Hoàn thành",
-                                                    _ => "Không xác định"
-                                                };
-                                            }
+                                            if (paymentStatusEnum == ShoppingCard.Models.PaymentStatus.Pending) statusClass = "badge-new";
                                         }
                                         <span class="status-badge @statusClass">
-                                            @displayStatus
+                                            @ShoppingCard.Models.OrderStatusExtensions.ToAdminDisplay(orderStatusEnum)
                                         </span>
                                     </td>
                                 </tr>

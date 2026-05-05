@@ -149,12 +149,8 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                // Cập nhật các thuộc tính của user
-                existingUser.UserName = user.UserName;
-                existingUser.Email = user.Email;
-                existingUser.FullName = user.FullName;
-                existingUser.PhoneNumber = user.PhoneNumber;
-                existingUser.Address = user.Address;
+                // CHỈ cập nhật RoleId, KHÔNG cập nhật thông tin cá nhân (FullName, Email, etc.)
+                // theo yêu cầu: admin không có quyền update thông tin người dùng.
                 existingUser.RoleId = user.RoleId;
 
                 var updateResult = await _userManager.UpdateAsync(existingUser);

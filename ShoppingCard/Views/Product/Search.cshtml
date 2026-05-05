@@ -35,7 +35,7 @@
                                     <a asp-action="Details" asp-controller="Product" asp-route-Slug="@item.Slug" class="laptopcenter-card-title">
                                         @item.Name
                                     </a>
-                                    <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 VNĐ")</div>
+                                    <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 đ")</div>
                                     <div class="laptopcenter-card-specs">
                                         <span class="laptopcenter-spec-item">@(item.ProductCategories?.FirstOrDefault()?.Category?.Name ?? "Laptop")</span>
                                         <span class="laptopcenter-spec-item">@item.Brand?.Name</span>

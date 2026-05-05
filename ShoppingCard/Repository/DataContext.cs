@@ -71,6 +71,19 @@ namespace ShoppingCard.Repository
                 .WithMany(o => o.OrderHistories)
                 .HasPrincipalKey(o => o.OrderCode)
                 .HasForeignKey(oh => oh.OrderCode);
+
+            // Cấu hình precision cho decimal properties
+            modelBuilder.Entity<CouponModel>(entity =>
+            {
+                entity.Property(e => e.DiscountValue).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.MaxDiscountAmount).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.MinAmount).HasColumnType("decimal(18,2)");
+            });
+
+            modelBuilder.Entity<OrderModel>(entity =>
+            {
+                entity.Property(e => e.DiscountAmount).HasColumnType("decimal(18,2)");
+            });
         }
     }
 }
