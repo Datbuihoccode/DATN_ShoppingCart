@@ -39,6 +39,7 @@ namespace ShoppingCard.Models
         public int Quantity { get; set; }
 
         public int Sold { get; set; }
+        [Range(1, 1000000, ErrorMessage = "Khối lượng sản phẩm phải lớn hơn 0")]
         public int? WeightGram { get; set; }
         public ICollection<RatingModel> Ratings { get; set; }
         public virtual ICollection<ProductQuantityModel> ProductQuantities { get; set; }

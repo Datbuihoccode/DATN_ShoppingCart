@@ -1,0 +1,130 @@
+@model OrderModel
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng #" + Model.OrderCode;
+}
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Thông tin trạng thái (Tiến trình) -->
+        <div class="col-lg-8">
+            <div class="tech-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0" style="color: var(--text-main);">Trạng thái đơn hàng</h4>
+                    <span class="lc-badge badge-info">@Model.DisplayStatusForUser</span>
+                </div>
+
+                <div class="tracking-list">
+                    @if (Model.OrderHistories != null && Model.OrderHistories.Any())
+                    {
+                        foreach (var history in Model.OrderHistories.OrderByDescending(h => h.CreatedDate))
+                        {
+                            <div class="tracking-item d-flex gap-3 mb-4">
+                                <div class="tracking-icon text-center" style="width: 24px;">
+                                    <i class="fas fa-circle-check text-success"></i>
+                                    <div class="tracking-line" style="width: 2px; height: 100%; background: #e2e8f0; margin: 0 auto;"></div>
+                                </div>
+                                <div class="tracking-content pb-2 border-bottom w-100">
+                                    <div class="fw-bold" style="color: var(--text-main);">@history.Status.ToAdminDisplay()</div>
+                                    <div class="text-muted small mb-1">@history.CreatedDate.ToString("dd/MM/yyyy HH:mm:ss")</div>
+                                    <p class="mb-0 text-secondary">@history.Note</p>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">Chưa có thông tin lịch sử cho đơn hàng này.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Chi tiết sản phẩm -->
+            <div class="tech-card p-4">
+                <h5 class="fw-bold mb-4" style="color: var(--text-main);">Sản phẩm trong đơn</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var detail in Model.OrderDetails)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <img src="@detail.Product?.Image" style="width: 40px; height: 40px; object-fit: contain;" />
+                                            <span class="small fw-bold">@detail.Product?.Name</span>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">x @detail.Quantity</td>
+                                    <td class="text-end">@detail.Price.ToString("#,##0") đ</td>
+                                    <td class="text-end fw-bold">@((detail.Quantity * detail.Price).ToString("#,##0")) đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end text-muted">Tạm tính:</td>
+                                <td class="text-end fw-bold">@Model.OrderDetails.Sum(x => x.Quantity * x.Price).ToString("#,##0") đ</td>
+                            </tr>
+                            @if (Model.DiscountAmount > 0)
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-end text-muted">Giảm giá:</td>
+                                    <td class="text-end text-success fw-bold">-@Model.DiscountAmount.ToString("#,##0") đ</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="3" class="text-end text-muted">Phí vận chuyển:</td>
+                                <td class="text-end fw-bold">@Model.ShippingFee.ToString("#,##0") đ</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end h5 fw-bold">Tổng thanh toán:</td>
+                                <td class="text-end h5 fw-bold text-danger">@((Model.OrderDetails.Sum(x => x.Quantity * x.Price) - Model.DiscountAmount + Model.ShippingFee).ToString("#,##0")) đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin vận chuyển -->
+        <div class="col-lg-4">
+            <div class="tech-card p-4 mb-4 sticky-top" style="top: 20px;">
+                <h5 class="fw-bold mb-4" style="color: var(--text-main);">Thông tin nhận hàng</h5>
+                <div class="mb-3">
+                    <label class="text-muted small d-block">Người nhận:</label>
+                    <div class="fw-bold">@Model.UserName</div> @* Hoặc FullName nếu có lưu trong Order *@
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small d-block">Số điện thoại:</label>
+                    <div class="fw-bold">@Model.ShippingPhone</div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small d-block">Địa chỉ giao hàng:</label>
+                    <div class="fw-bold">@Model.ShippingAddress</div>
+                </div>
+                <div class="mb-3">
+                    <label class="text-muted small d-block">Hình thức thanh toán:</label>
+                    <div class="badge bg-light text-dark border">@Model.PaymentMethod</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.ShippingTrackingCode))
+                {
+                    <div class="mt-4 p-3 rounded" style="background: rgba(var(--brand-rgb), 0.05); border: 1px solid var(--brand-primary);">
+                        <label class="text-muted small d-block">Mã vận đơn GHN:</label>
+                        <div class="fw-bold text-brand-primary">@Model.ShippingTrackingCode</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tracking-item:last-child .tracking-line { display: none; }
+</style>

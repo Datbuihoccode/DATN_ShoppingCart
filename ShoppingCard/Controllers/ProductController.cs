@@ -15,20 +15,20 @@ namespace ShoppingCard.Controllers
         }
 
         [Route("Product/Search")]
-        public async Task<IActionResult> Search(string searchTearm)
+        public async Task<IActionResult> Search(string searchTerm)
         {
-            if (string.IsNullOrEmpty(searchTearm))
+            if (string.IsNullOrEmpty(searchTerm))
                 return View(new List<ProductModel>());
-
+ 
             var products = await _dataContext.Products
                 .Include(p => p.Brand)
                 .Include(p => p.ProductCategories)
                     .ThenInclude(pc => pc.Category)
-                .Where(p => p.Name.Contains(searchTearm) || p.Description.Contains(searchTearm))
+                .Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm))
                 .ToListAsync();
-
-            ViewBag.Keyword = searchTearm;
-
+ 
+            ViewBag.Keyword = searchTerm;
+ 
             return View(products);
         }
 

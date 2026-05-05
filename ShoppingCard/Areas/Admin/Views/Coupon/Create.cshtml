@@ -50,22 +50,22 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Giá trị giảm <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold" id="discountValueLabel">Giá trị giảm <span class="text-danger">*</span></label>
                             <input asp-for="DiscountValue" class="form-control" placeholder="0" />
                             <span asp-validation-for="DiscountValue" class="text-danger small"></span>
                         </div>
                     </div>
 
-                    <div class="row" id="maxDiscountRow" style="display: none;">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold text-primary">Giảm tối đa (đ)</label>
-                            <input asp-for="MaxDiscountAmount" class="form-control" placeholder="Để trống nếu không giới hạn" />
-                            <span asp-validation-for="MaxDiscountAmount" class="text-danger small"></span>
-                        </div>
+                    <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Đơn hàng tối thiểu (đ)</label>
                             <input asp-for="MinAmount" class="form-control" placeholder="0" />
                             <span asp-validation-for="MinAmount" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3" id="maxDiscountCol" style="display: none;">
+                            <label class="form-label fw-semibold text-primary">Giảm tối đa (đ)</label>
+                            <input asp-for="MaxDiscountAmount" class="form-control" placeholder="Để trống nếu không giới hạn" />
+                            <span asp-validation-for="MaxDiscountAmount" class="text-danger small"></span>
                         </div>
                     </div>
 
@@ -116,11 +116,20 @@
 
             $('#couponType').change(function() {
                 if ($(this).val() == "1") {
-                    $('#maxDiscountRow').slideDown();
+                    $('#maxDiscountCol').slideDown();
+                    $('#discountValueLabel').html('Mức giảm (%) <span class="text-danger">*</span>');
                 } else {
-                    $('#maxDiscountRow').slideUp();
+                    $('#maxDiscountCol').slideUp();
+                    $('#discountValueLabel').html('Số tiền giảm (đ) <span class="text-danger">*</span>');
+                    $('#MaxDiscountAmount').val('0'); // Reset giá trị
                 }
             }).trigger('change');
+
+            $('form').submit(function() {
+                if (!$('#MaxDiscountAmount').val()) $('#MaxDiscountAmount').val('0');
+                if (!$('#MinAmount').val()) $('#MinAmount').val('0');
+                if (!$('#DiscountValue').val()) $('#DiscountValue').val('0');
+            });
         });
     </script>
 }

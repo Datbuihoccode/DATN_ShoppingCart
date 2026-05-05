@@ -29,7 +29,7 @@ namespace ShoppingCard.Services
         }
 
         public async Task<OrderModel> CreateOrderAsync(
-            string userId,
+            string? userId,
             string userEmail,
             PaymentMethod method,
             string couponCode = null,
@@ -37,7 +37,7 @@ namespace ShoppingCard.Services
         {
             var dbCarts = await _dataContext.Carts
                 .Include(c => c.Product)
-                .Where(c => c.UserId == userId)
+                .Where(c => userId != null ? c.UserId == userId : c.UserId == userEmail)
                 .ToListAsync();
 
             if (dbCarts.Count == 0)
@@ -166,7 +166,7 @@ namespace ShoppingCard.Services
             await _dataContext.SaveChangesAsync();
 
             // Update user profile with shipping info (TH1 & TH2)
-            if (shippingInput != null)
+            if (shippingInput != null && userId != null)
             {
                 var user = await _userManager.FindByIdAsync(userId);
                 if (user != null)

@@ -27,7 +27,12 @@ namespace ShoppingCard.Services
             var items = await _db.Carts.Include(c => c.Product).Where(c => c.UserId == userId).ToListAsync();
             if (!items.Any()) return new ShippingQuoteResult { Message = "Giỏ hàng trống." };
 
-            var weight = items.Sum(x => Math.Max(1, x.Product?.WeightGram ?? _opt.DefaultItemWeightGram) * x.Quantity);
+            var weight = items.Sum(x => 
+            {
+                var w = x.Product?.WeightGram ?? 0;
+                if (w <= 0) w = _opt.DefaultItemWeightGram;
+                return w * x.Quantity;
+            });
             var value = items.Sum(x => (x.Product?.Price ?? 0) * x.Quantity);
 
             return await GetGhnFeeAsync(req, weight, value);
@@ -41,7 +46,12 @@ namespace ShoppingCard.Services
             if (order == null) return new ShippingShipmentResult { Message = "Không tìm thấy đơn hàng." };
 
             var details = await _db.OrderDetails.Include(d => d.Product).Where(d => d.OrderCode == orderCode).ToListAsync();
-            var weight = details.Sum(d => Math.Max(1, d.Product?.WeightGram ?? _opt.DefaultItemWeightGram) * d.Quantity);
+            var weight = details.Sum(d => 
+            {
+                var w = d.Product?.WeightGram ?? 0;
+                if (w <= 0) w = _opt.DefaultItemWeightGram;
+                return w * d.Quantity;
+            });
             var insurance = details.Sum(d => d.Price * d.Quantity);
             var cod = order.PaymentMethod == PaymentMethod.COD.ToString() ? (int)Math.Max(0, insurance - order.DiscountAmount + order.ShippingFee) : 0;
 
@@ -68,7 +78,7 @@ namespace ShoppingCard.Services
                 weight, length = 20, width = 20, height = 10,
                 insurance_value = (int)insurance,
                 service_type_id = _opt.ServiceTypeId,
-                items = details.Select(d => new { name = d.Product?.Name ?? "SP", quantity = d.Quantity, weight = d.Product?.WeightGram ?? 100 })
+                items = details.Select(d => new { name = d.Product?.Name ?? "SP", quantity = d.Quantity, weight = (d.Product?.WeightGram > 0 ? d.Product.WeightGram : _opt.DefaultItemWeightGram) })
             } : new
             {
                 payment_type_id = order.PaymentMethod == PaymentMethod.COD.ToString() ? 1 : 2,
@@ -89,7 +99,7 @@ namespace ShoppingCard.Services
                 weight, length = 20, width = 20, height = 10,
                 insurance_value = (int)insurance,
                 service_type_id = _opt.ServiceTypeId,
-                items = details.Select(d => new { name = d.Product?.Name ?? "SP", quantity = d.Quantity, weight = d.Product?.WeightGram ?? 100 })
+                items = details.Select(d => new { name = d.Product?.Name ?? "SP", quantity = d.Quantity, weight = (d.Product?.WeightGram > 0 ? d.Product.WeightGram : _opt.DefaultItemWeightGram) })
             };
 
             var res = await SendGhnRequest("/shiip/public-api/v2/shipping-order/create", payload);

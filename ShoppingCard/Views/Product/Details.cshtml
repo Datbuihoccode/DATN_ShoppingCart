@@ -52,13 +52,13 @@
                     </div>
 
                     <div class="laptopcenter-detail-price">
-                        @Model.ProductDetails.Price.ToString("#,##0 VNĐ")
+                        @Model.ProductDetails.Price.ToString("#,##0 đ")
                     </div>
                     
                     <div class="laptopcenter-detail-specs">
                         <p><strong><i class="fa fa-building"></i> Thương hiệu:</strong> @Model.ProductDetails.Brand?.Name</p>
                         <p><strong><i class="fa fa-check-circle"></i> Tình trạng:</strong> @(string.IsNullOrEmpty(Model.ProductDetails.Condition) ? "Mới 100%" : Model.ProductDetails.Condition)</p>
-                        <p><strong><i class="fa fa-shield-alt"></i> Bảo hành:</strong> 12 Tháng chính hãng</p>
+                        <p><strong><i class="fa fa-shield-alt"></i> Bảo hành:</strong> @(Model.ProductDetails.Condition == "Mới 100%" ? "24 Tháng" : "12 Tháng")</p>
                     </div>
 
                     <div class="laptopcenter-detail-action">
@@ -274,7 +274,7 @@
                                         </a>
 
                                         <div class="laptopcenter-card-price">
-                                            @related.Price.ToString("#,##0 VNĐ")
+                                            @related.Price.ToString("#,##0 đ")
                                         </div>
 
                                         <div class="laptopcenter-card-specs">

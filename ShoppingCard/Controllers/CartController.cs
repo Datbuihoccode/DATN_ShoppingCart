@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ShoppingCard.Controllers
 {
-    [Authorize]
     public class CartController : Controller
     {
         private readonly DataContext _dataContext;
@@ -23,7 +22,7 @@ namespace ShoppingCard.Controllers
 
         private string GetUserId()
         {
-            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return ShoppingCard.Library.CartHelper.GetUserId(HttpContext);
         }
 
         public async Task<IActionResult> Index()
@@ -73,7 +72,7 @@ namespace ShoppingCard.Controllers
                     }
                     else
                     {
-                        couponMessage = $"Đơn hàng tối thiểu {validCoupon.MinAmount.ToString("#,##0")} VNĐ để sử dụng mã này.";
+                        couponMessage = $"Đơn hàng tối thiểu {validCoupon.MinAmount.ToString("#,##0")} đ để sử dụng mã này.";
                         discount = 0;
                     }
                 }
@@ -102,9 +101,85 @@ namespace ShoppingCard.Controllers
             return View(cartVM);
         }
 
-        public IActionResult Checkout()
+        public async Task<IActionResult> Checkout()
         {
-            return View("~/Views/Checkout/Index.cshtml");
+            var userId = GetUserId();
+            var dbCarts = await _dataContext.Carts
+                .Include(c => c.Product)
+                .Where(c => c.UserId == userId)
+                .ToListAsync();
+
+            if (!dbCarts.Any())
+            {
+                return RedirectToAction("Index");
+            }
+
+            List<CartItemModel> cartItems = dbCarts.Select(c => new CartItemModel
+            {
+                ProductId = c.ProductId,
+                ProductName = c.Product?.Name,
+                Price = c.Product?.Price ?? 0,
+                Quantity = c.Quantity,
+                Image = c.Product?.Image
+            }).ToList();
+
+            decimal discount = 0;
+            string couponMessage = "";
+            var coupon_code = Request.Cookies["CouponTitle"];
+
+            if (!string.IsNullOrEmpty(coupon_code))
+            {
+                var validCoupon = await _dataContext.Coupons
+                    .FirstOrDefaultAsync(x => x.Name == coupon_code && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
+
+                if (validCoupon != null)
+                {
+                    decimal grandTotal = cartItems.Sum(x => x.Quantity * x.Price);
+                    if (grandTotal >= validCoupon.MinAmount)
+                    {
+                        if (validCoupon.Type == 1) // Percentage
+                        {
+                            discount = (grandTotal * validCoupon.DiscountValue) / 100;
+                            if (validCoupon.MaxDiscountAmount > 0 && discount > validCoupon.MaxDiscountAmount)
+                            {
+                                discount = validCoupon.MaxDiscountAmount;
+                            }
+                        }
+                        else // Fixed
+                        {
+                            discount = validCoupon.DiscountValue;
+                        }
+                        couponMessage = $"Áp dụng thành công: {validCoupon.Description}";
+                    }
+                    else
+                    {
+                        couponMessage = $"Đơn hàng tối thiểu {validCoupon.MinAmount.ToString("#,##0")} đ để sử dụng mã này.";
+                        discount = 0;
+                    }
+                }
+            }
+
+            CartItemViewModel cartVM = new()
+            {
+                CartItems = cartItems,
+                GrandTotal = cartItems.Sum(x => x.Quantity * x.Price),
+                CouponCode = coupon_code,
+                DiscountAmount = discount,
+                CouponMessage = couponMessage
+            };
+
+            // Fetch user info for checkout pre-fill
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user != null)
+            {
+                ViewBag.UserPhone = user.PhoneNumber;
+                ViewBag.UserAddress = user.Address;
+                ViewBag.UserFullName = user.FullName;
+                ViewBag.UserProvinceId = user.ProvinceId;
+                ViewBag.UserWardId = user.WardId;
+            }
+
+            return View("~/Views/Checkout/Index.cshtml", cartVM);
         }
 
         [HttpPost]
@@ -161,7 +236,7 @@ namespace ShoppingCard.Controllers
                 await _dataContext.SaveChangesAsync();
             }
 
-            return RedirectToAction("Index");
+            return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> Increase(long Id)
@@ -185,7 +260,7 @@ namespace ShoppingCard.Controllers
                 }
                 await _dataContext.SaveChangesAsync();
             }
-            return RedirectToAction("Index");
+            return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> Remove(long Id)
@@ -200,7 +275,7 @@ namespace ShoppingCard.Controllers
             }
 
             TempData["success"] = "Đã xóa sản phẩm khỏi giỏ hàng!";
-            return RedirectToAction("Index");
+            return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> Clear()

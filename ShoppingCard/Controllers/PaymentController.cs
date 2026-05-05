@@ -30,9 +30,8 @@ namespace ShoppingCard.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePaymentMomo(OrderInfo model, CheckoutShippingInput shippingInput)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userEmail = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
+            var userId = ShoppingCard.Library.CartHelper.GetUserId(HttpContext);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? shippingInput.ShippingEmail;
 
             try
             {
@@ -65,9 +64,8 @@ namespace ShoppingCard.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePaymentUrlVnPay(PaymentInformationModel model, CheckoutShippingInput shippingInput)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var userEmail = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(userId)) return RedirectToAction("Login", "Account");
+            var userId = ShoppingCard.Library.CartHelper.GetUserId(HttpContext);
+            var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? shippingInput.ShippingEmail;
 
             try
             {

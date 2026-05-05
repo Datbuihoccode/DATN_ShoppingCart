@@ -6,230 +6,116 @@
 <div class="container py-5">
     <h2 class="section-title mb-4">Giỏ hàng của bạn</h2>
 
-        @if (Model.CartItems.Count > 0)
-        {
-            <div class="row g-4">
-                <!-- Danh sách sản phẩm -->
-                <div class="col-lg-8">
-                    <div class="cart-items-list">
-                        @foreach (var item in Model.CartItems)
-                        {
-                            <div class="tech-card mb-3 p-3 cart-item-card">
-                                <div class="row align-items-center">
-                                    <div class="col-3 col-md-3">
-                                        <div class="bg-white rounded p-2 text-center" style="border: 1px solid var(--border);">
-                                            <img src="@item.Image" alt="@item.ProductName" class="img-fluid" style="max-height: 100px; object-fit: contain;">
-                                        </div>
-                                    </div>
-                                    <div class="col-9 col-md-5">
-                                        <div class="fw-bold mb-1" style="color: var(--text-main); font-size: 16px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">@item.ProductName</div>
-                                        <p class="text-muted" style="font-size: 12px; margin-bottom: 0;">Đơn giá: @item.Price.ToString("#,##0") đ</p>
-                                    </div>
-                                    <div class="col-6 col-md-1 mt-3 mt-md-0 px-0">
-                                        <div class="d-flex align-items-center justify-content-center gap-1">
-                                            <a class="btn btn-sm btn-outline-secondary p-0" asp-controller="Cart" asp-action="Decrease" asp-route-id="@item.ProductId" style="width: 24px; height: 24px; line-height: 22px;">-</a>
-                                            <span class="fw-bold" style="color: var(--text-main); font-size: 13px; min-width: 20px; text-align: center;">@item.Quantity</span>
-                                            <a class="btn btn-sm btn-outline-secondary p-0" asp-controller="Cart" asp-action="Increase" asp-route-id="@item.ProductId" style="width: 24px; height: 24px; line-height: 22px;">+</a>
-                                        </div>
-                                    </div>
-                                    <div class="col-4 col-md-2 mt-3 mt-md-0 text-md-end fw-bold" style="color: var(--text-main); font-size: 15px; white-space: nowrap;">
-                                        @((item.Quantity * item.Price).ToString("#,##0")) VNĐ
-                                    </div>
-                                    <div class="col-2 col-md-1 mt-3 mt-md-0 text-end">
-                                        <a class="text-danger" asp-controller="Cart" asp-action="Remove" asp-route-id="@item.ProductId">
-                                            <i class="fa fa-trash-alt"></i>
-                                        </a>
+    @if (Model.CartItems.Count > 0)
+    {
+        <div class="row g-4">
+            <!-- Danh sách sản phẩm -->
+            <div class="col-lg-8">
+                <div class="cart-items-list">
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <div class="tech-card mb-3 p-3 cart-item-card">
+                            <div class="row align-items-center">
+                                <div class="col-3 col-md-3">
+                                    <div class="bg-white rounded p-2 text-center" style="border: 1px solid var(--border);">
+                                        <img src="@item.Image" alt="@item.ProductName" class="img-fluid" style="max-height: 100px; object-fit: contain;">
                                     </div>
                                 </div>
-                            </div>
-                        }
-                    </div>
-                    <div class="mt-4">
-                        <a class="btn btn-outline-danger btn-sm" asp-controller="Cart" asp-action="Clear">
-                            <i class="fa fa-broom me-2"></i>Xóa sạch giỏ hàng
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Tổng kết đơn hàng -->
-                <div class="col-lg-4">
-                    <div class="tech-card p-4 sticky-top" style="top: 20px;">
-                        <h4 class="fw-bold mb-3 border-bottom pb-2" style="color: var(--text-main);">Tổng kết</h4>
-                        
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Tạm tính:</span>
-                            <span class="fw-bold" style="color: var(--text-main);">@Model.GrandTotal.ToString("#,##0") VNĐ</span>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label class="text-muted small mb-2 d-block">Mã giảm giá:</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control coupon-value" placeholder="Nhập mã..." @(!string.IsNullOrEmpty(Model.CouponCode) ? "disabled" : "")>
-                                @if (string.IsNullOrEmpty(Model.CouponCode)) {
-                                    <button class="btn btn-brand-primary btn-apply-coupon" type="button">Áp dụng</button>
-                                } else {
-                                    <a asp-action="RemoveCoupon" class="btn btn-outline-danger" title="Xóa mã">
-                                        <i class="fas fa-times"></i>
+                                <div class="col-9 col-md-5">
+                                    <div class="fw-bold mb-1" style="color: var(--text-main); font-size: 16px; line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">@item.ProductName</div>
+                                    <p class="text-muted" style="font-size: 12px; margin-bottom: 0;">Đơn giá: @item.Price.ToString("#,##0") đ</p>
+                                </div>
+                                <div class="col-6 col-md-1 mt-3 mt-md-0 px-0">
+                                    <div class="d-flex align-items-center justify-content-center gap-1">
+                                        <a class="btn btn-sm btn-outline-secondary p-0" asp-controller="Cart" asp-action="Decrease" asp-route-id="@item.ProductId" style="width: 24px; height: 24px; line-height: 22px;">-</a>
+                                        <span class="fw-bold" style="color: var(--text-main); font-size: 13px; min-width: 20px; text-align: center;">@item.Quantity</span>
+                                        <a class="btn btn-sm btn-outline-secondary p-0" asp-controller="Cart" asp-action="Increase" asp-route-id="@item.ProductId" style="width: 24px; height: 24px; line-height: 22px;">+</a>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-2 mt-3 mt-md-0 text-md-end fw-bold" style="color: var(--text-main); font-size: 15px; white-space: nowrap;">
+                                    @((item.Quantity * item.Price).ToString("#,##0")) đ
+                                </div>
+                                <div class="col-2 col-md-1 mt-3 mt-md-0 text-end">
+                                    <a class="text-danger" asp-controller="Cart" asp-action="Remove" asp-route-id="@item.ProductId">
+                                        <i class="fa fa-trash-alt"></i>
                                     </a>
-                                }
-                            </div>
-                            @if(!string.IsNullOrEmpty(Model.CouponCode)) {
-                                <div class="mt-2 text-success small fw-bold">
-                                    <i class="fa fa-check-circle me-1"></i>Đã áp dụng mã: @Model.CouponCode
                                 </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="mt-4">
+                    <a class="btn btn-outline-danger btn-sm" asp-controller="Cart" asp-action="Clear">
+                        <i class="fa fa-broom me-2"></i>Xóa sạch giỏ hàng
+                    </a>
+                </div>
+            </div>
+
+            <!-- Tổng kết đơn hàng -->
+            <div class="col-lg-4">
+                <div class="tech-card p-4 sticky-top" style="top: 20px;">
+                    <h4 class="fw-bold mb-3 border-bottom pb-2" style="color: var(--text-main);">Tổng kết</h4>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="text-muted">Tạm tính:</span>
+                        <span class="fw-bold" style="color: var(--text-main);">@Model.GrandTotal.ToString("#,##0") đ</span>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="text-muted small mb-2 d-block">Mã giảm giá:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control coupon-value" placeholder="Nhập mã..." @(!string.IsNullOrEmpty(Model.CouponCode) ? "disabled" : "")>
+                            @if (string.IsNullOrEmpty(Model.CouponCode)) {
+                                <button class="btn btn-brand-primary btn-apply-coupon" type="button">Áp dụng</button>
+                            } else {
+                                <a asp-action="RemoveCoupon" class="btn btn-outline-danger" title="Xóa mã">
+                                    <i class="fas fa-times"></i>
+                                </a>
                             }
                         </div>
-
-                        @if(!string.IsNullOrEmpty(Model.CouponMessage)) {
-                            <div class="alert alert-info py-2 small mb-3">
-                                <i class="fas fa-info-circle me-1"></i> @Model.CouponMessage
-                            </div>
-                        }
-
-                        @if(Model.DiscountAmount > 0) {
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Giảm giá:</span>
-                                <span class="fw-bold text-success">-@Model.DiscountAmount.ToString("#,##0") VNĐ</span>
-                            </div>
-                        }
-
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Phí vận chuyển:</span>
-                            <span class="fw-bold" id="shipping-fee-text">0 VNĐ</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-4 pt-3 border-top">
-                            <span class="h5 fw-bold" style="color: var(--text-main);">Tổng cộng:</span>
-                            <span class="h4 text-danger fw-bold" id="final-total-text">@((Model.GrandTotal - Model.DiscountAmount).ToString("#,##0")) VNĐ</span>
-                        </div>
-
-                        @if (User.Identity?.IsAuthenticated ?? false)
-                        {
-                            <div class="mb-3">
-                                <label for="shipping-fullname" class="text-muted small mb-1 d-block">
-                                    <i class="fas fa-user me-1"></i>Họ tên người nhận: <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" id="shipping-fullname" class="form-control" 
-                                       placeholder="VD: Nguyễn Văn A"
-                                       value="@ViewBag.UserFullName"
-                                       required />
-                            </div>
-                            <div class="mb-3">
-                                <label for="shipping-phone" class="text-muted small mb-1 d-block">
-                                    <i class="fas fa-phone me-1"></i>Số điện thoại nhận hàng: <span class="text-danger">*</span>
-                                </label>
-                                <input type="tel" id="shipping-phone" class="form-control" 
-                                       placeholder="VD: 0901234567"
-                                       pattern="^(0|\+84)[3-9]\d{8}$"
-                                       maxlength="12"
-                                       value="@ViewBag.UserPhone"
-                                       required />
-                                <div id="phone-error" class="text-danger small mt-1" style="display:none;">
-                                    Vui lòng nhập số điện thoại hợp lệ (10 số, bắt đầu bằng 0).
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label for="shipping-address" class="text-muted small mb-1 d-block">Địa chỉ giao hàng: <span class="text-danger">*</span></label>
-                                <input type="text" id="shipping-address" class="form-control" maxlength="300" placeholder="Số nhà, đường..." value="@ViewBag.UserAddress" />
-                            </div>
-                            <div class="row g-2 mb-2" id="shipping-dropdowns" 
-                                 data-user-province="@ViewBag.UserProvinceId" 
-                                 data-user-ward="@ViewBag.UserWardId">
-                                <div class="col-12">
-                                    <select id="shipping-province" class="form-select">
-                                        <option value="">Chon tinh/thanh</option>
-                                    </select>
-                                </div>
-                                <div class="col-12">
-                                    <select id="shipping-ward-code" class="form-select">
-                                        <option value="">Chon phuong/xa</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-outline-dark btn-sm w-100 mb-3" id="btn-quote-shipping">TINH PHI VAN CHUYEN</button>
-                            <div id="shipping-error" class="text-danger small mb-2" style="display:none;"></div>
-
-                            <div class="d-grid gap-2">
-                                <button type="button" class="btn btn-brand btn-lg mb-2" id="btn-cod-checkout">
-                                    THANH TOÁN COD
-                                </button>
-                                <form id="form-cod" asp-controller="Checkout" asp-action="Checkout" method="post" style="display:none;">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
-                                    <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
-                                    <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
-                                    <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
-                                    <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
-                                    <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
-                                    <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
-                                    <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
-                                    <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
-                                    <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
-                                </form>
-                                
-                                <p class="text-muted small text-center mb-2">Hoặc thanh toán online an toàn:</p>
-                                
-                                <div class="mb-2">
-                                    <form asp-action="CreatePaymentUrlVnPay" asp-controller="Payment" method="post" class="mb-2 online-pay-form">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="Amount" value="@Model.GrandTotal" />
-                                        <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
-                                        <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
-                                        <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
-                                        <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
-                                        <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
-                                        <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
-                                        <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
-                                        <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
-                                        <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
-                                        <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
-                                        <button type="submit" class="payment-btn w-100">
-                                            <img src="~/media/payments/vnpay.png" alt="VNPAY">
-                                        </button>
-                                    </form>
- 
-                                    <form asp-action="CreatePaymentMomo" asp-controller="Payment" method="post" class="online-pay-form">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="Amount" value="@Model.GrandTotal" />
-                                        <input type="hidden" name="ShippingPhone" class="shipping-phone-hidden" />
-                                        <input type="hidden" name="ShippingFullName" class="shipping-fullname-hidden" />
-                                        <input type="hidden" name="ShippingAddress" class="shipping-address-hidden" />
-                                        <input type="hidden" name="ShippingDistrictId" class="shipping-district-hidden" />
-                                        <input type="hidden" name="ShippingWardCode" class="shipping-ward-hidden" />
-                                        <input type="hidden" name="ShippingProvinceId" class="shipping-province-hidden" />
-                                        <input type="hidden" name="ShippingWardIdV2" class="shipping-ward-idv2-hidden" />
-                                        <input type="hidden" name="ShippingProvinceName" class="shipping-province-name-hidden" />
-                                        <input type="hidden" name="ShippingWardName" class="shipping-ward-name-hidden" />
-                                        <input type="hidden" name="ShippingFee" class="shipping-fee-hidden" value="0" />
-                                        <button type="submit" name="RequestType" value="captureWallet" class="payment-btn w-100">
-                                            <img src="~/media/payments/momo.png" alt="MOMO">
-                                        </button>
-                                    </form>
-                                </div>
-                                <p class="text-center"><small class="text-muted" style="font-size: 10px;">Bảo mật & Mã hóa bởi VNPAY/Momo</small></p>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="alert alert-warning small">
-                                <i class="fa fa-info-circle me-1"></i> Vui lòng <a asp-controller="Account" asp-action="Login">đăng nhập</a> để thanh toán.
+                        @if(!string.IsNullOrEmpty(Model.CouponCode)) {
+                            <div class="mt-2 text-success small fw-bold">
+                                <i class="fa fa-check-circle me-1"></i>Đã áp dụng mã: @Model.CouponCode
                             </div>
                         }
                     </div>
+
+                    @if(!string.IsNullOrEmpty(Model.CouponMessage)) {
+                        <div class="alert alert-info py-2 small mb-3">
+                            <i class="fas fa-info-circle me-1"></i> @Model.CouponMessage
+                        </div>
+                    }
+
+                    @if(Model.DiscountAmount > 0) {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Giảm giá:</span>
+                            <span class="fw-bold text-success">-@Model.DiscountAmount.ToString("#,##0") đ</span>
+                        </div>
+                    }
+
+                    <div class="d-flex justify-content-between mb-4 pt-3 border-top">
+                        <span class="h5 fw-bold" style="color: var(--text-main);">Tổng cộng:</span>
+                        <span class="h4 text-danger fw-bold" id="final-total-text">@((Model.GrandTotal - Model.DiscountAmount).ToString("#,##0")) đ</span>
+                    </div>
+
+                    <a asp-controller="Cart" asp-action="Checkout" class="btn btn-brand btn-lg w-100">
+                        TIẾN HÀNH THANH TOÁN <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             </div>
-        }
-        else
-        {
-            <div class="text-center py-5">
-                <div class="mb-4">
-                    <i class="fa fa-shopping-basket text-muted" style="font-size: 80px;"></i>
-                </div>
-                <h3 class="text-black">Giỏ hàng đang trống!</h3>
-                <p class="text-muted mb-4">Hãy tiếp tục khám phá và chọn cho mình sản phẩm ưng ý nhé.</p>
-                <a href="/" class="btn-brand" style="width: auto; display: inline-block; padding: 12px 35px;">TIẾP TỤC MUA SẮM</a>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fa fa-shopping-basket text-muted" style="font-size: 80px;"></i>
             </div>
-        }
-    </div>
+            <h3 class="text-black">Giỏ hàng đang trống!</h3>
+            <p class="text-muted mb-4">Hãy tiếp tục khám phá và chọn cho mình sản phẩm ưng ý nhé.</p>
+            <a href="/" class="btn-brand" style="width: auto; display: inline-block; padding: 12px 35px;">TIẾP TỤC MUA SẮM</a>
+        </div>
+    }
 </div>
 
 @section Scripts {
@@ -249,161 +135,5 @@
                 }
             });
         });
-
-        function getShippingInput() {
-            var phone = $('#shipping-phone').val().trim();
-            var fullname = $('#shipping-fullname').val().trim();
-            var address = $('#shipping-address').val().trim();
-            var provinceId = parseInt($('#shipping-province').val(), 10);
-            var wardIdV2 = parseInt($('#shipping-ward-code').val(), 10);
-            // Lấy text (tên) từ option đang chọn — cần cho API tạo đơn GHN mới
-            var provinceName = $('#shipping-province option:selected').text().trim();
-            var wardName = $('#shipping-ward-code option:selected').text().trim();
-            var phoneRegex = /^(0|\+84)[3-9]\d{8}$/;
-
-            if (!phoneRegex.test(phone)) {
-                $('#phone-error').show();
-                $('#shipping-phone').addClass('is-invalid');
-                return null;
-            }
-
-            $('#phone-error').hide();
-            $('#shipping-phone').removeClass('is-invalid');
-            $('#shipping-fullname').removeClass('is-invalid');
-
-            if (!address || !provinceId || !wardIdV2 || !fullname) {
-                $('#shipping-error').text('Vui lòng nhập đầy đủ thông tin nhận hàng (Họ tên, SĐT, Địa chỉ).').show();
-                if(!fullname) $('#shipping-fullname').addClass('is-invalid');
-                return null;
-            }
-
-            $('#shipping-error').hide();
-            return {
-                phone: phone,
-                fullname: fullname,
-                address: address,
-                provinceId: provinceId,
-                wardIdV2: wardIdV2,
-                provinceName: provinceName,
-                wardName: wardName,
-                districtId: provinceId, // backward compatibility
-                wardCode: String(wardIdV2)
-            };
-        }
-
-        function loadProvinces() {
-            $.get('@Url.Action("ShippingProvinces", "Checkout")')
-                .done(function (items) {
-                    var options = '<option value="">Chon tinh/thanh</option>';
-                    items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
-                    $('#shipping-province').html(options);
-
-                    // Tự động chọn tỉnh nếu đã lưu
-                    var savedProvince = $('#shipping-dropdowns').data('user-province');
-                    if (savedProvince) {
-                        $('#shipping-province').val(savedProvince).trigger('change');
-                    }
-                })
-                .fail(function () {
-                    $('#shipping-error').text('Khong tai duoc danh sach tinh/thanh tu GHN.').show();
-                });
-        }
-
-        $('#shipping-province').on('change', function () {
-            var provinceCode = $(this).val();
-            $('#shipping-ward-code').html('<option value="">Chon phuong/xa</option>');
-            if (!provinceCode) return;
-            $.get('@Url.Action("ShippingWards", "Checkout")', { provinceCode: provinceCode })
-                .done(function (items) {
-                    var options = '<option value="">Chon phuong/xa</option>';
-                    items.forEach(function (x) { options += '<option value="' + x.code + '">' + x.name + '</option>'; });
-                    $('#shipping-ward-code').html(options);
-
-                    // Tự động chọn xã nếu đã lưu
-                    var savedWard = $('#shipping-dropdowns').data('user-ward');
-                    if (savedWard) {
-                        $('#shipping-ward-code').val(savedWard);
-                        // Xóa data để không bị auto-select lại nếu người dùng đổi tỉnh
-                        $('#shipping-dropdowns').data('user-ward', '');
-                    }
-                })
-                .fail(function () {
-                    $('#shipping-error').text('Khong tai duoc danh sach phuong/xa tu GHN.').show();
-                });
-        });
-
-        function syncShippingHiddenInputs(input) {
-            $('.shipping-phone-hidden').val(input.phone);
-            $('.shipping-fullname-hidden').val(input.fullname);
-            $('.shipping-address-hidden').val(input.address);
-            $('.shipping-district-hidden').val(input.districtId);
-            $('.shipping-ward-hidden').val(input.wardCode);
-            $('.shipping-province-hidden').val(input.provinceId);
-            $('.shipping-ward-idv2-hidden').val(input.wardIdV2);
-            // Tên tỉnh/phường — cần thiết cho API tạo đơn GHN (to_province_name, to_ward_name)
-            $('.shipping-province-name-hidden').val(input.provinceName);
-            $('.shipping-ward-name-hidden').val(input.wardName);
-        }
-
-        function refreshFinalTotal(shippingFee) {
-            var baseTotal = @((Model.GrandTotal - Model.DiscountAmount).ToString(System.Globalization.CultureInfo.InvariantCulture));
-            var finalTotal = baseTotal + shippingFee;
-            $('#shipping-fee-text').text(shippingFee.toLocaleString('vi-VN') + ' VN�');
-            $('#final-total-text').text(finalTotal.toLocaleString('vi-VN') + ' VN�');
-            $('.shipping-fee-hidden').val(shippingFee);
-        }
-
-        $('#btn-quote-shipping').click(function () {
-            var input = getShippingInput();
-            if (!input) return;
-
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("QuoteShipping", "Checkout")',
-                headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').first().val() },
-                data: {
-                    ToDistrictId: input.districtId,
-                    ToWardCode: input.wardCode,
-                    ToProvinceId: input.provinceId,
-                    ToWardIdV2: input.wardIdV2,
-                    ToAddressV2: input.address
-                },
-                success: function (result) {
-                    if (result.success) {
-                        syncShippingHiddenInputs(input);
-                        refreshFinalTotal(parseFloat(result.shippingFee || 0));
-                    } else {
-                        $('#shipping-error').text(result.message || 'Khong tinh duoc phi ship.').show();
-                    }
-                },
-                error: function (xhr) {
-                    var message = xhr.responseJSON && xhr.responseJSON.message
-                        ? xhr.responseJSON.message
-                        : 'Khong tinh duoc phi ship.';
-                    $('#shipping-error').text(message).show();
-                }
-            });
-        });
-
-        $('#btn-cod-checkout').click(function () {
-            var input = getShippingInput();
-            if (!input) return;
-            if (!confirm('Xac nhan dat hang COD?')) return;
-            syncShippingHiddenInputs(input);
-            $('#form-cod').submit();
-        });
-
-        $('.online-pay-form').on('submit', function (e) {
-            var input = getShippingInput();
-            if (!input) {
-                e.preventDefault();
-                return false;
-            }
-            syncShippingHiddenInputs(input);
-        });
-
-        loadProvinces();
     </script>
 }
-
-

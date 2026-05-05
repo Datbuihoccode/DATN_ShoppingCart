@@ -66,6 +66,7 @@
                         <th style="width: 100px;">Ảnh</th>
                         <th>Tên sản phẩm</th>
                         <th>Giá</th>
+                        <th>Khối lượng</th>
                         <th>Kho</th>
                         <th>Đã bán</th>
                         <th>Trạng thái</th>
@@ -88,6 +89,9 @@
                             </td>
                             <td>
                                 <div class="text-success fw-bold">@item.Price.ToString("#,##0")đ</div>
+                            </td>
+                            <td>
+                                <div>@(item.WeightGram ?? 0) g</div>
                             </td>
                             <td>
                                 <div class="fw-bold">@item.Quantity sản phẩm</div>

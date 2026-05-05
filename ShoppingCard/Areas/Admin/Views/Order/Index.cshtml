@@ -11,11 +11,11 @@
 <div class="row mb-4 align-items-end bg-light p-3 rounded-3 shadow-sm">
     <div class="col-md-2 mb-2 mb-md-0">
         <label class="form-label text-muted small fw-bold mb-1">Từ ngày</label>
-        <input type="date" id="filterDateFrom" class="form-control border-0 shadow-sm" />
+        <input type="text" id="filterDateFrom" class="form-control border-0 shadow-sm datepicker" placeholder="Chọn ngày" />
     </div>
     <div class="col-md-2 mb-2 mb-md-0">
         <label class="form-label text-muted small fw-bold mb-1">Đến ngày</label>
-        <input type="date" id="filterDateTo" class="form-control border-0 shadow-sm" />
+        <input type="text" id="filterDateTo" class="form-control border-0 shadow-sm datepicker" placeholder="Chọn ngày" />
     </div>
     <div class="col-md-2 mb-2 mb-md-0">
         <label class="form-label text-muted small fw-bold mb-1">Trạng thái đơn</label>
@@ -161,6 +161,15 @@
 @section Scripts {
     <script>
         $(document).ready(function() {
+            // Initialize Flatpickr for dd/mm/yyyy
+            flatpickr(".datepicker", {
+                altInput: true,
+                altFormat: "d/m/Y",
+                dateFormat: "Y-m-d",
+                locale: "vn",
+                allowInput: true
+            });
+
             var table = $('#myTable').DataTable();
             
             // Custom filtering function for DataTables
@@ -173,10 +182,10 @@
                     var filterPaymentMethod = $('#filterPaymentMethod').val();
 
                     var tr = $(table.row(dataIndex).node());
-                    var date = tr.data('date') ? tr.data('date').toString() : "";
-                    var orderStatus = tr.data('orderstatus') ? tr.data('orderstatus').toString() : "";
-                    var paymentStatus = tr.data('paymentstatus') ? tr.data('paymentstatus').toString() : "";
-                    var paymentMethod = tr.data('paymentmethod') ? tr.data('paymentmethod').toString() : "";
+                    var date = tr.attr('data-date') || "";
+                    var orderStatus = tr.attr('data-orderstatus') || "";
+                    var paymentStatus = tr.attr('data-paymentstatus') || "";
+                    var paymentMethod = tr.attr('data-paymentmethod') || "";
 
                     // Date filter (string comparison works for yyyy-MM-dd format)
                     if (filterDateFrom && date < filterDateFrom) return false;
@@ -197,8 +206,11 @@
 
             // Reset filters
             $('#resetFilters').on('click', function() {
-                $('#filterDateFrom').val('');
-                $('#filterDateTo').val('');
+                var fpFrom = document.getElementById("filterDateFrom")._flatpickr;
+                var fpTo = document.getElementById("filterDateTo")._flatpickr;
+                if (fpFrom) fpFrom.clear();
+                if (fpTo) fpTo.clear();
+                
                 $('#filterOrderStatus').val('');
                 $('#filterPaymentStatus').val('');
                 $('#filterPaymentMethod').val('');

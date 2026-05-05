@@ -57,10 +57,11 @@ a:hover { color: #b80015; text-decoration: none; }
 .header-flex {
     display: flex !important;
     align-items: center !important;
-    justify-content: flex-start !important;
-    gap: 24px;
+    justify-content: space-between !important;
+    gap: 12px;
 }
 
+.laptopcenter-logo { flex-shrink: 0; }
 .laptopcenter-logo a {
     font-size: 26px;
     font-weight: 900;
@@ -71,7 +72,7 @@ a:hover { color: #b80015; text-decoration: none; }
 .laptopcenter-logo span { color: var(--secondary-color); }
 
 /* ===== SEARCH ===== */
-.laptopcenter-search { flex: 1 1 0; min-width: 0; margin-left: 20px; }
+.laptopcenter-search { flex: 1; min-width: 150px; margin: 0 10px; }
 .laptopcenter-search form { display: flex; width: 100%; }
 .laptopcenter-search input {
     flex: 1;
@@ -97,6 +98,8 @@ a:hover { color: #b80015; text-decoration: none; }
     font-weight: 700;
     font-size: 14px;
     transition: background 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 .laptopcenter-search button:hover { background: #b80015; border-color: #b80015; }
 
@@ -104,7 +107,7 @@ a:hover { color: #b80015; text-decoration: none; }
 .laptopcenter-actions {
     display: flex;
     align-items: center;
-    gap: 22px;
+    gap: 15px;
     flex-shrink: 0;
 }
 
@@ -846,12 +849,13 @@ a:hover { color: #b80015; text-decoration: none; }
 
 /* ===== SLIDER ===== */
 #slider-carousel .carousel-inner {
-    border-radius: 14px;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
 #slider-carousel .carousel-item img {
-    width: 100%; height: 380px; object-fit: cover;
+    width: 100%; height: 450px; object-fit: cover;
+    image-rendering: -webkit-optimize-contrast;
 }
 .control-carousel {
     background: rgba(255,255,255,0.75) !important;
@@ -1404,6 +1408,49 @@ a:hover { color: #b80015; text-decoration: none; }
 .social-icon.ig { color: #c32aa3; }
 .social-icon.tw { color: #1da1f2; }
 
+/* ===== HEADER RESPONSIVE FIX ===== */
+@media (max-width: 991px) {
+    .header-flex {
+        flex-wrap: wrap !important;
+        row-gap: 10px;
+    }
+
+    .laptopcenter-logo { order: 1; }
+    .header-menu-block { order: 2; }
+
+    .laptopcenter-actions {
+        order: 3;
+        margin-left: auto;
+        gap: 10px;
+    }
+
+    .laptopcenter-search {
+        order: 4;
+        flex: 1 0 100%;
+        min-width: 100%;
+        margin: 0;
+    }
+
+    .laptopcenter-search button {
+        padding: 0 14px;
+    }
+}
+
+@media (max-width: 767px) {
+    .header-menu-block {
+        display: none;
+    }
+
+    .laptopcenter-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .action-item span {
+        font-size: 10px;
+    }
+}
+
 .payment-item.cod {
     color: #1a1a2e;
     font-weight: bold;
@@ -1412,14 +1459,15 @@ a:hover { color: #b80015; text-decoration: none; }
 
 /* ===== MAIN SLIDER OVERRIDES ===== */
 #slider-carousel .carousel-inner {
-    border-radius: 15px;
+    border-radius: 0;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
 #slider-carousel .carousel-item img {
     width: 100%;
-    height: 400px;
+    height: 450px;
+    image-rendering: -webkit-optimize-contrast;
     object-fit: cover;
 }
 

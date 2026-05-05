@@ -21,39 +21,20 @@ namespace ShoppingCard.Areas.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            ViewBag.Brands = await _dataContext.Brands.ToListAsync();
-            ViewBag.Categories = await _dataContext.Categories.ToListAsync();
-
-            return View(await _dataContext.Products
-                .OrderByDescending(p => p.Id)
-                .Include(p => p.Brand)
-                .Include(p => p.ProductCategories)
-                    .ThenInclude(pc => pc.Category)
-                .ToListAsync());
-        }
-
         public async Task<IActionResult> Index(int pg = 1)
         {
-            ViewBag.Brands = await _dataContext.Brands.ToListAsync();
-            ViewBag.Categories = await _dataContext.Categories.ToListAsync();
+            ViewBag.Brands = await _dataContext.Brands.AsNoTracking().ToListAsync();
+            ViewBag.Categories = await _dataContext.Categories.AsNoTracking().ToListAsync();
 
-            List<ProductModel> product = await _dataContext.Products
+            var query = _dataContext.Products
+                .AsNoTracking()
                 .Include(p => p.Brand)
                 .Include(p => p.ProductCategories)
                     .ThenInclude(pc => pc.Category)
-                .ToListAsync();
+                .AsSplitQuery()
+                .OrderByDescending(p => p.Id);
 
-            const int pageSize = 10;
-            if (pg < 1) pg = 1;
-
-            int recsCount = product.Count();
-            var pager = new Paginate(recsCount, pg, pageSize);
-            int recSkip = (pg - 1) * pageSize;
-            var data = product.Skip(recSkip).Take(pager.PageSize).ToList();
-
-            ViewBag.Pager = pager;
+            var data = await query.ToListAsync();
             return View(data);
         }
 
@@ -223,6 +204,7 @@ namespace ShoppingCard.Areas.Controllers
                 existingProduct.Price = product.Price;
                 existingProduct.BrandId = product.BrandId;
                 existingProduct.Condition = product.Condition;
+                existingProduct.WeightGram = product.WeightGram;
 
                 // Cập nhật danh mục: Xóa cũ → Thêm mới
                 _dataContext.ProductCategories.RemoveRange(existingProduct.ProductCategories);
