@@ -61,9 +61,9 @@ namespace ShoppingCard.Areas.Controllers
                 ModelState.AddModelError("SelectedCategoryIds", "Yêu cầu chọn ít nhất 1 danh mục.");
             }
 
-            if (product.ImageUpload == null)
+            if (product.ImageUpload == null && string.IsNullOrEmpty(product.ImageUrl))
             {
-                ModelState.AddModelError("ImageUpload", "Yêu cầu chọn hình ảnh.");
+                ModelState.AddModelError("ImageUpload", "Yêu cầu chọn hình ảnh hoặc nhập link ảnh.");
             }
 
             if (ModelState.IsValid)
@@ -80,16 +80,25 @@ namespace ShoppingCard.Areas.Controllers
                     return View(product);
                 }
 
-                // Upload ảnh
-                string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "media/products");
-                string imageName = Guid.NewGuid().ToString() + "_" + product.ImageUpload!.FileName;
-                string filePath = Path.Combine(uploadDir, imageName);
-
-                using (var fs = new FileStream(filePath, FileMode.Create))
+                // Xử lý ảnh
+                if (product.ImageUpload != null)
                 {
-                    await product.ImageUpload.CopyToAsync(fs);
+                    // Upload ảnh
+                    string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "media/products");
+                    string imageName = Guid.NewGuid().ToString() + "_" + product.ImageUpload!.FileName;
+                    string filePath = Path.Combine(uploadDir, imageName);
+
+                    using (var fs = new FileStream(filePath, FileMode.Create))
+                    {
+                        await product.ImageUpload.CopyToAsync(fs);
+                    }
+                    product.Image = imageName;
                 }
-                product.Image = imageName;
+                else if (!string.IsNullOrEmpty(product.ImageUrl))
+                {
+                    // Sử dụng link ảnh
+                    product.Image = product.ImageUrl;
+                }
 
 
                 _dataContext.Products.Add(product);
@@ -176,14 +185,17 @@ namespace ShoppingCard.Areas.Controllers
                     return View(product);
                 }
 
-                // Xử lý upload ảnh mới nếu có
+                // Xử lý cập nhật ảnh mới nếu có
                 if (product.ImageUpload != null)
                 {
                     string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "media/products");
                     string imageName = Guid.NewGuid().ToString() + "_" + product.ImageUpload.FileName;
                     string filePath = Path.Combine(uploadDir, imageName);
 
-                    if (!string.IsNullOrEmpty(existingProduct.Image) && existingProduct.Image != "noimage.jpg")
+                    // Xóa ảnh cũ nếu là ảnh local (không phải link http)
+                    if (!string.IsNullOrEmpty(existingProduct.Image) && 
+                        !existingProduct.Image.StartsWith("http") && 
+                        existingProduct.Image != "noimage.jpg")
                     {
                         string oldfileImage = Path.Combine(uploadDir, existingProduct.Image);
                         if (System.IO.File.Exists(oldfileImage))
@@ -195,6 +207,21 @@ namespace ShoppingCard.Areas.Controllers
                         await product.ImageUpload.CopyToAsync(fs);
                     }
                     existingProduct.Image = imageName;
+                }
+                else if (!string.IsNullOrEmpty(product.ImageUrl))
+                {
+                    // Nếu nhập link ảnh mới
+                    // Xóa ảnh cũ nếu là ảnh local
+                    if (!string.IsNullOrEmpty(existingProduct.Image) && 
+                        !existingProduct.Image.StartsWith("http") && 
+                        existingProduct.Image != "noimage.jpg")
+                    {
+                        string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "media/products");
+                        string oldfileImage = Path.Combine(uploadDir, existingProduct.Image);
+                        if (System.IO.File.Exists(oldfileImage))
+                            System.IO.File.Delete(oldfileImage);
+                    }
+                    existingProduct.Image = product.ImageUrl;
                 }
 
                 // Cập nhật thông tin cơ bản
@@ -241,7 +268,7 @@ namespace ShoppingCard.Areas.Controllers
                 return RedirectToAction("Index");
             }
 
-            if (!string.IsNullOrEmpty(product.Image) && product.Image != "noimage.jpg")
+            if (!string.IsNullOrEmpty(product.Image) && !product.Image.StartsWith("http") && product.Image != "noimage.jpg")
             {
                 string uploadDir = Path.Combine(_webHostEnvironment.WebRootPath, "media/products");
                 string oldfileImage = Path.Combine(uploadDir, product.Image);

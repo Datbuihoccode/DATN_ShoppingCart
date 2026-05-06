@@ -81,7 +81,9 @@
                         
                         <tr data-brand="@item.BrandId" data-categories="@categoryIds" data-status="@statusStr">
                             <td>
-                                <img src="@item.Image" class="rounded product-img" alt="@item.Name" onerror="this.src='https://via.placeholder.com/60'">
+                                <img src="@item.ImagePath" 
+                                     class="rounded product-img" alt="@item.Name" 
+                                     onerror="this.src='/media/products/noimage.jpg'">
                             </td>
                             <td>
                                 <div class="product-name truncate" title="@item.Name">@item.Name</div>

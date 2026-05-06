@@ -53,6 +53,13 @@ namespace ShoppingCard.Models
         [FileExtension]
         public IFormFile? ImageUpload { get; set; }
 
+        [NotMapped]
+        public string? ImageUrl { get; set; }
+
+        public string ImagePath => string.IsNullOrEmpty(Image) 
+            ? "/media/products/noimage.jpg" 
+            : (Image.StartsWith("http") ? Image : "/media/products/" + Image);
+
         /// <summary>
         /// Danh sách Id danh mục được chọn khi submit form (không lưu vào DB)
         /// </summary>

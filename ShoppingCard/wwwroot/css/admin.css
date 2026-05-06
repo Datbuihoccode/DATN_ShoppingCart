@@ -3,6 +3,17 @@
  * Bootstrap 5 Compatible
  */
 
+/* Hide number input spinners */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 :root {
     --admin-sidebar-width: 240px;
     --admin-topbar-height: 60px;

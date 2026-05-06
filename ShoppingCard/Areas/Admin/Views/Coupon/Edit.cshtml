@@ -132,6 +132,12 @@
                 if (!$('#MinAmount').val()) $('#MinAmount').val('0');
                 if (!$('#DiscountValue').val()) $('#DiscountValue').val('0');
             });
+
+            // Clean inputs for amount fields
+            $('#DiscountValue, #MinAmount, #MaxDiscountAmount').on('input', function() {
+                var val = $(this).val().trim().replace(/[^\d]/g, "");
+                $(this).val(val);
+            });
         });
     </script>
 }

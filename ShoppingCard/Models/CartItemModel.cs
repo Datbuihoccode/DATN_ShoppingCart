@@ -1,4 +1,4 @@
-﻿
+
 namespace ShoppingCard.Models
 {
     public class CartItemModel
@@ -14,6 +14,9 @@ namespace ShoppingCard.Models
             get { return Price * Quantity; }
         }
         public string Image {  get; set; }
+        public string ImagePath => string.IsNullOrEmpty(Image)
+            ? "/media/products/noimage.jpg"
+            : (Image.StartsWith("http") ? Image : "/media/products/" + Image);
         
 
         public CartItemModel()

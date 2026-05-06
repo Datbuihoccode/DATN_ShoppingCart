@@ -177,7 +177,7 @@
                                         @item.ProductName <strong class="text-dark" style="font-size: 15px;">× @item.Quantity</strong>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <img src="@item.Image" style="width: 60px; height: 60px; object-fit: contain;">
+                                        <img src="@item.ImagePath" style="width: 60px; height: 60px; object-fit: contain;">
                                         <span class="text-danger fw-bold" style="font-size: 16px;">@((item.Quantity * item.Price).ToString("#,##0"))đ</span>
                                     </div>
                                     <a asp-action="Remove" asp-controller="Cart" asp-route-id="@item.ProductId" class="btn btn-sm mt-2" style="color: #dc3545; background: #fff; border: 1px solid #dc3545; padding: 2px 10px; font-size: 13px; border-radius: 4px;">Xóa</a>

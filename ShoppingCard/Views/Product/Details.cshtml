@@ -14,7 +14,7 @@
         <div class="laptopcenter-detail-wrap row g-0">
             <div class="col-md-6">
                 <div class="laptopcenter-detail-img p-4">
-                    <img src="@Model.ProductDetails.Image" alt="@Model.ProductDetails.Name" class="img-fluid" />
+                    <img src="@Model.ProductDetails.ImagePath" alt="@Model.ProductDetails.Name" class="img-fluid" />
                 </div>
             </div>
             
@@ -264,7 +264,7 @@
 
                                     <a asp-action="Details" asp-controller="Product" asp-route-Slug="@related.Slug">
                                         <div class="laptopcenter-card-img">
-                                            <img src="@related.Image" alt="@related.Name" />
+                                            <img src="@related.ImagePath" alt="@related.Name" />
                                         </div>
                                     </a>
 

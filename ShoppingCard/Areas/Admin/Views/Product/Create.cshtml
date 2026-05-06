@@ -98,8 +98,22 @@
 
                 <div class="form-group">
                     <label class="form-label">Hình ảnh đại diện</label>
-                    <input asp-for="ImageUpload" type="file" class="form-control" id="ImageUploadInput" />
-                    <span asp-validation-for="ImageUpload" class="text-danger small"></span>
+                    <div class="mb-2">
+                        <small class="text-muted">Tải lên ảnh sản phẩm hoặc dán link ảnh sản tại đây:</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="small fw-bold">Cách 1: Tải tệp lên</label>
+                        <input asp-for="ImageUpload" type="file" class="form-control" id="ImageUploadInput" />
+                        <span asp-validation-for="ImageUpload" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="small fw-bold">Cách 2: Sử dụng link ảnh</label>
+                        <input asp-for="ImageUrl" class="form-control" id="ImageUrlInput" placeholder="https://example.com/image.jpg" />
+                        <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                    </div>
+
                     <div class="img-preview-box">
                         <img id="imgpreview" src="" />
                     </div>
@@ -131,11 +145,22 @@
                     $('#imgpreview').attr('src', e.target.result);
                 }
                 reader.readAsDataURL(this.files[0]);
+                $("#ImageUrlInput").val(""); // Clear URL input if file is chosen
+            }
+        });
+
+        $("#ImageUrlInput").on("input", function() {
+            var url = $(this).val();
+            if (url) {
+                $('#imgpreview').attr('src', url);
+                // Clear file input
+                $("#ImageUploadInput").val("");
             }
         });
 
         $(".typing-price").on("input", function () {
-            var val = $(this).val().replace(/[^\d]/g, "");
+            var val = $(this).val().trim().replace(/[^\d]/g, "");
+            $(this).val(val); // Set back trimmed value
             var target = "#price-convert";
             $(target).text(val ? new Intl.NumberFormat("vi-VN").format(val) + " đ" : "");
         });
