@@ -1,0 +1,21 @@
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace ShoppingCard.Domain.Entities
+{
+    public class MomoInfo
+    {
+        [Key]
+        public int Id { get; set; }
+        public string? OrderId { get; set; }
+        public string? OrderInfo { get; set; }
+        public string? FullName { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal Amount { get; set; }
+        public DateTime DatePaid { get; set; }
+
+        [ForeignKey("OrderId")]
+        public virtual Order? Order { get; set; }
+    }
+}
