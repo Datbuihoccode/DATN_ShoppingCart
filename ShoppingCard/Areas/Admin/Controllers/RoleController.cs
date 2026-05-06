@@ -1,10 +1,12 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Infrastructure.Data;
 using System.Threading.Tasks;
+using System.Linq;
+using System;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -14,9 +16,9 @@ namespace ShoppingCard.Areas.Admin.Controllers
     public class RoleController : Controller
     {
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly UserManager<AppUserModel> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly DataContext _dataContext;
-        public RoleController(DataContext context, RoleManager<IdentityRole> roleManager, UserManager<AppUserModel> userManager)
+        public RoleController(DataContext context, RoleManager<IdentityRole> roleManager, UserManager<AppUser> userManager)
         {
             _dataContext = context;
             _roleManager = roleManager;

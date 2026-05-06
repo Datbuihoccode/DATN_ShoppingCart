@@ -37,4 +37,9 @@
     <Compile Remove="zzz_bin\**\*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ShoppingCard.Application\ShoppingCard.Application.csproj" />
+    <ProjectReference Include="..\ShoppingCard.Infrastructure\ShoppingCard.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

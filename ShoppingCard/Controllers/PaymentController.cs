@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
-using ShoppingCard.Models;
-using ShoppingCard.Models.Shipping;
-using ShoppingCard.Models.VNP;
-using ShoppingCard.Services.Momo;
-using ShoppingCard.Services.Vnpay;
+using ShoppingCard.Infrastructure.Data;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Domain.Enums;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs.VnPay;
+using ShoppingCard.Application.DTOs.Momo;
+using ShoppingCard.Application.DTOs.Shipping;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Services;
-using ShoppingCard.Repository;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
 
 namespace ShoppingCard.Controllers
 {
@@ -28,7 +31,7 @@ namespace ShoppingCard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreatePaymentMomo(OrderInfo model, CheckoutShippingInput shippingInput)
+        public async Task<IActionResult> CreatePaymentMomo(CheckoutShippingInput shippingInput)
         {
             var userId = ShoppingCard.Library.CartHelper.GetUserId(HttpContext);
             var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? shippingInput.ShippingEmail;
@@ -37,14 +40,9 @@ namespace ShoppingCard.Controllers
             {
                 var couponCode = Request.Cookies["CouponTitle"];
                 var order = await _orderService.CreateOrderAsync(userId, userEmail, PaymentMethod.Momo, couponCode, shippingInput);
+                var amount = await GetOrderFinalTotalAsync(order.OrderCode);
 
-                model.OrderId = order.OrderCode;
-                model.OrderInformation = "Thanh toan don hang #" + order.OrderCode;
-                model.Amount = await GetOrderFinalTotalAsync(order.OrderCode);
-                model.ReturnUrl = Url.Action("PaymentCallBack", "Checkout", null, Request.Scheme);
-                model.NotifyUrl = Url.Action("MomoNotify", "Payment", null, Request.Scheme);
-
-                var response = await _momoService.CreatePaymentAsync(model);
+                var response = await _momoService.CreatePaymentAsync(order, amount);
                 if (response == null || response.ErrorCode != 0 || string.IsNullOrWhiteSpace(response.PayUrl))
                 {
                     TempData["error"] = "Loi ket noi MoMo.";
@@ -77,7 +75,7 @@ namespace ShoppingCard.Controllers
                 model.Name = userEmail;
                 model.Amount = await GetOrderFinalTotalAsync(order.OrderCode);
 
-                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, model);
+                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, order, model.Amount);
                 return Redirect(paymentUrl);
             }
             catch (Exception ex)
@@ -132,7 +130,7 @@ namespace ShoppingCard.Controllers
 
             try
             {
-                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, model);
+                var paymentUrl = _vnPayService.CreatePaymentUrl(HttpContext, order, amount);
                 return Redirect(paymentUrl);
             }
             catch (Exception ex)
@@ -160,18 +158,9 @@ namespace ShoppingCard.Controllers
                 return RedirectToAction("History", "Account");
             }
 
-            var model = new OrderInfo
-            {
-                OrderId = order.OrderCode,
-                Amount = amount,
-                OrderInformation = "Thanh toan lai don hang #" + order.OrderCode,
-                ReturnUrl = Url.Action("PaymentCallBack", "Checkout", null, Request.Scheme),
-                NotifyUrl = Url.Action("MomoNotify", "Payment", null, Request.Scheme)
-            };
-
             try
             {
-                var response = await _momoService.CreatePaymentAsync(model);
+                var response = await _momoService.CreatePaymentAsync(order, amount);
                 if (response == null || response.ErrorCode != 0 || string.IsNullOrWhiteSpace(response.PayUrl))
                 {
                     TempData["error"] = "Loi ket noi MoMo. Vui long thu lai.";

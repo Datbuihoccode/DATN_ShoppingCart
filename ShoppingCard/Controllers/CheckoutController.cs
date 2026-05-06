@@ -1,21 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
-using ShoppingCard.Areas.Admin.Repository;
-using ShoppingCard.Services.Momo;
-using ShoppingCard.Services.Vnpay;
-using System.Globalization;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Domain.Interfaces;
+using ShoppingCard.Domain.Enums;
+using ShoppingCard.Application.DTOs.Shipping;
 using System.Security.Claims;
-using ShoppingCard.Services;
-using ShoppingCard.Models.Shipping;
 using System.Text.Json;
 
 namespace ShoppingCard.Controllers
 {
     public class CheckoutController : Controller
     {
-        private readonly DataContext _dataContext;
+        private readonly IOrderRepository _orderRepository;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<CheckoutController> _logger;
         private readonly IMomoService _momoService;
@@ -24,7 +19,7 @@ namespace ShoppingCard.Controllers
         private readonly IShippingService _shippingService;
 
         public CheckoutController(
-            DataContext dataContext,
+            IOrderRepository orderRepository,
             IEmailSender emailSender,
             ILogger<CheckoutController> logger,
             IMomoService momoService,
@@ -32,7 +27,7 @@ namespace ShoppingCard.Controllers
             IOrderService orderService,
             IShippingService shippingService)
         {
-            _dataContext = dataContext;
+            _orderRepository = orderRepository;
             _emailSender = emailSender;
             _logger = logger;
             _momoService = momoService;
@@ -121,7 +116,7 @@ namespace ShoppingCard.Controllers
                 return BadRequest(new { success = false, message = "Missing tracking code." });
             }
 
-            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.ShippingTrackingCode == trackingCode);
+            var order = await _orderRepository.GetByTrackingCodeAsync(trackingCode);
             if (order == null) 
             {
                 return NotFound(new { success = false, message = $"Không tìm thấy đơn hàng với mã vận đơn: {trackingCode}" });
@@ -131,12 +126,12 @@ namespace ShoppingCard.Controllers
             
             if (_shippingService.TryMapWebhookStatus(status, out var mappedStatus))
             {
-                // Sử dụng UpdateStatusAsync để xử lý tập trung logic mapping, history, stock, revenue
                 await _orderService.UpdateStatusAsync(order.OrderCode, mappedStatus, $"GHN Webhook: {status}");
             }
             else
             {
-                await _dataContext.SaveChangesAsync();
+                _orderRepository.Update(order);
+                await _orderRepository.SaveChangesAsync();
             }
 
             return Ok(new { success = true, message = $"Đã cập nhật trạng thái đơn hàng {trackingCode} thành {status}" });
@@ -184,7 +179,7 @@ namespace ShoppingCard.Controllers
         {
             if (string.IsNullOrWhiteSpace(orderCode)) return RedirectToAction("Index", "Home");
             
-            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+            var order = await _orderRepository.GetByCodeAsync(orderCode);
             if (order == null) return NotFound();
 
             return View(order);

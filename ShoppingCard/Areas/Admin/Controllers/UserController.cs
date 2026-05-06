@@ -1,11 +1,16 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Domain.Interfaces;
+using ShoppingCard.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -15,9 +20,9 @@ namespace ShoppingCard.Areas.Admin.Controllers
     [Authorize(Roles = "Admin", AuthenticationSchemes = "AdminScheme")]
     public class UserController : Controller
     {
-        private readonly UserManager<AppUserModel> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly DataContext _dataContext;
+        private readonly IUserRepository _userRepository;
 
         private void AddIdentityErrors(IdentityResult identityResult)
         {
@@ -27,26 +32,20 @@ namespace ShoppingCard.Areas.Admin.Controllers
             }
         }
 
-        public UserController(DataContext context,UserManager<AppUserModel> userManager, RoleManager<IdentityRole> roleManager)
+        public UserController(IUserRepository userRepository, UserManager<AppUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _roleManager = roleManager;
-            _dataContext = context;
+            _userRepository = userRepository;
         }
 
         [HttpGet]
         [Route("Index")]
         public async Task<IActionResult> Index()
         {
-            var usersWithRoles = await (from u in _dataContext.Users
-                                        join ur in _dataContext.UserRoles on u.Id equals ur.UserId into userRoles
-                                        from ur in userRoles.DefaultIfEmpty()
-                                        join r in _dataContext.Roles on ur.RoleId equals r.Id into roles
-                                        from r in roles.DefaultIfEmpty()
-                                        select new { User = u, RoleName = r != null ? r.Name : "No role" })
-                                        .ToListAsync();
+            var usersWithRoles = await _userRepository.GetUsersWithRolesAsync();
 
-            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier); // Lấy ID của người dùng hiện tại
+            var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier);
             ViewBag.loggedInUserID = loggedInUserID;
             return View(usersWithRoles);
         }
@@ -57,13 +56,13 @@ namespace ShoppingCard.Areas.Admin.Controllers
         {
             var roles = await _roleManager.Roles.ToListAsync();
             ViewBag.Roles = new SelectList(roles, "Id", "Name");
-            return View(new AppUserModel());
+            return View(new AppUser());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Create")]
-        public async Task<IActionResult> Create(AppUserModel user)
+        public async Task<IActionResult> Create(AppUser user)
         {
             var roles = await _roleManager.Roles.ToListAsync();
 
@@ -139,7 +138,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         [Route("Edit")]
         
-        public async Task<IActionResult> Edit(string id, AppUserModel user)
+        public async Task<IActionResult> Edit(string id, AppUser user)
         {
             var existingUser = await _userManager.FindByIdAsync(id); // lấy user id
             if (existingUser == null)
@@ -209,7 +208,6 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            // 1. Không cho phép tự xóa chính mình
             var loggedInUserID = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (id == loggedInUserID)
             {
@@ -217,10 +215,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return RedirectToAction("Index");
             }
 
-            // 2. Kiểm tra nếu User có đơn hàng (Optional but recommended)
-            // Trong project này OrderModel liên kết qua UserName (Email), 
-            // nhưng ta vẫn nên kiểm tra để tránh mất dữ liệu lịch sử quan trọng.
-            var hasOrders = await _dataContext.Orders.AnyAsync(o => o.UserName == user.Email);
+            var hasOrders = await _userRepository.HasOrdersAsync(user.Email);
             if (hasOrders)
             {
                 TempData["error"] = "Không thể xóa người dùng này vì họ đã có lịch sử đơn hàng. Hãy vô hiệu hóa tài khoản thay vì xóa.";
@@ -229,16 +224,9 @@ namespace ShoppingCard.Areas.Admin.Controllers
 
             try
             {
-                // 3. Xóa các dữ liệu liên quan trong các bảng phụ (Carts, Wishlists)
-                var userCarts = _dataContext.Carts.Where(c => c.UserId == id);
-                _dataContext.Carts.RemoveRange(userCarts);
+                await _userRepository.DeleteUserRelatedDataAsync(id);
+                await _userRepository.SaveChangesAsync();
 
-                var userWishlists = _dataContext.Wishlists.Where(w => w.UserId == id);
-                _dataContext.Wishlists.RemoveRange(userWishlists);
-
-                await _dataContext.SaveChangesAsync();
-
-                // 4. Xóa User thông qua UserManager (Sẽ tự động xóa UserRoles)
                 var deleteResult = await _userManager.DeleteAsync(user);
 
                 if (!deleteResult.Succeeded)

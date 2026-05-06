@@ -1,84 +1,39 @@
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs;
 using System.Diagnostics;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Models.ViewsModels;
-using ShoppingCard.Repository;
 
 namespace ShoppingCard.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly DataContext _dataContext;
+        private readonly IProductService _productService;
         private readonly ILogger<HomeController> _logger;
-        private readonly UserManager<AppUserModel> _userManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly DataContext _dataContext;
 
         public HomeController(
-            DataContext dataContext,
+            IProductService productService,
             ILogger<HomeController> logger,
-            UserManager<AppUserModel> userManager)
+            UserManager<AppUser> userManager,
+            DataContext dataContext)
         {
-            _dataContext = dataContext;
+            _productService = productService;
             _logger = logger;
             _userManager = userManager;
+            _dataContext = dataContext;
         }
 
         public async Task<IActionResult> Index()
         {
-            var categories = await _dataContext.Categories
-                .AsNoTracking()
-                .OrderBy(c => c.Name)
-                .Select(c => new
-                {
-                    c.Id,
-                    c.Name,
-                    c.Slug
-                })
-                .ToListAsync();
-
-            var sections = new List<HomeCategorySectionViewModel>(categories.Count);
-            foreach (var category in categories)
-            {
-                var products = await _dataContext.Products
-                    .AsNoTracking()
-                    .Where(p => p.ProductCategories.Any(pc => pc.CategoryId == category.Id))
-                    .Include(p => p.Brand)
-                    .OrderByDescending(p => p.Id)
-                    .Take(15)
-                    .ToListAsync();
-
-                if (products.Count == 0)
-                {
-                    continue;
-                }
-
-                sections.Add(new HomeCategorySectionViewModel
-                {
-                    CategoryId = category.Id,
-                    CategoryName = category.Name,
-                    CategorySlug = category.Slug,
-                    Products = products
-                });
-            }
-
-            ViewBag.Sliders = await _dataContext.Sliders
-                .Where(s => s.Status == 1)
-                .AsNoTracking()
-                .ToListAsync();
-
-            return View(new HomeIndexViewModel
-            {
-                Sections = sections
-            });
+            var homeData = await _productService.GetHomeDataAsync();
+            return View(homeData);
         }
 
         public IActionResult Privacy()
         {
             return View();
         }
-
 
         public async Task<IActionResult> Wishlist()
         {
@@ -124,7 +79,7 @@ namespace ShoppingCard.Controllers
                 return Ok(new { success = true, message = "Sản phẩm đã có trong wishlist." });
             }
 
-            _dataContext.Wishlists.Add(new WishlistModel
+            _dataContext.Wishlists.Add(new Wishlist
             {
                 ProductId = Id,
                 UserId = userId
@@ -136,7 +91,7 @@ namespace ShoppingCard.Controllers
                 return Ok(new { success = true, message = "Đã thêm sản phẩm vào wishlist." });
             }
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx &&
-                                              (sqlEx.Number == 2601 || sqlEx.Number == 2627))
+                                               (sqlEx.Number == 2601 || sqlEx.Number == 2627))
             {
                 return Ok(new { success = true, message = "Sản phẩm đã có trong wishlist." });
             }

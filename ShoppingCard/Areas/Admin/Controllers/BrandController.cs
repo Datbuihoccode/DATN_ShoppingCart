@@ -1,8 +1,11 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
+using Microsoft.AspNetCore.Authorization;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs;
+using ShoppingCard.Application.Common;
+using System.Threading.Tasks;
+using System.Linq;
+using System;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -11,23 +14,23 @@ namespace ShoppingCard.Areas.Admin.Controllers
     [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class BrandController : Controller
     {
-        private readonly DataContext _dataContext;
-        public BrandController(DataContext context)
+        private readonly IBrandService _brandService;
+        public BrandController(IBrandService brandService)
         {
-            _dataContext = context;
+            _brandService = brandService;
         }
 
         [Route("Index")]
         public async Task<IActionResult> Index(int pg = 1)
         {
-            List<BrandModel> brand = _dataContext.Brands.ToList();
+            var brands = await _brandService.GetAllBrandsAsync();
 
             const int pageSize = 10;
             if (pg < 1) pg = 1;
-            int recsCount = brand.Count();
+            int recsCount = brands.Count();
             var pager = new Paginate(recsCount, pg, pageSize);
             int recSkip = (pg - 1) * pageSize;
-            var data = brand.Skip(recSkip).Take(pager.PageSize).ToList();
+            var data = brands.Skip(recSkip).Take(pager.PageSize).ToList();
 
             ViewBag.Pager = pager;
             return View(data);
@@ -42,70 +45,57 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("Create")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(BrandModel brand)
+        public async Task<IActionResult> Create(BrandDto brandDto)
         {
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(brand.Slug)) {
-                    brand.Slug = brand.Name.Replace(" ", "-").ToLower();
-                }
-
-                var slugCheck = await _dataContext.Brands.FirstOrDefaultAsync(b => b.Slug == brand.Slug);
-                if (slugCheck != null)
+                try 
                 {
-                    ModelState.AddModelError("", "Thương hiệu với slug này đã tồn tại.");
-                    return View(brand);
+                    await _brandService.CreateBrandAsync(brandDto);
+                    TempData["success"] = "Thêm thương hiệu thành công.";
+                    return RedirectToAction("Index");
                 }
-
-                _dataContext.Brands.Add(brand);
-                await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Thêm thương hiệu thành công.";
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
-            return View(brand);
+            return View(brandDto);
         }
 
         [Route("Edit/{Id}")]
         public async Task<IActionResult> Edit(int Id)
         {
-            BrandModel brand = await _dataContext.Brands.FindAsync(Id);
+            var brand = await _brandService.GetBrandByIdAsync(Id);
+            if (brand == null) return NotFound();
             return View(brand);
         }
 
         [Route("Edit/{Id}")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(BrandModel brand)
+        public async Task<IActionResult> Edit(int Id, BrandDto brandDto)
         {
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(brand.Slug)) {
-                    brand.Slug = brand.Name.Replace(" ", "-").ToLower();
-                }
-
-                var slugCheck = await _dataContext.Brands.FirstOrDefaultAsync(b => b.Slug == brand.Slug && b.Id != brand.Id);
-                if (slugCheck != null)
+                try 
                 {
-                    ModelState.AddModelError("", "Thương hiệu với slug này đã tồn tại.");
-                    return View(brand);
+                    await _brandService.UpdateBrandAsync(Id, brandDto);
+                    TempData["success"] = "Cập nhật thương hiệu thành công.";
+                    return RedirectToAction("Index");
                 }
-
-                _dataContext.Brands.Update(brand);
-                await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Cập nhật thương hiệu thành công.";
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
-            return View(brand);
+            return View(brandDto);
         }
 
         [Route("Delete/{Id}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            BrandModel brand = await _dataContext.Brands.FindAsync(Id);
-            if (brand == null) return NotFound();
-
-            _dataContext.Brands.Remove(brand);
-            await _dataContext.SaveChangesAsync();
+            await _brandService.DeleteBrandAsync(Id);
             TempData["success"] = "Đã xóa thương hiệu.";
             return RedirectToAction("Index");
         }

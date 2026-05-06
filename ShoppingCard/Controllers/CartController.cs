@@ -1,22 +1,22 @@
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Application.DTOs.Cart;
 using Microsoft.AspNetCore.Mvc;
-using ShoppingCard.Repository;
-using ShoppingCard.Models;
-using ShoppingCard.Models.ViewsModels;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Http;
 
 namespace ShoppingCard.Controllers
 {
     public class CartController : Controller
     {
-        private readonly DataContext _dataContext;
-        private readonly UserManager<AppUserModel> _userManager;
+        private readonly ICartService _cartService;
+        private readonly ICouponService _couponService;
+        private readonly UserManager<AppUser> _userManager;
 
-        public CartController(DataContext context, UserManager<AppUserModel> userManager)
+        public CartController(ICartService cartService, ICouponService couponService, UserManager<AppUser> userManager)
         {
-            _dataContext = context;
+            _cartService = cartService;
+            _couponService = couponService;
             _userManager = userManager;
         }
 
@@ -28,12 +28,9 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Index()
         {
             var userId = GetUserId();
-            var dbCarts = await _dataContext.Carts
-                .Include(c => c.Product)
-                .Where(c => c.UserId == userId)
-                .ToListAsync();
-
-            List<CartItemModel> cartItems = dbCarts.Select(c => new CartItemModel
+            var items = await _cartService.GetCartItemsAsync(userId);
+            
+            var cartItems = items.Select(c => new CartItemDto
             {
                 ProductId = c.ProductId,
                 ProductName = c.Product?.Name,
@@ -48,8 +45,10 @@ namespace ShoppingCard.Controllers
 
             if (!string.IsNullOrEmpty(coupon_code))
             {
-                var validCoupon = await _dataContext.Coupons
-                    .FirstOrDefaultAsync(x => x.Name == coupon_code && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
+                // This logic should probably be in CouponService or CartService
+                // For now, I'll use the service to get coupon info
+                var coupons = await _couponService.GetAllCouponsAsync();
+                var validCoupon = coupons.FirstOrDefault(x => x.Name == coupon_code && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
 
                 if (validCoupon != null)
                 {
@@ -78,7 +77,7 @@ namespace ShoppingCard.Controllers
                 }
             }
 
-            CartItemViewModel cartVM = new()
+            CartViewModelDto cartVM = new()
             {
                 CartItems = cartItems,
                 GrandTotal = cartItems.Sum(x => x.Quantity * x.Price),
@@ -87,7 +86,6 @@ namespace ShoppingCard.Controllers
                 CouponMessage = couponMessage
             };
 
-            // Fetch user info for checkout pre-fill
             var user = await _userManager.FindByIdAsync(userId);
             if (user != null)
             {
@@ -104,17 +102,14 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Checkout()
         {
             var userId = GetUserId();
-            var dbCarts = await _dataContext.Carts
-                .Include(c => c.Product)
-                .Where(c => c.UserId == userId)
-                .ToListAsync();
-
-            if (!dbCarts.Any())
+            var items = await _cartService.GetCartItemsAsync(userId);
+            
+            if (!items.Any())
             {
                 return RedirectToAction("Index");
             }
 
-            List<CartItemModel> cartItems = dbCarts.Select(c => new CartItemModel
+            var cartItems = items.Select(c => new CartItemDto
             {
                 ProductId = c.ProductId,
                 ProductName = c.Product?.Name,
@@ -129,8 +124,8 @@ namespace ShoppingCard.Controllers
 
             if (!string.IsNullOrEmpty(coupon_code))
             {
-                var validCoupon = await _dataContext.Coupons
-                    .FirstOrDefaultAsync(x => x.Name == coupon_code && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
+                var coupons = await _couponService.GetAllCouponsAsync();
+                var validCoupon = coupons.FirstOrDefault(x => x.Name == coupon_code && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
 
                 if (validCoupon != null)
                 {
@@ -159,7 +154,7 @@ namespace ShoppingCard.Controllers
                 }
             }
 
-            CartItemViewModel cartVM = new()
+            CartViewModelDto cartVM = new()
             {
                 CartItems = cartItems,
                 GrandTotal = cartItems.Sum(x => x.Quantity * x.Price),
@@ -168,7 +163,6 @@ namespace ShoppingCard.Controllers
                 CouponMessage = couponMessage
             };
 
-            // Fetch user info for checkout pre-fill
             var user = await _userManager.FindByIdAsync(userId);
             if (user != null)
             {
@@ -186,28 +180,8 @@ namespace ShoppingCard.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Add(long Id, int quantity = 1)
         {
-            if (quantity < 1) quantity = 1;
-            var product = await _dataContext.Products.FindAsync(Id);
-            if (product == null) return NotFound();
-
             var userId = GetUserId();
-            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-            
-            if (cartItem == null)
-            {
-                _dataContext.Carts.Add(new CartModel
-                {
-                    UserId = userId,
-                    ProductId = Id,
-                    Quantity = quantity
-                });
-            }
-            else
-            {
-                cartItem.Quantity += quantity;
-            }
-            
-            await _dataContext.SaveChangesAsync();
+            await _cartService.AddToCartAsync(userId, Id, quantity);
 
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
@@ -221,59 +195,21 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Decrease(long Id)
         {
             var userId = GetUserId();
-            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-            
-            if (cartItem != null)
-            {
-                if (cartItem.Quantity > 1)
-                {
-                    cartItem.Quantity -= 1;
-                }
-                else
-                {
-                    _dataContext.Carts.Remove(cartItem);
-                }
-                await _dataContext.SaveChangesAsync();
-            }
-
+            await _cartService.DecreaseQuantityAsync(userId, Id);
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> Increase(long Id)
         {
-            var product = await _dataContext.Products.FindAsync(Id);
-            if (product == null) return NotFound();
-
             var userId = GetUserId();
-            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-            
-            if (cartItem != null)
-            {
-                if (product.Quantity > cartItem.Quantity)
-                {
-                    cartItem.Quantity += 1;
-                }
-                else
-                {
-                    cartItem.Quantity = product.Quantity;
-                    TempData["error"] = "Đã đạt số lượng tối đa trong kho!";
-                }
-                await _dataContext.SaveChangesAsync();
-            }
+            await _cartService.IncreaseQuantityAsync(userId, Id);
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
         public async Task<IActionResult> Remove(long Id)
         {
             var userId = GetUserId();
-            var cartItem = await _dataContext.Carts.FirstOrDefaultAsync(c => c.ProductId == Id && c.UserId == userId);
-            
-            if (cartItem != null)
-            {
-                _dataContext.Carts.Remove(cartItem);
-                await _dataContext.SaveChangesAsync();
-            }
-
+            await _cartService.RemoveFromCartAsync(userId, Id);
             TempData["success"] = "Đã xóa sản phẩm khỏi giỏ hàng!";
             return Redirect(Request.Headers["Referer"].ToString());
         }
@@ -281,13 +217,7 @@ namespace ShoppingCard.Controllers
         public async Task<IActionResult> Clear()
         {
             var userId = GetUserId();
-            var userCarts = await _dataContext.Carts.Where(c => c.UserId == userId).ToListAsync();
-            
-            if (userCarts.Any())
-            {
-                _dataContext.Carts.RemoveRange(userCarts);
-                await _dataContext.SaveChangesAsync();
-            }
+            await _cartService.ClearCartAsync(userId);
             
             Response.Cookies.Delete("CouponTitle");
             TempData["success"] = "Đã làm trống giỏ hàng!";
@@ -304,17 +234,12 @@ namespace ShoppingCard.Controllers
                 return Json(new { success = false, message = "Bạn đã áp dụng mã giảm giá. Hãy xóa mã cũ trước khi thêm mã mới." });
             }
 
-            var validCoupon = await _dataContext.Coupons
-                .FirstOrDefaultAsync(x => x.Name == coupon_value && x.Status == 1 && x.Quantity > 0);
+            var coupons = await _couponService.GetAllCouponsAsync();
+            var validCoupon = coupons.FirstOrDefault(x => x.Name == coupon_value && x.Status == 1 && x.Quantity > 0 && x.DateExpired >= DateTime.Today);
 
             if (validCoupon == null)
             {
-                return Json(new { success = false, message = "Mã giảm giá không tồn tại hoặc đã hết lượt dùng." });
-            }
-
-            if (validCoupon.DateExpired < DateTime.Today)
-            {
-                return Json(new { success = false, message = "Mã giảm giá đã hết hạn sử dụng." });
+                return Json(new { success = false, message = "Mã giảm giá không tồn tại, đã hết lượt dùng hoặc hết hạn." });
             }
 
             CookieOptions cookieOptions = new CookieOptions

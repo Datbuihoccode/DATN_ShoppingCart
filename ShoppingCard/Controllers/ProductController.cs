@@ -1,34 +1,29 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs;
 using System.Security.Claims;
+using ShoppingCard.Models.ViewModels;
+using ShoppingCard.Domain.Entities;
 
 namespace ShoppingCard.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly DataContext _dataContext;
-        public ProductController(DataContext context)
+        private readonly IProductService _productService;
+
+        public ProductController(IProductService productService)
         {
-            _dataContext = context;
+            _productService = productService;
         }
 
         [Route("Product/Search")]
         public async Task<IActionResult> Search(string searchTerm)
         {
             if (string.IsNullOrEmpty(searchTerm))
-                return View(new List<ProductModel>());
- 
-            var products = await _dataContext.Products
-                .Include(p => p.Brand)
-                .Include(p => p.ProductCategories)
-                    .ThenInclude(pc => pc.Category)
-                .Where(p => p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm))
-                .ToListAsync();
- 
+                return View(new List<ProductDto>());
+
+            var products = await _productService.SearchProductsAsync(searchTerm);
             ViewBag.Keyword = searchTerm;
- 
+
             return View(products);
         }
 
@@ -38,46 +33,42 @@ namespace ShoppingCard.Controllers
             if (string.IsNullOrEmpty(Slug))
                 return RedirectToAction("Index");
 
-            var productsBySlug = await _dataContext.Products
-                .Include(p => p.Ratings)
-                .Include(p => p.ProductCategories)
-                .Include(p => p.Brand)
-                .FirstOrDefaultAsync(p => p.Slug == Slug);
-
-            if (productsBySlug == null)
+            var productDto = await _productService.GetProductBySlugAsync(Slug);
+            if (productDto == null)
                 return RedirectToAction("Index");
 
-            // Lấy danh sách ID danh mục của sản phẩm hiện tại
-            var categoryIds = productsBySlug.ProductCategories.Select(pc => pc.CategoryId).ToList();
-
-            var relatedProducts = await _dataContext.Products
-                .Include(p => p.ProductCategories)
-                .Where(p => p.ProductCategories.Any(pc => categoryIds.Contains(pc.CategoryId)) && p.Id != productsBySlug.Id)
-                .OrderBy(x => Guid.NewGuid())
-                .Take(10)
-                .ToListAsync();
+            var relatedProducts = await _productService.GetRelatedProductsAsync(productDto.Id, productDto.CategoryIds);
             ViewBag.RelatedProducts = relatedProducts;
 
-            // Kiểm tra đã mua hàng chưa
             bool hasPurchased = false;
             if (User.Identity?.IsAuthenticated == true)
             {
                 var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity.Name;
-                hasPurchased = await _dataContext.OrderDetails
-                    .AnyAsync(od => od.ProductId == productsBySlug.Id && od.UserName == userEmail);
+                hasPurchased = await _productService.HasUserPurchasedProductAsync(productDto.Id, userEmail);
             }
             ViewBag.HasPurchased = hasPurchased;
 
-            var viewModel = new Models.ViewsModels.ProductDetailViewModel
+            var viewModel = new ProductDetailViewModel
             {
-                ProductDetails = productsBySlug,
+                ProductDetails = new Product 
+                {
+                    Id = productDto.Id,
+                    Name = productDto.Name,
+                    Slug = productDto.Slug,
+                    Description = productDto.Description,
+                    Price = productDto.Price,
+                    Image = productDto.Image,
+                    Condition = productDto.Condition,
+                    Quantity = productDto.Quantity,
+                    Sold = productDto.Sold
+                },
             };
             return View(viewModel);
         }
         [Route("comment-product")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CommentProduct(RatingModel rating)
+        public async Task<IActionResult> CommentProduct(RatingDto ratingDto)
         {
             if (User.Identity?.IsAuthenticated != true)
             {
@@ -86,18 +77,12 @@ namespace ShoppingCard.Controllers
             }
 
             var userEmail = User.FindFirstValue(ClaimTypes.Email) ?? User.Identity.Name;
-
-            // Ghi đè thông tin Email từ User đã đăng nhập để kiểm tra mua hàng
-            rating.Email = userEmail;
-
-            // Xóa lỗi ModelState cho Email vì chúng ta đã tự điền
+            ratingDto.Email = userEmail;
             ModelState.Remove("Email");
 
             if (ModelState.IsValid)
             {
-                // Kiểm tra lại việc mua hàng ở phía Server
-                var hasPurchased = await _dataContext.OrderDetails
-                    .AnyAsync(od => od.ProductId == rating.ProductId && od.UserName == userEmail);
+                var hasPurchased = await _productService.HasUserPurchasedProductAsync(ratingDto.ProductId, userEmail);
 
                 if (!hasPurchased)
                 {
@@ -105,16 +90,7 @@ namespace ShoppingCard.Controllers
                     return Redirect(Request.Headers["Referer"]);
                 }
 
-                var ratingEntity = new RatingModel
-                {
-                    ProductId = rating.ProductId,
-                    Name = rating.Name,
-                    Email = rating.Email,
-                    Comment = rating.Comment,
-                    Star = rating.Star
-                };
-                _dataContext.Ratings.Add(ratingEntity);
-                await _dataContext.SaveChangesAsync();
+                await _productService.AddRatingAsync(ratingDto);
 
                 TempData["success"] = "Cảm ơn bạn đã gửi đánh giá!";
                 return Redirect(Request.Headers["Referer"]);

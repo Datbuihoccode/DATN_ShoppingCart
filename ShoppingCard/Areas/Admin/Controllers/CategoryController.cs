@@ -1,8 +1,11 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
+using Microsoft.AspNetCore.Authorization;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs;
+using ShoppingCard.Application.Common;
+using System.Threading.Tasks;
+using System.Linq;
+using System;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -11,23 +14,23 @@ namespace ShoppingCard.Areas.Admin.Controllers
     [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class CategoryController : Controller
     {
-        private readonly DataContext _dataContext;
-        public CategoryController(DataContext context)
+        private readonly ICategoryService _categoryService;
+        public CategoryController(ICategoryService categoryService)
         {
-            _dataContext = context;
+            _categoryService = categoryService;
         }
 
         [Route("Index")]
         public async Task<IActionResult> Index(int pg = 1)
         {
-            List<CategoryModel> category = _dataContext.Categories.ToList();
+            var categories = await _categoryService.GetAllCategoriesAsync();
 
             const int pageSize = 10;
             if (pg < 1) pg = 1;
-            int recsCount = category.Count();
+            int recsCount = categories.Count();
             var pager = new Paginate(recsCount, pg, pageSize);
             int recSkip = (pg - 1) * pageSize;
-            var data = category.Skip(recSkip).Take(pager.PageSize).ToList();
+            var data = categories.Skip(recSkip).Take(pager.PageSize).ToList();
 
             ViewBag.Pager = pager;
             return View(data);
@@ -42,70 +45,57 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("Create")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CategoryModel category)
+        public async Task<IActionResult> Create(CategoryDto categoryDto)
         {
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(category.Slug)) {
-                    category.Slug = category.Name.Replace(" ", "-").ToLower();
-                }
-
-                var slugCheck = await _dataContext.Categories.FirstOrDefaultAsync(c => c.Slug == category.Slug);
-                if (slugCheck != null)
+                try 
                 {
-                    ModelState.AddModelError("", "Danh mục với slug này đã tồn tại.");
-                    return View(category);
+                    await _categoryService.CreateCategoryAsync(categoryDto);
+                    TempData["success"] = "Thêm danh mục thành công.";
+                    return RedirectToAction("Index");
                 }
-
-                _dataContext.Categories.Add(category);
-                await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Thêm danh mục thành công.";
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
-            return View(category);
+            return View(categoryDto);
         }
 
         [Route("Edit/{Id}")]
         public async Task<IActionResult> Edit(int Id)
         {
-            CategoryModel category = await _dataContext.Categories.FindAsync(Id); 
+            var category = await _categoryService.GetCategoryByIdAsync(Id); 
+            if (category == null) return NotFound();
             return View(category); 
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Route("Edit/{Id}")]
-        public async Task<IActionResult> Edit(CategoryModel category)
+        public async Task<IActionResult> Edit(int Id, CategoryDto categoryDto)
         {
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrEmpty(category.Slug)) {
-                    category.Slug = category.Name.Replace(" ", "-").ToLower();
-                }
-
-                var slugCheck = await _dataContext.Categories.FirstOrDefaultAsync(c => c.Slug == category.Slug && c.Id != category.Id);
-                if (slugCheck != null)
+                try 
                 {
-                    ModelState.AddModelError("", "Danh mục với slug này đã tồn tại.");
-                    return View(category);
+                    await _categoryService.UpdateCategoryAsync(Id, categoryDto);
+                    TempData["success"] = "Cập nhật danh mục thành công.";
+                    return RedirectToAction("Index");
                 }
-
-                _dataContext.Categories.Update(category);
-                await _dataContext.SaveChangesAsync();
-                TempData["success"] = "Cập nhật danh mục thành công.";
-                return RedirectToAction("Index");
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", ex.Message);
+                }
             }
-            return View(category);
+            return View(categoryDto);
         }
 
         [Route("Delete/{Id}")]
         public async Task<IActionResult> Delete(int Id)
         {
-            CategoryModel category = await _dataContext.Categories.FindAsync(Id); 
-            if (category == null) return NotFound();
-
-            _dataContext.Categories.Remove(category);
-            await _dataContext.SaveChangesAsync();
+            await _categoryService.DeleteCategoryAsync(Id);
             TempData["success"] = "Đã xóa danh mục.";
             return RedirectToAction("Index");
         }

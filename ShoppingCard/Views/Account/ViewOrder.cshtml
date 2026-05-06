@@ -1,10 +1,10 @@
-@model IEnumerable<OrderDetailsModel>
+@model IEnumerable<OrderDetail>
 
 @{
     ViewData["Title"] = "Chi tiết đơn hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var order = ViewBag.Order as OrderModel;
-    var details = Model?.ToList() ?? new List<OrderDetailsModel>();
+    var order = ViewBag.Order as Order;
+    var details = Model?.ToList() ?? new List<OrderDetail>();
     decimal subtotalAmount = details.Sum(x => x.Price * x.Quantity);
     decimal discountAmount = order?.DiscountAmount ?? 0m;
     decimal shippingFee = order?.ShippingFee ?? 0m;

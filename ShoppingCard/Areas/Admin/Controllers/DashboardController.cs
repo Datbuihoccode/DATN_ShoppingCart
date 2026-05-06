@@ -1,7 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
+using ShoppingCard.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Repository;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -9,73 +8,27 @@ namespace ShoppingCard.Areas.Admin.Controllers
     [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class DashboardController : Controller
     {
-        private readonly DataContext _dataContext;
+        private readonly IDashboardService _dashboardService;
 
-        public DashboardController(DataContext context)
+        public DashboardController(IDashboardService dashboardService)
         {
-            _dataContext = context;
+            _dashboardService = dashboardService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var countProduct = await _dataContext.Products.CountAsync();
-            var countOrder = await _dataContext.Orders.CountAsync();
-            var countCategory = await _dataContext.Categories.CountAsync();
-            var countUser = await _dataContext.Users.CountAsync();
+            var stats = await _dashboardService.GetDashboardStatsAsync();
 
-            ViewBag.CountProduct = countProduct;
-            ViewBag.CountOrder = countOrder;
-            ViewBag.CountCategory = countCategory;
-            ViewBag.CountUser = countUser;
+            ViewBag.CountProduct = stats.CountProduct;
+            ViewBag.CountOrder = stats.CountOrder;
+            ViewBag.CountCategory = stats.CountCategory;
+            ViewBag.CountUser = stats.CountUser;
+            ViewBag.TotalRevenue = stats.TotalRevenue;
 
-            // 1. Recent Orders (Top 5)
-            var recentOrders = await _dataContext.Orders
-                .OrderByDescending(o => o.CreateDate)
-                .Take(5)
-                .Select(o => new
-                {
-                    o.OrderCode,
-                    o.UserName,
-                    o.CreateDate,
-                    o.Status,
-                    o.PaymentStatus,
-                    TotalAmount = _dataContext.OrderDetails
-                        .Where(od => od.OrderCode == o.OrderCode)
-                        .Sum(od => od.Price * od.Quantity)
-                })
-                .ToListAsync();
-
-            // 2. Top Products (Top 5 by Sold)
-            var topProducts = await _dataContext.Products
-                .OrderByDescending(p => p.Sold)
-                .Take(5)
-                .Select(p => new {
-                    p.Id,
-                    p.Name,
-                    p.Image,
-                    p.Sold,
-                    p.Price,
-                    p.Quantity,
-                    Revenue = _dataContext.OrderDetails
-                        .Where(od => od.ProductId == p.Id)
-                        .Sum(od => od.Price * od.Quantity)
-                })
-                .ToListAsync();
-
-            // 3. Low Stock Products (Quantity < 10)
-            var lowStock = await _dataContext.Products
-                .Where(p => p.Quantity < 10)
-                .OrderBy(p => p.Quantity)
-                .Take(5)
-                .ToListAsync();
-
-            // 4. Total Revenue from Statisticals
-            ViewBag.TotalRevenue = await _dataContext.Statisticals.SumAsync(s => s.Revenue);
-
-            ViewBag.RecentOrders = recentOrders;
-            ViewBag.TopProducts = topProducts;
-            ViewBag.LowStock = lowStock;
+            ViewBag.RecentOrders = stats.RecentOrders;
+            ViewBag.TopProducts = stats.TopProducts;
+            ViewBag.LowStock = stats.LowStockProducts;
 
             return View();
         }
@@ -84,17 +37,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("GetChartData")]
         public async Task<IActionResult> GetChartData()
         {
-            var data = await _dataContext.Statisticals
-                .OrderBy(s => s.DateCreated)
-                .Select(s => new
-                {
-                    date = s.DateCreated.ToString("yyyy-MM-dd"),
-                    sold = s.Sold,
-                    quantity = s.Quantity,
-                    revenue = s.Revenue
-                })
-                .ToListAsync();
-
+            var data = await _dashboardService.GetChartDataAsync(30);
             return Json(data);
         }
 
@@ -102,26 +45,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("GetChartDataBySelect")]
         public async Task<IActionResult> GetChartDataBySelect(int days = 30)
         {
-            if (days <= 0)
-            {
-                days = 30;
-            }
-
-            var endDateExclusive = DateTime.Today.AddDays(1);
-            var startDate = endDateExclusive.AddDays(-days);
-
-            var data = await _dataContext.Statisticals
-                .Where(s => s.DateCreated >= startDate && s.DateCreated < endDateExclusive)
-                .OrderBy(s => s.DateCreated)
-                .Select(s => new
-                {
-                    date = s.DateCreated.ToString("yyyy-MM-dd"),
-                    sold = s.Sold,
-                    quantity = s.Quantity,
-                    revenue = s.Revenue
-                })
-                .ToListAsync();
-
+            var data = await _dashboardService.GetChartDataAsync(days);
             return Json(data);
         }
 
@@ -129,31 +53,7 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("FilterData")]
         public async Task<IActionResult> FilterData(DateTime? fromDate, DateTime? toDate)
         {
-            var query = _dataContext.Statisticals.AsQueryable();
-
-            if (fromDate.HasValue)
-            {
-                var startDate = fromDate.Value.Date;
-                query = query.Where(s => s.DateCreated >= startDate);
-            }
-
-            if (toDate.HasValue)
-            {
-                var endDateExclusive = toDate.Value.Date.AddDays(1);
-                query = query.Where(s => s.DateCreated < endDateExclusive);
-            }
-
-            var data = await query
-                .OrderBy(s => s.DateCreated)
-                .Select(s => new
-                {
-                    date = s.DateCreated.ToString("yyyy-MM-dd"),
-                    sold = s.Sold,
-                    quantity = s.Quantity,
-                    revenue = s.Revenue
-                })
-                .ToListAsync();
-
+            var data = await _dashboardService.GetFilteredChartDataAsync(fromDate, toDate);
             return Json(data);
         }
     }

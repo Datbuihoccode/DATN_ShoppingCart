@@ -1,10 +1,11 @@
-@model ProductQuantityModel
+@using ShoppingCard.Domain.Entities
+@model ProductQuantity
 @{
     ViewData["Title"] = "Thêm số lượng";
     var totalQuantities = 0;
     var key = 1;
     var productId = ViewBag.ProductId;
-    var quantityHistory = ViewBag.ProductByQuantity as List<ProductQuantityModel> ?? new List<ProductQuantityModel>();
+    var quantityHistory = ViewBag.ProductByQuantity as IEnumerable<ProductQuantity> ?? new List<ProductQuantity>();
 }
 
 <!-- Page Header -->
@@ -75,7 +76,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (quantityHistory.Count == 0)
+                        @if (quantityHistory.Count() == 0)
                         {
                             <tr>
                                 <td colspan="3" class="text-center text-muted py-5">

@@ -2,25 +2,18 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Areas.Admin.Repository;
-using ShoppingCard.Models;
-using ShoppingCard.Models.Momo;
-using ShoppingCard.Repository;
-using ShoppingCard.Services.Momo;
-using ShoppingCard.Services.Vnpay;
-using ShoppingCard.Services;
+using ShoppingCard.Infrastructure;
+using ShoppingCard.Infrastructure.Data;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs.Momo;
 using ShoppingCard.Library;
-using ShoppingCard.Models.Shipping;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Connect MoMo API
 builder.Services.Configure<MomoOptionModel>(builder.Configuration.GetSection("MomoApi"));
-builder.Services.Configure<ShippingOptionModel>(builder.Configuration.GetSection("ShippingApi"));
-builder.Services.AddScoped<IMomoService, MomoService>();
-builder.Services.AddScoped<IVnPayService, VnPayService>();
-builder.Services.AddScoped<IShippingService, ShippingService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
+
 builder.Services.AddHttpClient("ghn", client =>
 {
     client.Timeout = TimeSpan.FromSeconds(15);
@@ -34,18 +27,11 @@ builder.Services.AddControllersWithViews(options =>
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 
 
-// Add Email Sender Service
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+// Add Infrastructure and Application layers (Clean Architecture)
+builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddApplication();
 
-
-
-// Connect to database
-builder.Services.AddDbContext<DataContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("ConnectedDb"));
-});
-
-builder.Services.AddIdentity<AppUserModel, IdentityRole>()
+builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<DataContext>()
     .AddDefaultTokenProviders()
     .AddErrorDescriber<VietnameseIdentityErrorDescriber>();
@@ -112,7 +98,7 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<DataContext>();
-    await SeedData.SeedingData(context, services);
+    await ShoppingCard.Infrastructure.Data.SeedData.SeedingData(context, services);
 }
 
 app.UseStatusCodePagesWithRedirects("/Home/Error?statuscode={0}");

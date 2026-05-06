@@ -246,9 +246,9 @@
 
         <!-- Sản phẩm liên quan (Sử dụng Product Grid chuẩn) -->
         <!-- Sản phẩm liên quan (Sử dụng Slider tương tự Trang chủ) -->
-        @if (ViewBag.RelatedProducts != null && (ViewBag.RelatedProducts as IEnumerable<ProductModel>).Any())
+        @if (ViewBag.RelatedProducts != null && (ViewBag.RelatedProducts as IEnumerable<ProductDto>).Any())
         {
-            var relatedProducts = ViewBag.RelatedProducts as IEnumerable<ProductModel>;
+            var relatedProducts = ViewBag.RelatedProducts as IEnumerable<ProductDto>;
             <div class="related-section mt-5 border-top pt-4">
                 <h2 class="section-title mb-4">SẢN PHẨM LIÊN QUAN</h2>
                 
@@ -278,7 +278,7 @@
                                         </div>
 
                                         <div class="laptopcenter-card-specs">
-                                            <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @related.Brand?.Name</span>
+                                            <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @related.BrandName</span>
                                             <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(related.Condition) ? "Mới 100%" : related.Condition)</span>
                                         </div>
 

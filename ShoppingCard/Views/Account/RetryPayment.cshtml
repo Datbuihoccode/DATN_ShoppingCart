@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "Thanh toán lại đơn hàng";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var order = ViewBag.Order as ShoppingCard.Models.OrderModel;
+    var order = ViewBag.Order as Order;
     decimal total = (decimal)(ViewBag.Total ?? 0m);
     DateTime expiresAt = (DateTime)(ViewBag.ExpiresAt ?? DateTime.Now);
     var remainingSeconds = (int)(expiresAt - DateTime.Now).TotalSeconds;

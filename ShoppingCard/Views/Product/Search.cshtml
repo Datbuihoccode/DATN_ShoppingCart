@@ -1,4 +1,5 @@
-@model IEnumerable<ProductModel>
+@using ShoppingCard.Application.DTOs
+@model IEnumerable<ProductDto>
 @{
 	ViewData["Title"] = ViewBag.Keyword;
 	Layout = "~/Views/Shared/_Layout.cshtml";
@@ -37,8 +38,8 @@
                                     </a>
                                     <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 đ")</div>
                                     <div class="laptopcenter-card-specs">
-                                        <span class="laptopcenter-spec-item">@(item.ProductCategories?.FirstOrDefault()?.Category?.Name ?? "Laptop")</span>
-                                        <span class="laptopcenter-spec-item">@item.Brand?.Name</span>
+                                        <span class="laptopcenter-spec-item">@(item.CategoryNames?.FirstOrDefault() ?? "Laptop")</span>
+                                        <span class="laptopcenter-spec-item">@item.BrandName</span>
                                     </div>
                                     <div class="laptopcenter-card-actions mt-auto">
                                         @if(item.Quantity > 0)

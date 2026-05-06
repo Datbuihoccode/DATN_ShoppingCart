@@ -1,9 +1,10 @@
-@model ProductModel 
-@using ShoppingCard.Models
+@using ShoppingCard.Application.DTOs
+@using ShoppingCard.Domain.Entities
+@model CreateProductDto 
 @{
     ViewData["Title"] = "Chỉnh sửa sản phẩm";
-    var allCategories = ViewBag.Categories as List<CategoryModel> ?? new List<CategoryModel>();
-    var selectedCatIds = Model.SelectedCategoryIds ?? new List<int>();
+    var allCategories = ViewBag.Categories as IEnumerable<Category> ?? new List<Category>();
+    var selectedCatIds = Model.CategoryIds ?? new List<long>();
 }
 
 <nav aria-label="breadcrumb">
@@ -79,7 +80,7 @@
                             var isChecked = selectedCatIds.Contains(cat.Id);
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox"
-                                       name="SelectedCategoryIds"
+                                       name="CategoryIds"
                                        value="@cat.Id"
                                        id="cat_@cat.Id"
                                        @(isChecked ? "checked" : "") />
@@ -103,7 +104,7 @@
                 <div class="form-group">
                     <label class="form-label">Hình ảnh hiện tại</label>
                     <div class="mb-2">
-                        <img src="@Model.Image" style="width: 100px; height: 100px; object-fit: contain; border: 1px solid #ddd; border-radius: 8px;" />
+                        <img src="/media/products/@ViewBag.CurrentImage" style="width: 100px; height: 100px; object-fit: contain; border: 1px solid #ddd; border-radius: 8px;" />
                     </div>
                     <label class="form-label">Thay đổi hình ảnh</label>
                     <input asp-for="ImageUpload" type="file" class="form-control" id="ImageUploadInput" />
@@ -166,15 +167,15 @@
 
         // Validate: bắt buộc chọn ít nhất 1 danh mục
         $("form").on("submit", function (e) {
-            var checked = $("input[name='SelectedCategoryIds']:checked").length;
+            var checked = $("input[name='CategoryIds']:checked").length;
             if (checked === 0) {
                 e.preventDefault();
                 $("#cat-error").text("Yêu cầu chọn ít nhất 1 danh mục.");
                 $(".category-checkbox-list").addClass("border-danger");
             }
         });
-        $("input[name='SelectedCategoryIds']").on("change", function () {
-            if ($("input[name='SelectedCategoryIds']:checked").length > 0) {
+        $("input[name='CategoryIds']").on("change", function () {
+            if ($("input[name='CategoryIds']:checked").length > 0) {
                 $("#cat-error").text("");
                 $(".category-checkbox-list").removeClass("border-danger");
             }

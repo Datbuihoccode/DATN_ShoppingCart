@@ -1,30 +1,36 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Areas.Admin.Repository;
-using ShoppingCard.Models;
-using ShoppingCard.Models.ViewsModels;
-using ShoppingCard.Repository;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Infrastructure.Data;
+using ShoppingCard.Models.ViewModels;
 using System.Security.Claims;
-using ShoppingCard.Services;
+using System.Threading.Tasks;
+using System.Linq;
+using System;
+using System.Collections.Generic;
+using ShoppingCard.Domain.Enums;
 
 namespace ShoppingCard.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<AppUserModel> _userManager;
+        private readonly UserManager<AppUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        private readonly SignInManager<AppUserModel> _signInManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly DataContext _dataContext;
         private readonly IOrderService _orderService;
 
         public AccountController(
-            UserManager<AppUserModel> userManager,
+            UserManager<AppUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            SignInManager<AppUserModel> signInManager,
+            SignInManager<AppUser> signInManager,
             IEmailSender emailSender,
             DataContext context,
             IOrderService orderService)
@@ -132,10 +138,10 @@ namespace ShoppingCard.Controllers
 
             if (existingUser == null)
             {
-                var passwordHasher = new PasswordHasher<AppUserModel>();
+                var passwordHasher = new PasswordHasher<AppUser>();
                 var hashedPassword = passwordHasher.HashPassword(null, "Ta!123");
 
-                var newUser = new AppUserModel
+                var newUser = new AppUser
                 {
                     UserName = emailName,
                     Email = email
@@ -195,7 +201,7 @@ namespace ShoppingCard.Controllers
         {
             if (ModelState.IsValid)
             {
-                var newUser = new AppUserModel
+                var newUser = new AppUser
                 {
                     UserName = user.UserName,
                     Email = user.Email,
@@ -269,7 +275,7 @@ namespace ShoppingCard.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateInfoAccount(AppUserModel user)
+        public async Task<IActionResult> UpdateInfoAccount(AppUser user)
         {
             if (User.Identity?.IsAuthenticated != true)
             {
@@ -325,7 +331,7 @@ namespace ShoppingCard.Controllers
             }
             else
             {
-                var passwordHasher = new PasswordHasher<AppUserModel>();
+                var passwordHasher = new PasswordHasher<AppUser>();
                 var passwordHash = passwordHasher.HashPassword(userId, user.PasswordHash);
                 userId.PasswordHash = passwordHash;
             }
@@ -622,7 +628,7 @@ namespace ShoppingCard.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendMailForgotPass(AppUserModel user)
+        public async Task<IActionResult> SendMailForgotPass(AppUser user)
         {
             var checkMail = await _userManager.Users.FirstOrDefaultAsync(u => u.Email == user.Email);
             
@@ -672,14 +678,14 @@ namespace ShoppingCard.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UpdateNewPassword(AppUserModel user, string token)
+        public async Task<IActionResult> UpdateNewPassword(AppUser user, string token)
         {
             var checkuser = await _userManager.Users
                 .FirstOrDefaultAsync(u => u.Email == user.Email && u.Token == token);
 
             if (checkuser != null)
             {
-                var passwordHasher = new PasswordHasher<AppUserModel>();
+                var passwordHasher = new PasswordHasher<AppUser>();
                 var passwordHash = passwordHasher.HashPassword(checkuser, user.PasswordHash);
                 
                 checkuser.PasswordHash = passwordHash;

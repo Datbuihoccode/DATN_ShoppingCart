@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
-using ShoppingCard.Services;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Domain.Enums;
+using ShoppingCard.Domain.Interfaces;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
@@ -12,14 +12,14 @@ namespace ShoppingCard.Areas.Admin.Controllers
     [Authorize(Roles = "Admin,Staff", AuthenticationSchemes = "AdminScheme")]
     public class OrderController : Controller
     {
-        private readonly DataContext _dataContext;
-        private readonly UserManager<AppUserModel> _userManager;
+        private readonly IOrderRepository _orderRepository;
+        private readonly UserManager<AppUser> _userManager;
         private readonly IOrderService _orderService;
         private readonly IShippingService _shippingService;
 
-        public OrderController(DataContext context, UserManager<AppUserModel> userManager, IOrderService orderService, IShippingService shippingService)
+        public OrderController(IOrderRepository orderRepository, UserManager<AppUser> userManager, IOrderService orderService, IShippingService shippingService)
         {
-            _dataContext = context;
+            _orderRepository = orderRepository;
             _userManager = userManager;
             _orderService = orderService;
             _shippingService = shippingService;
@@ -28,7 +28,8 @@ namespace ShoppingCard.Areas.Admin.Controllers
         public async Task<IActionResult> Index()
         {
             await _orderService.ProcessAutoCompletedOrdersAsync();
-            return View(await _dataContext.Orders.OrderByDescending(p => p.Id).ToListAsync());
+            var orders = await _orderRepository.GetAllAsync();
+            return View(orders);
         }
 
         public async Task<IActionResult> ViewOrder(string odercode)
@@ -38,19 +39,13 @@ namespace ShoppingCard.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var order = await _dataContext.Orders
-                .Include(o => o.OrderHistories)
-                .AsNoTracking()
-                .FirstOrDefaultAsync(o => o.OrderCode == odercode);
+            var order = await _orderRepository.GetByCodeAsync(odercode);
             if (order == null)
             {
                 return NotFound();
             }
 
-            var detailsOrder = await _dataContext.OrderDetails
-                .Include(od => od.Product)
-                .Where(od => od.OrderCode == odercode)
-                .ToListAsync();
+            var detailsOrder = await _orderRepository.GetOrderDetailsAsync(odercode);
 
             ViewBag.OrderCode = order.OrderCode;
             ViewBag.CouponCode = order.CouponCode;
@@ -70,34 +65,24 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> PaymentMomoInfo(string orderId)
         {
-            if (string.IsNullOrWhiteSpace(orderId))
+            var order = await _orderRepository.GetByCodeAsync(orderId);
+            if (order == null || order.MomoInfo == null)
             {
                 return NotFound();
             }
-
-            var momoInfo = await _dataContext.MomoInfos
-                .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.OrderId == orderId);
-
-            if (momoInfo == null)
-            {
-                return NotFound();
-            }
-
-            return View(momoInfo);
+            return View(order.MomoInfo);
         }
 
         [HttpGet]
         [Route("PaymentVnpayInfo")]
         public async Task<IActionResult> PaymentVnpayInfo(string orderId)
         {
-            var vnpayInfo = await _dataContext.VnpayInfos.FirstOrDefaultAsync(m => m.PaymentId == orderId);
-            
-            if (vnpayInfo == null)
+            var order = await _orderRepository.GetByCodeAsync(orderId);
+            if (order == null || order.VnpayInfo == null)
             {
                 return NotFound();
             }
-            return View(vnpayInfo);
+            return View(order.VnpayInfo);
         }
 
         [HttpPost]
@@ -121,86 +106,32 @@ namespace ShoppingCard.Areas.Admin.Controllers
         [Route("DeleteOrder")]
         public async Task<IActionResult> DeleteOrder(string ordercode)
         {
-            if (string.IsNullOrWhiteSpace(ordercode))
-            {
-                TempData["error"] = "Mã đơn hàng không hợp lệ.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode);
-            if (order == null)
-            {
-                TempData["error"] = "Không tìm thấy đơn hàng để xóa.";
-                return RedirectToAction(nameof(Index));
-            }
-
             try
             {
-                // 1. Xóa lịch sử đơn hàng
-                var histories = await _dataContext.OrderHistories
-                    .Where(oh => oh.OrderCode == ordercode)
-                    .ToListAsync();
-                if (histories.Any()) _dataContext.OrderHistories.RemoveRange(histories);
-
-                // 2. Xóa thông tin thanh toán (Momo, Vnpay)
-                var momo = await _dataContext.MomoInfos.FirstOrDefaultAsync(m => m.OrderId == ordercode);
-                if (momo != null) _dataContext.MomoInfos.Remove(momo);
-
-                var vnpay = await _dataContext.VnpayInfos.FirstOrDefaultAsync(v => v.PaymentId == ordercode);
-                if (vnpay != null) _dataContext.VnpayInfos.Remove(vnpay);
-
-                // 3. Xóa chi tiết đơn hàng
-                var orderDetails = await _dataContext.OrderDetails
-                    .Where(od => od.OrderCode == ordercode)
-                    .ToListAsync();
-                if (orderDetails.Any()) _dataContext.OrderDetails.RemoveRange(orderDetails);
-
-                // 4. Cuối cùng mới xóa đơn hàng
-                _dataContext.Orders.Remove(order);
-                await _dataContext.SaveChangesAsync();
-
-                TempData["success"] = "Xóa đơn hàng thành công!";
-                return RedirectToAction(nameof(Index));
+                var result = await _orderService.DeleteOrderAsync(ordercode);
+                if (result)
+                {
+                    TempData["success"] = "Xóa đơn hàng thành công!";
+                }
+                else
+                {
+                    TempData["error"] = "Không tìm thấy đơn hàng để xóa.";
+                }
             }
             catch (Exception ex)
             {
                 TempData["error"] = "Đã xảy ra lỗi khi xóa: " + ex.Message;
-                return RedirectToAction(nameof(Index));
             }
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RetryCreateShipment(string ordercode)
         {
-            if (string.IsNullOrWhiteSpace(ordercode))
-            {
-                TempData["error"] = "Mã đơn không hợp lệ.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            var order = await _dataContext.Orders.FirstOrDefaultAsync(o => o.OrderCode == ordercode);
-            if (order != null && string.IsNullOrWhiteSpace(order.ShippingTrackingCode))
-            {
-                var shipment = await _shippingService.CreateShipmentAsync(ordercode);
-                if (shipment.IsSuccess)
-                {
-                    order.ShippingTrackingCode = shipment.TrackingCode;
-                    _dataContext.Update(order);
-                    await _dataContext.SaveChangesAsync();
-                    TempData["success"] = "Tạo vận đơn GHN thành công: " + shipment.TrackingCode;
-                }
-                else
-                {
-                    TempData["error"] = "Lỗi GHN: " + shipment.Message;
-                }
-            }
-            else
-            {
-                TempData["info"] = "Đơn hàng đã có mã vận đơn hoặc không hợp lệ.";
-            }
-
-            return RedirectToAction(nameof(ViewOrder), new { ordercode = ordercode });
+            await _orderService.CreateShipmentIfReadyAsync(ordercode);
+            TempData["info"] = "Đã yêu cầu tạo lại vận đơn. Kiểm tra chi tiết đơn hàng.";
+            return RedirectToAction(nameof(ViewOrder), new { odercode = ordercode });
         }
     }
 }

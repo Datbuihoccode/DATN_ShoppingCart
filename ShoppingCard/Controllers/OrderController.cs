@@ -1,17 +1,15 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Domain.Entities;
 
 namespace ShoppingCard.Controllers
 {
     public class OrderController : Controller
     {
-        private readonly DataContext _dataContext;
+        private readonly IOrderService _orderService;
 
-        public OrderController(DataContext dataContext)
+        public OrderController(IOrderService orderService)
         {
-            _dataContext = dataContext;
+            _orderService = orderService;
         }
 
         [HttpGet]
@@ -31,11 +29,7 @@ namespace ShoppingCard.Controllers
                 return View();
             }
 
-            var order = await _dataContext.Orders
-                .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.Product)
-                .Include(o => o.OrderHistories)
-                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+            var order = await _orderService.GetOrderByCodeAsync(orderCode);
 
             if (order == null)
             {
@@ -49,15 +43,7 @@ namespace ShoppingCard.Controllers
         [HttpGet]
         public async Task<IActionResult> Details(string orderCode)
         {
-            // Bảo mật: Nếu truy cập trực tiếp qua GET mà không qua POST (tra cứu), 
-            // có thể cần thêm check SĐT hoặc check User login.
-            // Ở đây ta cho phép xem nếu có OrderCode (vì GUID khó đoán).
-            
-            var order = await _dataContext.Orders
-                .Include(o => o.OrderDetails)
-                    .ThenInclude(od => od.Product)
-                .Include(o => o.OrderHistories)
-                .FirstOrDefaultAsync(o => o.OrderCode == orderCode);
+            var order = await _orderService.GetOrderByCodeAsync(orderCode);
 
             if (order == null) return NotFound();
 

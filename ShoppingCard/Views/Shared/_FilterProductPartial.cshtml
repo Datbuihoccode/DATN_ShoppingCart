@@ -1,4 +1,4 @@
-@inject ShoppingCard.Repository.DataContext _context
+@inject DataContext _context
 @{
     var currentUrl = Url.ActionContext.HttpContext.Request.Path;
     var currentSort = Url.ActionContext.HttpContext.Request.Query["sort_by"].ToString();

@@ -1,9 +1,11 @@
-@model IEnumerable<OrderDetailsModel>
+@using ShoppingCard.Domain.Entities
+@using ShoppingCard.Domain.Enums
+@model IEnumerable<OrderDetail>
 @{
     ViewData["Title"] = "Đơn hàng";
 
-    var details = Model?.ToList() ?? new List<OrderDetailsModel>();
-    var order = ViewBag.Order as OrderModel;
+    var details = Model?.ToList() ?? new List<OrderDetail>();
+    var order = ViewBag.Order as Order;
     var orderCode = Convert.ToString(ViewBag.OrderCode) ?? details.FirstOrDefault()?.OrderCode ?? string.Empty;
     var couponText = Convert.ToString(ViewBag.CouponCode);
     var couponCode = string.IsNullOrWhiteSpace(couponText) ? "-" : couponText;

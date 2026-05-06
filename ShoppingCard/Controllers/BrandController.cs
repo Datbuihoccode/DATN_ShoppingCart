@@ -1,29 +1,35 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using ShoppingCard.Models;
-using ShoppingCard.Repository;
+using ShoppingCard.Application.Interfaces;
+using ShoppingCard.Application.DTOs;
 
 namespace ShoppingCard.Controllers
 {
     public class BrandController : Controller
     {
-        private readonly  DataContext _dataContext;
-        public BrandController(DataContext dataContext)
+        private readonly IProductService _productService;
+        private readonly IBrandService _brandService;
+
+        public BrandController(IProductService productService, IBrandService brandService)
         {
-            _dataContext = dataContext;
+            _productService = productService;
+            _brandService = brandService;
         }
         [Route("Brand/{Slug?}")]
         public async Task<IActionResult> Index(string Slug = "")
         {
-            BrandModel brand = await _dataContext.Brands.Where(c => c.Slug == Slug).FirstOrDefaultAsync();
+            var brand = await _brandService.GetBrandBySlugAsync(Slug);
             if (brand == null)
                 return RedirectToAction("Index", "Home");
-            var productsByBrand = _dataContext.Products.Where(p => p.BrandId == brand.Id);
-            return View(await productsByBrand.OrderByDescending(p => p.Id)
-                .Include(p => p.Brand)
-                .Include(p => p.ProductCategories)
-                    .ThenInclude(pc => pc.Category)
-                .ToListAsync());
+
+            var filter = new ProductFilterDto
+            {
+                BrandSlug = Slug,
+                PageSize = 100 // Load more for brand page
+            };
+
+            var result = await _productService.GetFilteredProductsAsync(filter);
+            
+            ViewBag.BrandName = brand.Name;
+            return View(result.Items);
         }
     }
 }

@@ -1,0 +1,14 @@
+global using ShoppingCard.Infrastructure.Data;
+global using ShoppingCard.Domain.Entities;
+global using ShoppingCard.Application.DTOs;
+global using ShoppingCard.Application.Interfaces;
+global using ShoppingCard.Application.Common;
+global using ShoppingCard.Models;
+global using ShoppingCard.Models.ViewModels;
+global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.AspNetCore.Identity;
+global using Microsoft.EntityFrameworkCore;
+global using System.Threading.Tasks;
+global using System.Linq;
+global using System;
+global using System.Collections.Generic;

@@ -1,4 +1,5 @@
-@model IEnumerable<ProductModel>
+@using ShoppingCard.Application.DTOs
+@model IEnumerable<ProductDto>
 <div class="container py-4">
     <div class="row">
         <div class="col-12">
@@ -15,14 +16,13 @@
                                 <div class="laptopcenter-card-img">
                                     @{
                                         string labelClass = "label-default";
-                                        var mainCategory = item.ProductCategories?.FirstOrDefault()?.Category;
-                                        string catName = mainCategory?.Name?.ToLower() ?? "";
+                                        string catName = item.CategoryNames?.FirstOrDefault()?.ToLower() ?? "";
                                         if(catName.Contains("gaming")) labelClass = "label-gaming";
                                         else if(catName.Contains("văn phòng") || catName.Contains("học tập")) labelClass = "label-office";
                                         else if(catName.Contains("đồ họa") || catName.Contains("workstation")) labelClass = "label-workstation";
                                         else if(catName.Contains("mỏng nhẹ") || catName.Contains("ultrabook")) labelClass = "label-ultrabook";
                                     }
-                                    <div class="laptopcenter-card-label @labelClass">@(mainCategory?.Name ?? "Laptop")</div>
+                                    <div class="laptopcenter-card-label @labelClass">@(item.CategoryNames?.FirstOrDefault() ?? "Laptop")</div>
                                     <img src="@item.Image" alt="@item.Name" />
                                 </div>
                             </a>
@@ -32,7 +32,7 @@
                                 </a>
                                 <div class="laptopcenter-card-price">@item.Price.ToString("#,##0 đ")</div>
                                 <div class="laptopcenter-card-specs">
-                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand?.Name</span>
+                                    <span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.BrandName</span>
                                     <span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(item.Condition) ? "Mới 100%" : item.Condition)</span>
                                 </div>
                                 <div class="laptopcenter-card-actions mt-auto">

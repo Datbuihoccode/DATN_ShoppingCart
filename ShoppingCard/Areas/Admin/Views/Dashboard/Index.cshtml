@@ -1,4 +1,4 @@
-@model StatisticalModel
+@* @model StatisticalModel *@
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -148,22 +148,22 @@
                                     <td class="text-center fw-bold text-dark">@order.TotalAmount.ToString("#,##0") đ</td>
                                     <td class="pe-4 text-end">
                                         @{
-                                            var orderStatusEnum = (ShoppingCard.Models.OrderStatus)order.Status;
-                                            var paymentStatusEnum = (ShoppingCard.Models.PaymentStatus)order.PaymentStatus;
+                                            var orderStatusEnum = (OrderStatus)order.Status;
+                                            var paymentStatusEnum = (PaymentStatus)order.PaymentStatus;
                                             var statusClass = orderStatusEnum switch
                                             {
-                                                ShoppingCard.Models.OrderStatus.New => "badge-new",
-                                                ShoppingCard.Models.OrderStatus.Confirmed => "badge-processed",
-                                                ShoppingCard.Models.OrderStatus.Processing => "badge-processed",
-                                                ShoppingCard.Models.OrderStatus.Shipping => "badge-processed",
-                                                ShoppingCard.Models.OrderStatus.Completed => "badge-processed",
-                                                ShoppingCard.Models.OrderStatus.Cancelled => "badge-cancelled",
+                                                OrderStatus.New => "badge-new",
+                                                OrderStatus.Confirmed => "badge-processed",
+                                                OrderStatus.Processing => "badge-processed",
+                                                OrderStatus.Shipping => "badge-processed",
+                                                OrderStatus.Completed => "badge-processed",
+                                                OrderStatus.Cancelled => "badge-cancelled",
                                                 _ => "badge-cod"
                                             };
-                                            if (paymentStatusEnum == ShoppingCard.Models.PaymentStatus.Pending) statusClass = "badge-new";
+                                            if (paymentStatusEnum == PaymentStatus.Pending) statusClass = "badge-new";
                                         }
                                         <span class="status-badge @statusClass">
-                                            @ShoppingCard.Models.OrderStatusExtensions.ToAdminDisplay(orderStatusEnum)
+                                            @orderStatusEnum.ToAdminDisplay()
                                         </span>
                                     </td>
                                 </tr>

@@ -1,4 +1,4 @@
-@model ShoppingCard.Models.ViewsModels.HomeIndexViewModel
+@model HomeDataDto
 @{
 	ViewData["Title"] = "Trang chủ";
 	Layout = "~/Views/Shared/_Layout.cshtml";
@@ -59,7 +59,7 @@
 									</div>
 
 									<div class="laptopcenter-card-specs">
-										<span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.Brand?.Name</span>
+										<span class="laptopcenter-spec-item"><i class="fa fa-building"></i> @item.BrandName</span>
 										<span class="laptopcenter-spec-item text-success"><i class="fa fa-check-circle"></i> @(string.IsNullOrEmpty(item.Condition) ? "Mới 100%" : item.Condition)</span>
 									</div>
 

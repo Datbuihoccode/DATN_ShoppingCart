@@ -1,22 +1,28 @@
-using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using ShoppingCard.Models;
-using ShoppingCard.Models.ViewsModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using ShoppingCard.Domain.Entities;
+using ShoppingCard.Models.ViewModels;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 namespace ShoppingCard.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class AccountController : Controller
     {
-        private readonly UserManager<AppUserModel> _userManager;
-        private readonly SignInManager<AppUserModel> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public AccountController(UserManager<AppUserModel> userManager,
-                                 SignInManager<AppUserModel> signInManager,
+        public AccountController(UserManager<AppUser> userManager,
+                                 SignInManager<AppUser> signInManager,
                                  IWebHostEnvironment webHostEnvironment)
         {
             _userManager = userManager;

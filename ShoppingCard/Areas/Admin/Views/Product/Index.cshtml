@@ -1,4 +1,6 @@
-@model IEnumerable<ProductModel>
+@using ShoppingCard.Application.DTOs
+@using ShoppingCard.Domain.Entities
+@model IEnumerable<ProductDto>
 @{
     ViewData["Title"] = "Quản lý sản phẩm";
 }
@@ -22,7 +24,7 @@
             <option value="">Tất cả Hãng</option>
             @if (ViewBag.Brands != null)
             {
-                foreach (var brand in ViewBag.Brands as IEnumerable<BrandModel>)
+                foreach (var brand in ViewBag.Brands as IEnumerable<Brand>)
                 {
                     <option value="@brand.Id">@brand.Name</option>
                 }
@@ -35,7 +37,7 @@
             <option value="">Tất cả Danh mục</option>
             @if (ViewBag.Categories != null)
             {
-                foreach (var category in ViewBag.Categories as IEnumerable<CategoryModel>)
+                foreach (var category in ViewBag.Categories as IEnumerable<Category>)
                 {
                     <option value="@category.Id">@category.Name</option>
                 }
@@ -74,14 +76,14 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model ?? Enumerable.Empty<ProductModel>())
+                    @foreach (var item in Model ?? Enumerable.Empty<ProductDto>())
                     {
                         var statusStr = item.Quantity > 5 ? "Còn hàng" : (item.Quantity > 0 ? "Sắp hết" : "Hết hàng");
-                        var categoryIds = string.Join(",", item.ProductCategories.Select(pc => pc.CategoryId));
+                        var categoryIds = string.Join(",", item.CategoryIds);
                         
                         <tr data-brand="@item.BrandId" data-categories="@categoryIds" data-status="@statusStr">
                             <td>
-                                <img src="@item.Image" class="rounded product-img" alt="@item.Name" onerror="this.src='https://via.placeholder.com/60'">
+                                <img src="/media/products/@item.Image" class="rounded product-img" alt="@item.Name" onerror="this.src='https://via.placeholder.com/60'">
                             </td>
                             <td>
                                 <div class="product-name truncate" title="@item.Name">@item.Name</div>
